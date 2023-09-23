@@ -10,11 +10,13 @@ import {
   Stack
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export function Login() {
   const [error, setError] = useState<string>("");
   const emailRef = useRef<HTMLInputElement>(null);
   const passRef = useRef<HTMLInputElement>(null);
+  const navigator = useNavigate();
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -27,11 +29,7 @@ export function Login() {
       return;
     }
 
-    console.log({
-      emailValue,
-      passValue
-    });
-
+    navigator('/home');
     return;
   }
 
