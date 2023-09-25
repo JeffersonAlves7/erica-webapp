@@ -1,8 +1,8 @@
 import { Box, Heading, Stack } from "@chakra-ui/react";
-import { SkusComMaiorMovimentacao } from "./components/skusComMaiorMovimentacao";
-import { SkusComEstoqueMinimo } from "./components/skusComEstoqueMinimo";
-import { SkusComGiroAbaixoDoEsperado } from "./components/skusComGiroAbaixoDoEsperado";
-import { SaidasPorData } from "./components/saidasPorData";
+import { SaidasPorData } from "../components/saidasPorData";
+import { SkusComMaiorMovimentacao } from "@/components/skusComMaiorMovimentacao";
+import { SkusComEstoqueMinimo } from "@/components/skusComEstoqueMinimo";
+import { SkusComGiroAbaixoDoEsperado } from "@/components/skusComGiroAbaixoDoEsperado";
 
 export function Relatorio() {
   return (

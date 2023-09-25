@@ -3,7 +3,7 @@ import { Login } from "./pages/login";
 import { Home } from "./pages/home";
 import { Template } from "./components/template";
 import { Relatorio } from "./pages/relatorio";
-import { IncluirLancamento } from "./pages/incluir-lancamento";
+import { IncluirLancamento } from "./pages/incluirLancamento";
 
 function App() {
   return (

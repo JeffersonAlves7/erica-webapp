@@ -1,7 +1,7 @@
 import { Box, Heading, Stack } from "@chakra-ui/react";
-import { CriarTransferencia } from "./components/criarTransferencia";
-import { CriarSaida } from "./components/criarSaida";
-import { CriarEntrada } from "./components/criarEntrada";
+import { CriarEntrada } from "../components/criarEntrada";
+import { CriarTransferencia } from "@/components/criarTransferencia";
+import { CriarSaida } from "@/components/criarSaida";
 
 export function IncluirLancamento() {
   return (
