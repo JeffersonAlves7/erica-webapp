@@ -3,6 +3,7 @@ import { Login } from "./pages/login";
 import { Home } from "./pages/home";
 import { Template } from "./components/template";
 import { Relatorio } from "./pages/relatorio";
+import { IncluirLancamento } from "./pages/incluir-lancamento";
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
           <Route path="/" element={<Login />} />
           <Route path="/home" element={<Home />} />
           <Route path="/relatorios" element={<Relatorio/>} />
+          <Route path="/incluir-lancamento" element={<IncluirLancamento/>} />
         </Routes>
       </Template>
     </BrowserRouter>
