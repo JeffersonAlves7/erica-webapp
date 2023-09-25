@@ -186,18 +186,16 @@ export function Home() {
                   <Td>{format(item.dataDeEntrada, "dd/MM/yyyy")}</Td>
                   <Td>{item.diasEmEstoque} dia(s)</Td>
                   <Td>
-                    <Flex align={"center"} justify={"center"}>
-                      <CloseButton
-                        onClick={() => {
-                          setItemIdToDelete(item.id);
-                          onOpen();
-                        }}
-                        backgroundColor={"red.400"}
-                        _hover={{
-                          opacity: 0.7
-                        }}
-                      />
-                    </Flex>
+                    <CloseButton
+                      onClick={() => {
+                        setItemIdToDelete(item.id);
+                        onOpen();
+                      }}
+                      backgroundColor={"red.400"}
+                      _hover={{
+                        opacity: 0.7
+                      }}
+                    />
                   </Td>
                 </Tr>
               ))}
