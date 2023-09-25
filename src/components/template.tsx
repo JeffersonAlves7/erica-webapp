@@ -43,7 +43,7 @@ export function Template(props: PropsWithChildren) {
       >
         <Stack className="h-full" justify={"center"}>
           <Link to={"/home"}>
-            <Heading fontWeight={"normal"} fontFamily="'Poppins', sans-serif">
+            <Heading fontWeight={"normal"} size={'lg'} fontFamily="'Poppins', sans-serif">
               Lojas Erica
             </Heading>
           </Link>
