@@ -171,7 +171,7 @@ export function Home() {
                 <Td>{item.container}</Td>
                 <Td>{item.importadora}</Td>
                 <Td>{format(item.dataDeEntrada, "dd/MM/yyyy")}</Td>
-                <Td>{item.diasEmEstoque}</Td>
+                <Td>{item.diasEmEstoque} dia(s)</Td>
                 <Td>
                   <Flex align={"center"} justify={"center"}>
                     <CloseButton
