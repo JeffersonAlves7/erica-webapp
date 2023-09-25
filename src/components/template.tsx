@@ -54,8 +54,8 @@ export function Template(props: PropsWithChildren) {
         style={{ gridArea: "aside", height: "calc(100vh - 80px)" }}
       >
         <ul className="flex flex-col gap-2">
-          {NavLinks.map((link) => (
-            <li>
+          {NavLinks.map((link, i) => (
+            <li key={`${link}-${i}-link`}>
               <Link
                 to={link.to}
                 className={`${
