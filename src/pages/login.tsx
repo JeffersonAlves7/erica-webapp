@@ -29,7 +29,7 @@ export function Login() {
       return;
     }
 
-    navigator('/home');
+    navigator("/home");
     return;
   }
 
