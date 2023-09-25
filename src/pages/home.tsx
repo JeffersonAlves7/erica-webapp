@@ -161,7 +161,7 @@ export function Home() {
         </Stack>
 
         {/* Tabela de Produtos */}
-        <Box overflowX={"scroll"}>
+        <Box overflowX={"auto"}>
           <Table>
             <Thead>
               <Tr>
