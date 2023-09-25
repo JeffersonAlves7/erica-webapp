@@ -61,7 +61,7 @@ export function CriarSaida() {
 
           <FormControl>
             <FormLabel>Quantidade</FormLabel>
-            <Input ref={quantidadeRef} />
+            <Input type="number" ref={quantidadeRef} />
           </FormControl>
 
           <FormControl>

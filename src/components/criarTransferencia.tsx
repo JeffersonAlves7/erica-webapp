@@ -42,7 +42,7 @@ export function CriarTransferencia() {
 
           <FormControl>
             <FormLabel>Quantidade</FormLabel>
-            <Input ref={quantidadeRef} />
+            <Input type="number" ref={quantidadeRef} />
           </FormControl>
 
           <FormControl>
