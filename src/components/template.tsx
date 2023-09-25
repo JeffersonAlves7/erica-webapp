@@ -71,7 +71,7 @@ export function Template(props: PropsWithChildren) {
         </ul>
       </aside>
       <main
-        className="p-6"
+        className="p-6 overflow-y-auto"
         style={{ gridArea: "main", height: "calc(100vh - 80px)" }}
       >
         {props.children}
