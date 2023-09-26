@@ -59,7 +59,7 @@ export function Template(props: PropsWithChildren) {
               <Link
                 to={link.to}
                 className={`${
-                  location.pathname == link.to
+                  location.pathname.includes(link.to)
                     ? "text-[#68D293]" // is in link's pathname
                     : "text-[#FF9F9F] hover:opacity-70"  // isn't in link's pathname
                 } text-lg underline`}

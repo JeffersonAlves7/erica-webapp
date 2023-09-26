@@ -9,8 +9,11 @@ import {
   Grid,
   Heading,
   Input,
+  Link as ChakraLink,
+  Flex
 } from "@chakra-ui/react";
 import { useRef } from "react";
+import { Link as RouterLink } from "react-router-dom";
 
 export function CriarTransferencia() {
   const codigoRef = useRef<HTMLInputElement>(null);
@@ -58,14 +61,24 @@ export function CriarTransferencia() {
       </CardBody>
 
       <CardFooter>
-        <Button
-          onClick={handleConfirm}
-          colorScheme="green"
-          backgroundColor={"erica.green"}
-          mr={6}
-        >
-          Criar
-        </Button>
+        <Flex w={"full"} justify={"space-between"} gap={6}>
+          <Button
+            onClick={handleConfirm}
+            colorScheme="green"
+            backgroundColor={"erica.green"}
+            mr={6}
+          >
+            Criar
+          </Button>
+          <ChakraLink
+            as={RouterLink}
+            to={"./conferencias"}
+            textDecoration={"underline"}
+            textColor={'#7B65FF'}
+          >
+            Conferir Transferências
+          </ChakraLink>
+        </Flex>
       </CardFooter>
     </Card>
   );

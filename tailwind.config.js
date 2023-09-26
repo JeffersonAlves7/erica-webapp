@@ -9,6 +9,10 @@ export default {
       backgroundColor: {
         "erica-green": '#68D293',
         "erica-pink": '#FF9F9F'
+      },
+      textColor: {
+        "erica-green": '#68D293',
+        "erica-pink": '#FF9F9F'
       }
     },
   },

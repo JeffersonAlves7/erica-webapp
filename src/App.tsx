@@ -4,6 +4,7 @@ import { Home } from "./pages/home";
 import { Template } from "./components/template";
 import { Relatorio } from "./pages/relatorio";
 import { IncluirLancamento } from "./pages/incluirLancamento";
+import { Conferencias } from "./pages/conferencias";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/home" element={<Home />} />
           <Route path="/relatorios" element={<Relatorio/>} />
           <Route path="/incluir-lancamento" element={<IncluirLancamento/>} />
+          <Route path="/incluir-lancamento/conferencias" element={<Conferencias/>} />
         </Routes>
       </Template>
     </BrowserRouter>
