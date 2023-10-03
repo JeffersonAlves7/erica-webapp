@@ -45,23 +45,116 @@ interface ItemHome {
   importadora: string;
   dataDeEntrada: Date;
   diasEmEstoque: number;
+  estoque: Estoque;
 }
 
-const itemExample: ItemHome = {
-  id: 1,
-  sku: "BT001",
-  container: "AY-0909",
-  dataDeEntrada: new Date(),
-  quantidadeEntrada: 100,
-  diasEmEstoque: 2,
-  saldo: 10,
-  importadora: "Y888"
-};
+const itemsExample: ItemHome[] = [
+  {
+    id: 1,
+    sku: "BT001",
+    container: "AY-0909",
+    dataDeEntrada: new Date(),
+    quantidadeEntrada: 100,
+    diasEmEstoque: 2,
+    saldo: 10,
+    importadora: "Y888",
+    estoque: "Galpão"
+  },
+  {
+    id: 2,
+    sku: "BT0201",
+    container: "AY-0909",
+    dataDeEntrada: new Date(),
+    quantidadeEntrada: 100,
+    diasEmEstoque: 2,
+    saldo: 10,
+    importadora: "Y888",
+    estoque: "Loja"
+  },
+  // add more products
+  {
+    id: 3,
+    sku: 'BT42002',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 4,
+    sku: 'BT45002',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 5,
+    sku: 'BT0032',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 6,
+    sku: 'BT0022',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 7,
+    sku: 'BT0021',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 8,
+    sku: 'BT0020',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+  {
+    id: 9,
+    sku: 'BT0010',
+    container: 'AY-0919',
+    dataDeEntrada: new Date(),
+    diasEmEstoque: 2,
+    estoque: "Galpão",
+    importadora: 'Y888',
+    quantidadeEntrada: 100,
+    saldo: 10,
+  },
+];
 
 export function Home() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [estoque, setEstoque] = useState<Estoque>("Geral");
-  const [items, setItems] = useState<ItemHome[]>([itemExample]);
+  const [items, setItems] = useState<ItemHome[]>(itemsExample);
   const [itemIdToDelete, setItemIdToDelete] = useState<ItemHome["id"] | null>(
     null
   );
@@ -71,6 +164,9 @@ export function Home() {
 
   function handleChangeEstoque(estoqueFromButton: Estoque) {
     if (estoqueFromButton == estoque) return;
+    setItems(estoqueFromButton == "Geral"
+      ? [...itemsExample]
+      : [...itemsExample.filter((item) => item.estoque == estoqueFromButton)]);
     setEstoque(estoqueFromButton);
   }
 
@@ -98,147 +194,146 @@ export function Home() {
 
   return (
     <>
-      <Stack gap={10} h={"full"}>
-        <Heading>Estoques</Heading>
+      <Stack h={'full'} justify={'space-between'}>
+        <Stack gap={10} h={"95%"}>
+          <Heading>Estoques</Heading>
 
-        {/* Seletor de estoques */}
-        <Stack direction={"row"} gap={4}>
-          {estoques.map((currentEstoque) => (
+          {/* Seletor de estoques */}
+          <Stack direction={"row"} gap={4}>
+            {estoques.map((currentEstoque) => (
+              <Button
+                key={currentEstoque + "-button"}
+                onClick={() => handleChangeEstoque(currentEstoque)}
+                w={150}
+                backgroundColor={
+                  estoque == currentEstoque ? "erica.green" : "erica.pink"
+                }
+                _hover={{ opacity: 0.7 }}
+                size={"md"}
+              >
+                {currentEstoque}
+              </Button>
+            ))}
+          </Stack>
+
+          {/* Filtros */}
+          <Stack direction={"row"} gap={4} align={"center"}>
+            <FormControl w={150}>
+              <FormLabel>
+                <p className="text-xs">Filtrar por Importadora</p>
+              </FormLabel>
+              <Input
+                placeholder="Ex.: Y888"
+                ref={importadoraInput}
+                onKeyDown={(e) => {
+                  if (e.key.toLowerCase() === "enter") {
+                    handleSearchPedidos();
+                  }
+                }}
+              />
+            </FormControl>
+            <FormControl w={150}>
+              <FormLabel>
+                <p className="text-xs">Filtrar por Código</p>
+              </FormLabel>
+              <Input
+                placeholder={"Ex.: BT0001"}
+                ref={codigoInput}
+                onKeyDown={(e) => {
+                  if (e.key.toLowerCase() === "enter") {
+                    handleSearchPedidos();
+                  }
+                }}
+              />
+            </FormControl>
             <Button
-              key={currentEstoque + "-button"}
-              onClick={() => handleChangeEstoque(currentEstoque)}
-              w={150}
-              backgroundColor={
-                estoque == currentEstoque ? "erica.green" : "erica.pink"
-              }
               _hover={{ opacity: 0.7 }}
-              size={"md"}
+              backgroundColor={"erica.green"}
+              marginTop={6}
+              onClick={handleSearchPedidos}
             >
-              {currentEstoque}
+              <BsSearch />
             </Button>
-          ))}
-        </Stack>
+          </Stack>
 
-        {/* Filtros */}
-        <Stack direction={"row"} gap={4} align={"center"}>
-          <FormControl w={150}>
-            <FormLabel>
-              <p className="text-xs">Filtrar por Importadora</p>
-            </FormLabel>
-            <Input
-              placeholder="Ex.: Y888"
-              ref={importadoraInput}
-              onKeyDown={(e) => {
-                if (e.key.toLowerCase() === "enter") {
-                  handleSearchPedidos();
-                }
-              }}
-            />
-          </FormControl>
-          <FormControl w={150}>
-            <FormLabel>
-              <p className="text-xs">Filtrar por Código</p>
-            </FormLabel>
-            <Input
-              placeholder={"Ex.: BT0001"}
-              ref={codigoInput}
-              onKeyDown={(e) => {
-                if (e.key.toLowerCase() === "enter") {
-                  handleSearchPedidos();
-                }
-              }}
-            />
-          </FormControl>
-          <Button
-            _hover={{ opacity: 0.7 }}
-            backgroundColor={"erica.green"}
-            marginTop={6}
-            onClick={handleSearchPedidos}
-          >
-            <BsSearch />
-          </Button>
-        </Stack>
-
-        {/* Tabela de Produtos */}
-        <Box overflowX={"auto"}>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>Código</Th>
-                <Th>Entrada</Th>
-                <Th>Saldo Atual</Th>
-                <Th>Container</Th>
-                <Th>Importadora</Th>
-                <Th>Data de Entrada</Th>
-                <Th>Dias em Estoque</Th>
-                <Th>Apagar</Th>
-              </Tr>
-            </Thead>
-            <Tbody>
-              {items.map((item) => (
-                <Tr key={"item-" + item.sku}>
-                  <Td>{item.sku}</Td>
-                  <Td>{item.quantidadeEntrada}</Td>
-                  <Td>{item.saldo}</Td>
-                  <Td>{item.container}</Td>
-                  <Td>{item.importadora}</Td>
-                  <Td>{format(item.dataDeEntrada, "dd/MM/yyyy")}</Td>
-                  <Td>{item.diasEmEstoque} dia(s)</Td>
-                  <Td>
-                    <CloseButton
-                      onClick={() => {
-                        setItemIdToDelete(item.id);
-                        onOpen();
-                      }}
-                      backgroundColor={"red.400"}
-                      _hover={{
-                        opacity: 0.7
-                      }}
-                    />
-                  </Td>
+          {/* Tabela de Produtos */}
+          <Box overflowX={"auto"}>
+            <Table>
+              <Thead>
+                <Tr>
+                  <Th>Código</Th>
+                  <Th>Entrada</Th>
+                  <Th>Saldo Atual</Th>
+                  <Th>Container</Th>
+                  <Th>Importadora</Th>
+                  <Th>Data de Entrada</Th>
+                  <Th>Dias em Estoque</Th>
+                  <Th>Apagar</Th>
                 </Tr>
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+              </Thead>
+              <Tbody>
+                {items.map((item) => (
+                  <Tr key={"item-" + item.sku}>
+                    <Td>{item.sku}</Td>
+                    <Td>{item.quantidadeEntrada}</Td>
+                    <Td>{item.saldo}</Td>
+                    <Td>{item.container}</Td>
+                    <Td>{item.importadora}</Td>
+                    <Td>{format(item.dataDeEntrada, "dd/MM/yyyy")}</Td>
+                    <Td>{item.diasEmEstoque} dia(s)</Td>
+                    <Td>
+                      <CloseButton
+                        onClick={() => {
+                          setItemIdToDelete(item.id);
+                          onOpen();
+                        }}
+                        backgroundColor={"red.400"}
+                        _hover={{ opacity: 0.7 }}
+                      />
+                    </Td>
+                  </Tr>
+                ))}
+              </Tbody>
+            </Table>
+          </Box>
 
+          {/* Modal para confirmar deletar produto */}
+          <AlertDialog
+            isOpen={isOpen}
+            onClose={onClose}
+            leastDestructiveRef={cancelRef}
+          >
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogBody>
+                  <p className="text-2xl font-semibold">
+                    Você realmente deseja excluir esse item? Atenção! Essa ação
+                    não pode ser desfeita
+                  </p>
+                </AlertDialogBody>
+                <AlertDialogFooter>
+                  <Button colorScheme="red" ref={cancelRef} onClick={onClose}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    colorScheme="green"
+                    backgroundColor={"erica.green"}
+                    onClick={handleDeleteItem}
+                    ml={3}
+                  >
+                    Confirmar
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+          </AlertDialog>
+        </Stack>
         {/* Resumo da quantidade */}
         <Box justifySelf={"flex-end"}>
           <span>
             {items.length} Produto(s) | Total de {qntDeCaixas} caixas.
           </span>
         </Box>
-
-        {/* Modal para confirmar deletar produto */}
-        <AlertDialog
-          isOpen={isOpen}
-          onClose={onClose}
-          leastDestructiveRef={cancelRef}
-        >
-          <AlertDialogOverlay>
-            <AlertDialogContent>
-              <AlertDialogBody>
-                <p className="text-2xl font-semibold">
-                  Você realmente deseja excluir esse item? Atenção! Essa ação
-                  não pode ser desfeita
-                </p>
-              </AlertDialogBody>
-              <AlertDialogFooter>
-                <Button colorScheme="red" ref={cancelRef} onClick={onClose}>
-                  Cancelar
-                </Button>
-                <Button
-                  colorScheme="green"
-                  backgroundColor={"erica.green"}
-                  onClick={handleDeleteItem}
-                  ml={3}
-                >
-                  Confirmar
-                </Button>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialogOverlay>
-        </AlertDialog>
       </Stack>
     </>
   );
