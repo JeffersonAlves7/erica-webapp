@@ -3,7 +3,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 
 interface Payload {
-  sub: number | string;
+  sub: string;
   email: string;
 }
 
@@ -32,10 +32,15 @@ export class AuthService {
     try {
       const { exp, iat, ...rest } =
         await this.jwtService.verifyAsync(refreshToken);
-      const payload: Payload = rest;
-      const user = await this.usersService.findOne(payload.email);
+      const oldPayload: Payload = rest;
+      const user = await this.usersService.findById(oldPayload.sub);
 
       if (!user) throw new UnauthorizedException();
+
+      const payload: Payload = {
+        email: user.email,
+        sub: user.id,
+      };
 
       return {
         access_token: await this.generateAccessToken(payload),
