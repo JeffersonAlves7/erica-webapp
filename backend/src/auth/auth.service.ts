@@ -26,15 +26,20 @@ export class AuthService {
   }
 
   async refresh(refreshToken: string) {
-    const {exp, iat, ...payload} = await this.jwtService.verifyAsync(refreshToken);
-    const user = await this.usersService.findOne(payload.username);
+    try {
+      const { exp, iat, ...payload } =
+        await this.jwtService.verifyAsync(refreshToken);
+      const user = await this.usersService.findOne(payload.username);
 
-    if (!user) {
-      throw new UnauthorizedException();
+      if (!user) {
+        throw new UnauthorizedException();
+      }
+
+      return {
+        access_token: await this.jwtService.signAsync(payload),
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid refresh token');
     }
-
-    return {
-      access_token: await this.jwtService.signAsync(payload),
-    };
   }
 }
