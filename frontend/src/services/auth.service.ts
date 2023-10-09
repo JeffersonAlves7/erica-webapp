@@ -6,6 +6,7 @@ class AuthService {
     return api.post("/auth/login", { username, password }).then((response) => {
       if (response.data.access_token) {
         tokenService.updateLocalAccessToken(response.data.access_token);
+        tokenService.updateLocalRefreshToken(response.data.refresh_token);
       }
       return response.data;
     });
@@ -19,7 +20,7 @@ class AuthService {
     });
   }
 
-  async register(username: string, email: string, password: string){
+  async register(username: string, email: string, password: string) {
     return api
       .post("/auth/register", { username, email, password })
       .then((response) => {

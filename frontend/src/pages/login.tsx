@@ -1,3 +1,4 @@
+import { authService } from "@/services/auth.service";
 import {
   Alert,
   AlertTitle,
@@ -18,7 +19,7 @@ export function Login() {
   const passRef = useRef<HTMLInputElement>(null);
   const navigator = useNavigate();
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     const emailValue = emailRef.current?.value;
@@ -28,6 +29,8 @@ export function Login() {
       setError("Email e senha precisam ser preenchidos!");
       return;
     }
+
+    await authService.login(emailValue, passValue);
 
     navigator("/home");
     return;
@@ -56,7 +59,7 @@ export function Login() {
           <FormControl w={300}>
             <FormLabel>Email</FormLabel>
             <Input
-              type="email"
+              type="text"
               placeholder="example@email.com"
               ref={emailRef}
               required
