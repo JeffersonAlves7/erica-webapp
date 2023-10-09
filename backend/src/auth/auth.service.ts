@@ -23,10 +23,8 @@ export class AuthService {
     const payload: Payload = { sub: user.id, email: user.email };
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
-      refresh_token: await this.jwtService.signAsync(payload, {
-        expiresIn: '120s',
-      }),
+      access_token: await this.generateAccessToken(payload),
+      refresh_token: await this.generateRefreshToken(payload),
     };
   }
 
@@ -40,10 +38,32 @@ export class AuthService {
       if (!user) throw new UnauthorizedException();
 
       return {
-        access_token: await this.jwtService.signAsync(payload),
+        access_token: await this.generateAccessToken(payload),
       };
     } catch (e) {
       throw new UnauthorizedException('Invalid refresh token');
     }
+  }
+
+  async register(name: string, email: string, password: string) {
+    try {
+      const user = await this.usersService.create({ name, email, password });
+      const payload: Payload = { sub: user.id, email: user.email };
+
+      return {
+        access_token: await this.generateAccessToken(payload),
+        refresh_token: await this.generateRefreshToken(payload),
+      };
+    } catch (e) {
+      throw new UnauthorizedException('Email already exists');
+    }
+  }
+
+  private generateAccessToken(payload: Payload) {
+    return this.jwtService.signAsync(payload);
+  }
+
+  private generateRefreshToken(payload: Payload) {
+    return this.jwtService.signAsync(payload, { expiresIn: '120s' });
   }
 }
