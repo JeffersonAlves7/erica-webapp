@@ -10,14 +10,26 @@ import {
   Input,
   Stack
 } from "@chakra-ui/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Login() {
   const [error, setError] = useState<string>("");
+  const [isLogged, setIsLogged] = useState<boolean>(false);
   const emailRef = useRef<HTMLInputElement>(null);
   const passRef = useRef<HTMLInputElement>(null);
   const navigator = useNavigate();
+
+  useEffect(() => {
+    authService
+      .profile()
+      .then(() => {
+        setIsLogged(true);
+      })
+      .catch(() => {
+        return;
+      });
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -35,6 +47,8 @@ export function Login() {
     navigator("/home");
     return;
   }
+
+  if (isLogged) navigator("/home");
 
   return (
     <form onSubmit={handleSubmit}>

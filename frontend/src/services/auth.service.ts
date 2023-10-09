@@ -27,6 +27,12 @@ class AuthService {
         return response.data;
       });
   }
+
+  async profile() {
+    return api.get("/auth/profile").then((response) => {
+      return response.data;
+    });
+  }
 }
 
 export const authService = new AuthService();

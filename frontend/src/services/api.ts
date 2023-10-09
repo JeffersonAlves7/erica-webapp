@@ -43,7 +43,6 @@ api.interceptors.response.use(
               headers: {
                 "Content-Type": "application/json"
               },
-              withCredentials: true
             }
           );
 
