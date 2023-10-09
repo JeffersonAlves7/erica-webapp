@@ -21,6 +21,12 @@ export class AuthController {
     return this.authService.signIn(signInDto.username, signInDto.password);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @Post('refresh')
+  refresh(@Body() refreshTokenDto: Record<string, any>) {
+    return this.authService.refresh(refreshTokenDto.refresh_token);
+  }
+
   @UseGuards(AuthGuard)
   @Get('profile')
   getProfile(@Request() req: any) {
