@@ -2,8 +2,8 @@ import api from "./api";
 import { tokenService } from "./token.service";
 
 class AuthService {
-  async login(username: string, password: string) {
-    return api.post("/auth/login", { username, password }).then((response) => {
+  async login(email: string, password: string) {
+    return api.post("/auth/login", { email, password }).then((response) => {
       if (response.data.access_token) {
         tokenService.updateLocalAccessToken(response.data.access_token);
         tokenService.updateLocalRefreshToken(response.data.refresh_token);

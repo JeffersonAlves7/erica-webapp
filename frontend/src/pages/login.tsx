@@ -73,7 +73,7 @@ export function Login() {
           <FormControl w={300}>
             <FormLabel>Email</FormLabel>
             <Input
-              type="text"
+              type="email"
               placeholder="example@email.com"
               ref={emailRef}
               required
