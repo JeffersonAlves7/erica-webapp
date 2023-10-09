@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,4 +12,49 @@ model Users {
   email    String @unique
   password String
   name     String
+}
+
+model Transactions {
+  id Int @id @default(autoincrement())
+  productId Int @map("product_id")
+  batchId Int? @map("batch_id")
+  origin String?
+  destination String?
+  importer String?
+  type TransactionType
+  entryBalance Int @default(0) @map("entry_balance")
+  outBalance Int @default(0) @map("out_balance")
+  observation String?
+  createdAt DateTime @default(now()) @map("created_at")
+}
+
+enum TransactionType {
+  RESERVE
+  DEVOLUTION
+  OUT
+  TRANSFERENCE
+  ENTRY
+}
+
+model Product {
+  code String @id @unique
+  quantity Int
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+}
+
+model BatchProducts {
+  id Int @id @default(autoincrement())
+  productCode String @map("product_code")
+  Batch Batch @relation(fields: [batchId], references: [id])
+  batchId Int @map("batch_id")
+  quantity Int
+}
+
+model Batch {
+  id Int @id @default(autoincrement())
+  products BatchProducts[]
+  quantity Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
