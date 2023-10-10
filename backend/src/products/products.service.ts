@@ -24,30 +24,11 @@ export class ProductsService implements ProductServiceInterface {
   constructor(private prismaService: PrismaService) {}
 
   async createProduct(productCreation: ProductCreation): Promise<Product> {
-    const productExists = await this.prismaService.product.findFirst({
-      where: {
-        code: productCreation.code,
-        importerId: productCreation.importer,
-      },
-    });
-
-    if (productExists) throw new NotFoundException('Product already exists');
-
     const product = await this.prismaService.product.create({
       data: {
         code: productCreation.code,
         ean: productCreation.ean,
         description: productCreation.description,
-        importer: {
-          connectOrCreate: {
-            where: {
-              id: productCreation.importer,
-            },
-            create: {
-              id: productCreation.importer,
-            },
-          },
-        },
       },
     });
 
@@ -69,9 +50,6 @@ export class ProductsService implements ProductServiceInterface {
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      include: {
-        importer: true,
-      },
     });
 
     const total = await this.prismaService.product.count();

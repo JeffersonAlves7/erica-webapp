@@ -12,7 +12,6 @@ export class ProductsController {
   createProduct(@Body() productCreation: Record<string, any>) {
     return this.productsService.createProduct({
       code: productCreation.code,
-      importer: productCreation.importer,
       description: productCreation.description,
       ean: productCreation.ean,
     });

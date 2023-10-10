@@ -21,9 +21,6 @@ model Product {
   ean String? 
   description String?
 
-  importer Importer @relation(fields: [importerId], references: [id])
-  importerId String @map("importer_id")
-
   shipments Shipment[]
   productsOnStock ProductsOnStock[]
 
@@ -85,5 +82,4 @@ model Container {
 
 model Importer {
   id String @id @unique
-  products Product[]
 }
