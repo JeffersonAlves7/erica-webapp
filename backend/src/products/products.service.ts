@@ -1,5 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { Container, Product, ProductsOnContainer } from '@prisma/client';
+import {
+  Container,
+  Importer,
+  Product,
+  ProductsOnContainer,
+  Stock,
+} from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   Pageable,
@@ -24,10 +30,26 @@ interface ProductServiceInterface {
 export class ProductsService implements ProductServiceInterface {
   constructor(private prismaService: PrismaService) {}
 
+  private getImporterId(importer: string): Importer {
+    switch (importer.toLowerCase().trim().replace(/\s/g, '')) {
+      case 'attus':
+        return Importer.ATTUS;
+      case 'attusbloom':
+        return Importer.ATTUS_BLOOM;
+      case 'attus_bloom':
+        return Importer.ATTUS_BLOOM;
+      case 'alphaynfinity':
+        return Importer.ALPHA_YNFINITY;
+      case 'alpha_ynfinity':
+        return Importer.ALPHA_YNFINITY;
+    }
+    throw new Error('Importer not found');
+  }
+
   async createProduct(productCreation: ProductCreation): Promise<Product> {
     const productFound = await this.prismaService.product.findFirst({
       where: {
-        importerId: productCreation.importer,
+        importer: this.getImporterId(productCreation.importer),
         code: productCreation.code,
       },
     });
@@ -40,16 +62,7 @@ export class ProductsService implements ProductServiceInterface {
         code: productCreation.code,
         ean: productCreation.ean,
         description: productCreation.description,
-        importer: {
-          connectOrCreate: {
-            where: {
-              id: productCreation.importer,
-            },
-            create: {
-              id: productCreation.importer,
-            },
-          },
-        },
+        importer: this.getImporterId(productCreation.importer),
       },
     });
 
@@ -108,8 +121,14 @@ export class ProductsService implements ProductServiceInterface {
 
     const product = await this.prismaService.product.findFirst({
       where: EanUtils.isEan(productEntry.codeOrEan)
-        ? { ean: productEntry.codeOrEan, importerId: productEntry.importer }
-        : { code: productEntry.codeOrEan, importerId: productEntry.importer },
+        ? {
+            ean: productEntry.codeOrEan,
+            importer: this.getImporterId(productEntry.importer),
+          }
+        : {
+            code: productEntry.codeOrEan,
+            importer: this.getImporterId(productEntry.importer),
+          },
       include: {
         productsOnContainer: true,
       },
@@ -155,6 +174,18 @@ export class ProductsService implements ProductServiceInterface {
           products: true,
         },
       });
+
+    await this.prismaService.productsOnStock.create({
+      data: {
+        quantity: productEntry.quantity,
+        product: {
+          connect: {
+            id: product.id,
+          },
+        },
+        stock: Stock.GALPAO,
+      },
+    });
 
     return productsOnContainer;
   }

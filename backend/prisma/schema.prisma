@@ -21,14 +21,21 @@ model Product {
   code                String
   ean                 String?
   description         String?
-  importerId          String                @map("importer_id")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
-  importer            importer              @relation(fields: [importerId], references: [id])
+  importer            Importer              
   productsOnContainer ProductsOnContainer[] 
+  productsOnStock     ProductsOnStock[]
 
-  @@index([importerId], map: "products_importer_id_fkey")
   @@map("products")
+}
+
+enum Importer {
+  ATTUS_BLOOM
+  ATTUS
+  ALPHA_YNFINITY
+  
+  @@map("importers")
 }
 
 model Container {
@@ -40,23 +47,36 @@ model Container {
   @@map("containers")
 }
 
-model importer {
-  id       String    @id @unique(map: "Importer_id_key")
-  products Product[]
-}
-
 model ProductsOnContainer {
   id               Int       @id @default(autoincrement())
   containerId      String    @map("container_id")
   productId        Int       @map("product_id")
   quantityExpected Int
   quantityReceived Int
-  containers       Container @relation(fields: [containerId], references: [id], map: "ProductsOnContainer_container_id_fkey")
-  products         Product   @relation(fields: [productId], references: [id], map: "ProductsOnContainer_product_id_fkey")
+  container       Container @relation(fields: [containerId], references: [id], map: "ProductsOnContainer_container_id_fkey")
+  product         Product   @relation(fields: [productId], references: [id], map: "ProductsOnContainer_product_id_fkey")
   observation     String?
   createdAt        DateTime  @default(now()) @map("created_at")
 
   @@index([containerId], map: "ProductsOnContainer_container_id_fkey")
   @@index([productId], map: "ProductsOnContainer_product_id_fkey")
   @@map("products_on_container")
+}
+
+model ProductsOnStock {
+  id              Int       @id @default(autoincrement())
+  productId       Int       @map("product_id")
+  quantity        Int
+  product        Product   @relation(fields: [productId], references: [id], map: "ProductsOnStock_product_id_fkey")
+  stock           Stock
+
+  @@index([productId], map: "ProductsOnStock_product_id_fkey")
+  @@map("products_on_stock")
+}
+
+enum Stock {
+  GALPAO
+  LOJA
+
+  @@map("stocks")
 }
