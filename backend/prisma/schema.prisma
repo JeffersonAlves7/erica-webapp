@@ -16,12 +16,13 @@ model User {
 }
 
 model Product {
-  code String @id @unique
-  ean String? @unique
+  id Int @id @default(autoincrement())
+  code String 
+  ean String? 
   description String?
 
-  importer Importer @relation(fields: [importerName], references: [name])
-  importerName String @map("importer_id")
+  importer Importer @relation(fields: [importerId], references: [id])
+  importerId String @map("importer_id")
 
   shipments Shipment[]
   productsOnStock ProductsOnStock[]
@@ -34,20 +35,21 @@ model Product {
 model Shipment {
   id Int @id @default(autoincrement())
 
-  product Product @relation(fields: [productId], references: [code])
-  productId String @map("product_id")
+  product Product @relation(fields: [productId], references: [id])
+  productId Int @map("product_id")
 
   container Container @relation(fields: [containerId], references: [id])
   containerId String @map("container_id")
 
   status ShipmentStatus
 
-  amountExpected Int
-  amountReceived Int
+  amountExpected Int @map("amount_expected")
+  amountReceived Int @map("amount_received")
 
   createdAt DateTime @default(now()) @map("created_at")
   departureDate DateTime @map("departure_date")
   updatedAt DateTime @updatedAt @map("updated_at")
+
 	@@map("shipments")
 }
 
@@ -64,8 +66,8 @@ model ProductsOnStock {
   id Int @id @default(autoincrement())
   stock Stock @relation(fields: [stockId], references: [id])
   stockId Int @map("stock_id")
-  product Product @relation(fields: [productId], references: [code])
-  productId String @map("product_id")
+  product Product @relation(fields: [productId], references: [id])
+  productId Int @map("product_id")
   quantity Int
 }
 
@@ -82,6 +84,6 @@ model Container {
 }
 
 model Importer {
-  name String @id @unique
+  id String @id @unique
   products Product[]
 }

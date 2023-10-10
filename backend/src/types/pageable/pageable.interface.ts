@@ -3,3 +3,8 @@ export interface Pageable<T> {
   total: number;
   data: T[];
 }
+
+export interface PageableParams {
+  page: number;
+  limit: number;
+}
