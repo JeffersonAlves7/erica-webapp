@@ -7,54 +7,82 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Users {
+model User {
   id       String @id @default(uuid())
   email    String @unique
   password String
   name     String
-}
-
-model Transactions {
-  id Int @id @default(autoincrement())
-  productId Int @map("product_id")
-  batchId Int? @map("batch_id")
-  origin String?
-  destination String?
-  importer String?
-  type TransactionType
-  entryBalance Int @default(0) @map("entry_balance")
-  outBalance Int @default(0) @map("out_balance")
-  observation String?
-  createdAt DateTime @default(now()) @map("created_at")
-}
-
-enum TransactionType {
-  RESERVE
-  DEVOLUTION
-  OUT
-  TRANSFERENCE
-  ENTRY
+	@@map("users")
 }
 
 model Product {
   code String @id @unique
+  ean String? @unique
+
+  shipments Shipment[]
+  productsOnStock ProductsOnStock[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+	@@map("products")
+}
+
+model Shipment {
+  id Int @id @default(autoincrement())
+
+  product Product @relation(fields: [productId], references: [code])
+  productId String @map("product_id")
+
+  container Container @relation(fields: [containerId], references: [id])
+  containerId String @map("container_id")
+
+  importer Importer @relation(fields: [importerId], references: [id])
+  importerId Int @map("importer_id")
+
+  status ShipmentStatus
+
+  amountExpected Int
+  amountReceived Int
+
+  createdAt DateTime @default(now()) @map("created_at")
+  departureDate DateTime @map("departure_date")
+  updatedAt DateTime @updatedAt @map("updated_at")
+	@@map("shipments")
+}
+
+model Stock {
+  id Int @id @default(autoincrement())
+  productId String @map("product_id")
   quantity Int
+  stockProducts ProductsOnStock[]
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 }
 
-model BatchProducts {
+model ProductsOnStock {
   id Int @id @default(autoincrement())
-  productCode String @map("product_code")
-  Batch Batch @relation(fields: [batchId], references: [id])
-  batchId Int @map("batch_id")
+  stock Stock @relation(fields: [stockId], references: [id])
+  stockId Int @map("stock_id")
+  product Product @relation(fields: [productId], references: [code])
+  productId String @map("product_id")
   quantity Int
 }
 
-model Batch {
+enum ShipmentStatus {
+  IN_TRANSIT
+  ARRIVED
+}
+
+model Container {
+  id String @id @unique
+  name String
+  shipments Shipment[]
+	@@map("containers")
+}
+
+model Importer {
   id Int @id @default(autoincrement())
-  products BatchProducts[]
-  quantity Int
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name String
+  shipments Shipment[]
+	@@map("importers")
 }
