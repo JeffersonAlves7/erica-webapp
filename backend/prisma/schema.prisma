@@ -12,88 +12,51 @@ model User {
   email    String @unique
   password String
   name     String
-	@@map("users")
+
+  @@map("users")
 }
 
 model Product {
-  id Int @id @default(autoincrement())
-  code String 
-  ean String? 
-  description String?
+  id                  Int                   @id @default(autoincrement())
+  code                String
+  ean                 String?
+  description         String?
+  importerId          String                @map("importer_id")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+  importer            importer              @relation(fields: [importerId], references: [id])
+  productsOnContainer ProductsOnContainer[] 
 
-  importer Importer @relation(fields: [importerId], references: [id])
-  importerId String @map("importer_id")
-
-  productsOnContainer ProductsOnContainer[]
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-	@@map("products")
-}
-
-model ProductsOnContainer {
-  id Int @id @default(autoincrement())
-  container Container @relation(fields: [containerId], references: [id])
-  containerId String @map("container_id")
-  product Product @relation(fields: [productId], references: [id])
-  productId Int @map("product_id")
-  quantityExpected Int 
-  quantityReceived Int
+  @@index([importerId], map: "products_importer_id_fkey")
+  @@map("products")
 }
 
 model Container {
-  id String @id @unique
-  products ProductsOnContainer[]
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-	@@map("containers")
+  id                  String                @id @unique
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @updatedAt @map("updated_at")
+  productsOnContainer ProductsOnContainer[]
+
+  @@map("containers")
 }
 
-model Importer {
-  id String @id @unique
+model importer {
+  id       String    @id @unique(map: "Importer_id_key")
   products Product[]
 }
 
-// model Shipment {
-//   id Int @id @default(autoincrement())
+model ProductsOnContainer {
+  id               Int       @id @default(autoincrement())
+  containerId      String    @map("container_id")
+  productId        Int       @map("product_id")
+  quantityExpected Int
+  quantityReceived Int
+  containers       Container @relation(fields: [containerId], references: [id], map: "ProductsOnContainer_container_id_fkey")
+  products         Product   @relation(fields: [productId], references: [id], map: "ProductsOnContainer_product_id_fkey")
+  observation     String?
+  createdAt        DateTime  @default(now()) @map("created_at")
 
-//   product Product @relation(fields: [productId], references: [id])
-//   productId Int @map("product_id")
-
-//   container Container @relation(fields: [containerId], references: [id])
-//   containerId String @map("container_id")
-
-//   status ShipmentStatus
-
-//   amountExpected Int @map("amount_expected")
-//   amountReceived Int @map("amount_received")
-
-//   createdAt DateTime @default(now()) @map("created_at")
-//   departureDate DateTime @map("departure_date")
-//   updatedAt DateTime @updatedAt @map("updated_at")
-
-// 	@@map("shipments")
-// }
-
-// model Stock {
-//   id Int @id @default(autoincrement())
-//   productId String @map("product_id")
-//   quantity Int
-//   stockProducts ProductsOnStock[]
-//   createdAt DateTime @default(now()) @map("created_at")
-//   updatedAt DateTime @updatedAt @map("updated_at")
-// }
-
-// model ProductsOnStock {
-//   id Int @id @default(autoincrement())
-//   stock Stock @relation(fields: [stockId], references: [id])
-//   stockId Int @map("stock_id")
-//   product Product @relation(fields: [productId], references: [id])
-//   productId Int @map("product_id")
-//   quantity Int
-// }
-
-// enum ShipmentStatus {
-//   IN_TRANSIT
-//   ARRIVED
-// }
+  @@index([containerId], map: "ProductsOnContainer_container_id_fkey")
+  @@index([productId], map: "ProductsOnContainer_product_id_fkey")
+  @@map("products_on_container")
+}
