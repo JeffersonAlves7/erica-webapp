@@ -20,6 +20,9 @@ model Product {
   ean String? @unique
   description String?
 
+  importer Importer @relation(fields: [importerId], references: [id])
+  importerId Int @map("importer_id")
+
   shipments Shipment[]
   productsOnStock ProductsOnStock[]
 
@@ -36,9 +39,6 @@ model Shipment {
 
   container Container @relation(fields: [containerId], references: [id])
   containerId String @map("container_id")
-
-  importer Importer @relation(fields: [importerId], references: [id])
-  importerId Int @map("importer_id")
 
   status ShipmentStatus
 
@@ -84,6 +84,5 @@ model Container {
 model Importer {
   id Int @id @default(autoincrement())
   name String
-  shipments Shipment[]
-	@@map("importers")
+  products Product[]
 }
