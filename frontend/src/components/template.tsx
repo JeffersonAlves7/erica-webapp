@@ -3,19 +3,23 @@ import { PropsWithChildren, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 const NavLinks = [
-   {
-    title: 'Estoques',
-    to: '/home'
-   },
-   {
-    title: 'Relatórios',
-    to: '/relatorios'
-   },
-   {
-    title: 'Incluir Lançamento',
-    to: '/incluir-lancamento'
-   },
-]
+  {
+    title: "Estoques",
+    to: "/home"
+  },
+  {
+    title: "Relatórios",
+    to: "/relatorios"
+  },
+  {
+    title: "Incluir Lançamento",
+    to: "/incluir-lancamento"
+  },
+  {
+    title: "Produtos",
+    to: "/produtos"
+  }
+];
 
 export function Template(props: PropsWithChildren) {
   // verifying if the user is authenticated
@@ -43,7 +47,11 @@ export function Template(props: PropsWithChildren) {
       >
         <Stack className="h-full" justify={"center"}>
           <Link to={"/home"}>
-            <Heading fontWeight={"normal"} size={'lg'} fontFamily="'Poppins', sans-serif">
+            <Heading
+              fontWeight={"normal"}
+              size={"lg"}
+              fontFamily="'Poppins', sans-serif"
+            >
               Lojas Erica
             </Heading>
           </Link>
@@ -61,7 +69,7 @@ export function Template(props: PropsWithChildren) {
                 className={`${
                   location.pathname.includes(link.to)
                     ? "text-[#68D293]" // is in link's pathname
-                    : "text-[#FF9F9F] hover:opacity-70"  // isn't in link's pathname
+                    : "text-[#FF9F9F] hover:opacity-70" // isn't in link's pathname
                 } text-lg underline`}
               >
                 {link.title}
