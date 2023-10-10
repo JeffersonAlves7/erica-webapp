@@ -158,12 +158,12 @@ export class ProductsService implements ProductServiceInterface {
         data: {
           quantityExpected: productEntry.quantity,
           quantityReceived: productEntry.quantity,
-          containers: {
+          container: {
             connect: {
               id: container.id,
             },
           },
-          products: {
+          product: {
             connect: {
               id: product.id,
             },
@@ -171,7 +171,7 @@ export class ProductsService implements ProductServiceInterface {
           observation: productEntry.observation,
         },
         include: {
-          products: true,
+          product: true,
         },
       });
 
@@ -207,7 +207,7 @@ export class ProductsService implements ProductServiceInterface {
         skip: (page - 1) * limit,
         take: limit,
         include: {
-          products: true,
+          product: true,
         },
       });
 
