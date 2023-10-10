@@ -19,7 +19,7 @@ export class UsersService {
   constructor(private prismaService: PrismaService) {}
 
   async findOne(email: string) {
-    return this.prismaService.users.findUnique({
+    return this.prismaService.user.findUnique({
       where: {
         email,
       },
@@ -27,7 +27,7 @@ export class UsersService {
   }
 
   async findById(id: string) {
-    return this.prismaService.users.findUnique({
+    return this.prismaService.user.findUnique({
       where: {
         id,
       },
@@ -35,7 +35,7 @@ export class UsersService {
   }
 
   async create(data: { email: string; name: string; password: string }) {
-    return this.prismaService.users.create({
+    return this.prismaService.user.create({
       data,
     });
   }
