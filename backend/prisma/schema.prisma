@@ -18,6 +18,7 @@ model User {
 model Product {
   code String @id @unique
   ean String? @unique
+  description String?
 
   shipments Shipment[]
   productsOnStock ProductsOnStock[]
