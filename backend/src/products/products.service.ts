@@ -29,6 +29,16 @@ export class ProductsService implements ProductServiceInterface {
         code: productCreation.code,
         ean: productCreation.ean,
         description: productCreation.description,
+        importer: {
+          connectOrCreate: {
+            where: {
+              id: productCreation.importer,
+            },
+            create: {
+              id: productCreation.importer,
+            },
+          },
+        },
       },
     });
 
@@ -40,7 +50,7 @@ export class ProductsService implements ProductServiceInterface {
   ): Promise<Pageable<Product>> {
     let { page, limit } = pageableParams;
 
-    if(limit > 100){
+    if (limit > 100) {
       throw new HttpException(
         `Maximum limit is ${100}`,
         HttpStatus.BAD_REQUEST,

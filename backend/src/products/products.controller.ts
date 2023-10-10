@@ -14,6 +14,7 @@ export class ProductsController {
       code: productCreation.code,
       description: productCreation.description,
       ean: productCreation.ean,
+      importer: productCreation.importer,
     });
   }
 
