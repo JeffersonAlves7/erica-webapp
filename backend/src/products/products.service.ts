@@ -175,17 +175,37 @@ export class ProductsService implements ProductServiceInterface {
         },
       });
 
-    await this.prismaService.productsOnStock.create({
-      data: {
-        quantity: productEntry.quantity,
-        product: {
-          connect: {
-            id: product.id,
-          },
-        },
+    
+    const productAlreadyOnStock = await this.prismaService.productsOnStock.findFirst({
+      where: {
+        productId: product.id,
         stock: Stock.GALPAO,
-      },
-    });
+      }
+    })
+
+    if(productAlreadyOnStock) {
+      await this.prismaService.productsOnStock.update({
+        where: {
+          id: productAlreadyOnStock.id
+        },
+        data: {
+          quantity: productAlreadyOnStock.quantity + productEntry.quantity
+        }
+      })
+    }
+    else{
+      await this.prismaService.productsOnStock.create({
+        data: {
+          quantity: productEntry.quantity,
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+          stock: Stock.GALPAO,
+        },
+      });
+    }
 
     return productsOnContainer;
   }
