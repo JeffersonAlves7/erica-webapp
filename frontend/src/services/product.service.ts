@@ -34,7 +34,7 @@ interface EntryResponse {
 }
 
 interface EntriesFilterParams {
-  importer?: Importer
+  importer?: Importer | string
   search?: string // code, ean, description or container
   orderBy?: string // createdAt_ASC or createdAt_DESC
 }

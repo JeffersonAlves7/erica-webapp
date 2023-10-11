@@ -1,4 +1,5 @@
 import { ButtonSelector } from "@/components/buttonSelector";
+import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import {
   Box,
@@ -11,7 +12,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Product {
   id: number;
@@ -24,32 +25,85 @@ interface Product {
 export function Produtos() {
   const [page, setPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
-  const importers = ["Geral", "Attus Bloom", "Attus", "Alpha Ynfinity"]
+  const [importer, setImporter] = useState("Geral");
+
+  const searchRef = useRef<HTMLInputElement>(null);
+  const importers = ["Geral", "Attus Bloom", "Attus", "Alpha Ynfinity"];
 
   useEffect(() => {
-    productService.getEntries({
-      page: page,
-      limit: 10,
-    }).then((response) => {
-      const products = response.data.map((product) => {
-        return {
-          id: product.id,
-          containerNumber: product.containerId,
-          importadora: product.product.importer,
-          codigo: product.product.code,
-          descricao: product.product.description,
-        };
+    productService
+      .getEntries({
+        page: page,
+        limit: 10
+      })
+      .then((response) => {
+        const products = response.data.map((product) => {
+          return {
+            id: product.id,
+            containerNumber: product.containerId,
+            importadora: product.product.importer,
+            codigo: product.product.code,
+            descricao: product.product.description
+          };
+        });
+
+        setProducts(products);
+      })
+      .catch((error) => {
+        console.log(error);
       });
+  }, []);
 
-      setProducts(products);
-    })
-    .catch((error) => {
-      console.log(error);
-    });
-  }, [])
+  useEffect(() => {
+    productService
+      .getEntries({
+        page: page,
+        limit: 10,
+        importer: importer === "Geral" ? undefined : importer
+      })
+      .then((response) => {
+        const products = response.data.map((product) => {
+          return {
+            id: product.id,
+            containerNumber: product.containerId,
+            importadora: product.product.importer,
+            codigo: product.product.code,
+            descricao: product.product.description
+          };
+        });
 
-  function handleChangeImporter(index: number){
-    console.log(importers[index])
+        setProducts(products);
+      })
+      .catch((error) => {
+        handleError401(error);
+        console.log(error);
+      });
+  }, [importer]);
+
+  function handleSearch() {
+    productService
+      .getEntries({
+        page: page,
+        limit: 10,
+        search: searchRef.current?.value
+      })
+      .then((response) => {
+        const products = response.data.map((product) => {
+          return {
+            id: product.id,
+            containerNumber: product.containerId,
+            importadora: product.product.importer,
+            codigo: product.product.code,
+            descricao: product.product.description
+          };
+        });
+
+        setProducts(products);
+      })
+      .catch((error) => {
+        handleError401(error);
+        console.log(error);
+      });
   }
 
   return (
@@ -58,12 +112,20 @@ export function Produtos() {
       <Input
         mb={6}
         placeholder="Buscar por Número do container, código ou descrição"
+        ref={searchRef}
+        onKeyUp={(e) => {
+          if (e.key === "Backspace" && !searchRef.current?.value)
+            handleSearch();
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") handleSearch();
+        }}
       />
       <Box mb={6}>
         <ButtonSelector
           keyPrefix="lista-produtos"
           titles={importers}
-          onClick={handleChangeImporter}
+          onClick={(index) => setImporter(importers[index])}
         />
       </Box>
       <Table>
