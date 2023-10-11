@@ -138,7 +138,7 @@ export function CriarEntrada() {
                 {Object.keys(Operator).map((key) => {
                   return (
                     <option key={"operator-" + key} value={key}>
-                      {key}
+                      {Operator[key as keyof typeof Operator]}
                     </option>
                   );
                 })}
