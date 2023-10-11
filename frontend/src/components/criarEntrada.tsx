@@ -19,7 +19,7 @@ import {
   Select
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { tokenService } from "@/services/token.service";
+import { handleError401 } from "@/services/api";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");
@@ -73,12 +73,7 @@ export function CriarEntrada() {
         setStatus("success");
       })
       .catch((err) => {
-        if (err.response.status === 401) {
-          tokenService.removeLocalAccessToken();
-          tokenService.removeLocalRefreshToken();
-          window.location.reload();
-        }
-
+        handleError401(err);
         switch (err.response.data.message) {
           case "Product not found":
             setError("Produto não encontrado");

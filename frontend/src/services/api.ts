@@ -60,4 +60,12 @@ api.interceptors.response.use(
   }
 );
 
+export const handleError401 = (err: any): void => {
+  if (err?.response?.status === 401) {
+    tokenService.removeLocalAccessToken();
+    tokenService.removeLocalRefreshToken();
+    window.location.reload();
+  }
+};
+
 export default api;
