@@ -6,6 +6,7 @@ import { Relatorio } from "./pages/relatorio";
 import { IncluirLancamento } from "./pages/incluirLancamento";
 import { Conferencias } from "./pages/conferencias";
 import { Produtos } from "./pages/produtos";
+import { ProtectedRoute } from "./components/protectedRoute";
 
 function App() {
   return (
@@ -13,11 +14,39 @@ function App() {
       <Template>
         <Routes>
           <Route path="/" element={<Login />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/relatorios" element={<Relatorio/>} />
-          <Route path="/incluir-lancamento" element={<IncluirLancamento/>} />
-          <Route path="/incluir-lancamento/conferencias" element={<Conferencias/>} />
-          <Route path="/produtos" element={<Produtos/>} />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/relatorios"
+            element={
+              <ProtectedRoute>
+                <Relatorio />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/incluir-lancamento" element={<IncluirLancamento />} />
+          <Route
+            path="/incluir-lancamento/conferencias"
+            element={
+              <ProtectedRoute>
+                <Conferencias />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/produtos"
+            element={
+              <ProtectedRoute>
+                <Produtos />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Template>
     </BrowserRouter>

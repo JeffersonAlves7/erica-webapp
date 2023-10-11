@@ -21,6 +21,12 @@ export function Login() {
   const navigator = useNavigate();
 
   useEffect(() => {
+    const token = localStorage.getItem("access_token");
+
+    if(!token) {
+      return;
+    };
+
     authService
       .profile()
       .then(() => {

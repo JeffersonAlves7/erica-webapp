@@ -1,0 +1,5 @@
+export enum Importer {
+  ATTUS = 'ATTUS',
+  ATTUS_BLOOM = 'ATTUS_BLOOM',
+  ALPHA_YNFINITY = 'ALPHA_YNFINITY',
+}
