@@ -1,4 +1,5 @@
 import { ButtonSelector } from "@/components/buttonSelector";
+import { productService } from "@/services/product.service";
 import {
   Box,
   Heading,
@@ -20,22 +21,31 @@ interface Product {
   descricao: string;
 }
 
-const productsExample: Product[] = [{
-  id: 1,
-  containerNumber: "123456789",
-  importadora: "Attus",
-  codigo: "BT001",
-  descricao: "Descrição"
-}]
-
-
-
 export function Produtos() {
+  const [page, setPage] = useState(1);
   const [products, setProducts] = useState<Product[]>([]);
   const importers = ["Geral", "Attus Bloom", "Attus", "Alpha Ynfinity"]
 
   useEffect(() => {
-    setProducts(productsExample);
+    productService.getEntries({
+      page: page,
+      limit: 10,
+    }).then((response) => {
+      const products = response.data.map((product) => {
+        return {
+          id: product.id,
+          containerNumber: product.containerId,
+          importadora: product.product.importer,
+          codigo: product.product.code,
+          descricao: product.product.description,
+        };
+      });
+
+      setProducts(products);
+    })
+    .catch((error) => {
+      console.log(error);
+    });
   }, [])
 
   function handleChangeImporter(index: number){

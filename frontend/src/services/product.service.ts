@@ -24,13 +24,19 @@ interface Product {
 
 interface EntryResponse {
   id: number;
-  containerId: number;
+  containerId: string;
   productId: number;
   quantityExpected: number;
   quantityReceived: number;
   observation: string;
   createdAt: Date;
   product: Product;
+}
+
+interface EntriesFilterParams {
+  importer?: Importer
+  search?: string // code, ean, description or container
+  orderBy?: string // createdAt_ASC or createdAt_DESC
 }
 
 class ProductService {
@@ -47,7 +53,7 @@ class ProductService {
   }
 
   async getEntries(
-    pageableParams: PageableParams
+    pageableParams: PageableParams & EntriesFilterParams
   ): Promise<Pageable<EntryResponse>> {
     const response = await api.get("/products/entries", {
       params: pageableParams
