@@ -11,8 +11,11 @@ import {
   Pageable,
   PageableParams,
 } from 'src/types/pageable/pageable.interface';
-import { ProductCreation } from './types/product-creation.interface';
-import { ProductEntry } from './types/product-entry.interface';
+import {
+  EntriesFilterParams,
+  ProductCreation,
+  ProductEntry,
+} from './types/product.interface';
 import { EanUtils } from 'src/utils/ean-utils';
 
 interface ProductServiceInterface {
@@ -22,7 +25,7 @@ interface ProductServiceInterface {
   ): Promise<Pageable<Product>>;
   entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer>;
   getAllEntriesByPage(
-    pageableParams: PageableParams,
+    pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<ProductsOnContainer>>;
 }
 
@@ -175,25 +178,24 @@ export class ProductsService implements ProductServiceInterface {
         },
       });
 
-    
-    const productAlreadyOnStock = await this.prismaService.productsOnStock.findFirst({
-      where: {
-        productId: product.id,
-        stock: Stock.GALPAO,
-      }
-    })
+    const productAlreadyOnStock =
+      await this.prismaService.productsOnStock.findFirst({
+        where: {
+          productId: product.id,
+          stock: Stock.GALPAO,
+        },
+      });
 
-    if(productAlreadyOnStock) {
+    if (productAlreadyOnStock) {
       await this.prismaService.productsOnStock.update({
         where: {
-          id: productAlreadyOnStock.id
+          id: productAlreadyOnStock.id,
         },
         data: {
-          quantity: productAlreadyOnStock.quantity + productEntry.quantity
-        }
-      })
-    }
-    else{
+          quantity: productAlreadyOnStock.quantity + productEntry.quantity,
+        },
+      });
+    } else {
       await this.prismaService.productsOnStock.create({
         data: {
           quantity: productEntry.quantity,
@@ -211,9 +213,12 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async getAllEntriesByPage(
-    pageableParams: PageableParams,
+    pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<any>> {
-    let { page, limit } = pageableParams;
+    let { page, limit, search, importer, orderBy } = pageableParams;
+
+    if (!limit) limit = 10;
+    if (!page) page = 1;
 
     if (limit > 100) {
       throw new HttpException(
@@ -226,6 +231,21 @@ export class ProductsService implements ProductServiceInterface {
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
+        where: {
+          product: {
+            importer: importer ? this.getImporterId(importer) : undefined,
+            OR:
+              (search && [
+                { code: search },
+                { ean: search },
+                { description: search },
+              ]) ||
+              undefined,
+          },
+        },
+        orderBy: {
+          createdAt: orderBy === 'asc' ? 'asc' : 'desc',
+        },
         include: {
           product: true,
         },

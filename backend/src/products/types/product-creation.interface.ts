@@ -1,6 +1,0 @@
-export interface ProductCreation {
-  code: string,
-  ean?: string,
-  description?: string,
-  importer: string,
-}

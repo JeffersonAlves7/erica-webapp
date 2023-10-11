@@ -55,9 +55,14 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('entries')
   getAllEntries(@Query() query: Record<string, any>) {
+    const { page, limit, importer, search, orderBy } = query;
+
     return this.productsService.getAllEntriesByPage({
       page: Number(query.page),
       limit: Number(query.limit),
+      importer,
+      search,
+      orderBy
     });
   }
 }
