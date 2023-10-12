@@ -1,7 +1,6 @@
 import { Pageable, PageableParams } from "@/types/pageable.interface";
 import api from "./api";
 import { Importer } from "@/types/importer.enum";
-import { AxiosResponse } from "axios";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -19,6 +18,10 @@ interface Product {
   description: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+interface Container {
+  id: string;
   importer: Importer;
 }
 
@@ -26,6 +29,7 @@ interface EntryResponse {
   id: number;
   containerId: string;
   productId: number;
+  container: Container;
   quantityExpected: number;
   quantityReceived: number;
   observation: string;
@@ -64,7 +68,6 @@ class ProductService {
 
   async createEntry(productEntry: ProductEntry): Promise<EntryResponse> {
     const response = await api.post("/products/entry", productEntry);
-
     return response.data as EntryResponse;
   }
 }

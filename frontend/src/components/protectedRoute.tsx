@@ -15,7 +15,6 @@ export function ProtectedRoute(props: PropsWithChildren<{}>) {
       navigation("/");
       return;
     }
-
     productService
       .getProducts({ limit: 1, page: 1 })
       .then(() => {

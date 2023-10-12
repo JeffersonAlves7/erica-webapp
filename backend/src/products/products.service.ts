@@ -181,6 +181,7 @@ export class ProductsService implements ProductServiceInterface {
         },
         include: {
           product: true,
+          container: true,
         },
       });
 
@@ -233,35 +234,132 @@ export class ProductsService implements ProductServiceInterface {
       );
     }
 
+    const obj = {
+      skip: (page - 1) * limit,
+      take: limit,
+      where: {
+        container: {
+          importer: importer ? this.getImporterId(importer) : undefined,
+          id: importer ? undefined : search,
+        },
+        product: {
+          OR:
+            (search && [
+              { code: search },
+              { ean: search },
+              { description: search },
+            ]) ||
+            undefined,
+        },
+      },
+      orderBy: {
+        createdAt: orderBy === 'asc' ? 'asc' : 'desc',
+      },
+      include: {
+        product: true,
+        container: true,
+      },
+    };
+
     const productsOnContainer =
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where: {
-          container: {
-            importer: importer ? this.getImporterId(importer) : undefined,
-          },
-          product: {
-            OR:
-              (search && [
-                { code: search },
-                { ean: search },
-                { description: search },
-              ]) ||
-              undefined,
-          },
-        },
+        where: search
+          ? {
+              AND: [
+                {
+                  OR: [
+                    {
+                      product: {
+                        code: search,
+                      },
+                    },
+                    {
+                      product: {
+                        ean: search,
+                      },
+                    },
+                    {
+                      product: {
+                        description: search,
+                      },
+                    },
+                    {
+                      container: {
+                        id: search,
+                      },
+                    },
+                  ],
+                },
+                {
+                  container: {
+                    importer: importer
+                      ? this.getImporterId(importer)
+                      : undefined,
+                  },
+                },
+              ],
+            }
+          : {
+              container: {
+                importer: importer ? this.getImporterId(importer) : undefined,
+              },
+            },
         orderBy: {
           createdAt: orderBy === 'asc' ? 'asc' : 'desc',
         },
         include: {
           product: true,
+          container: true,
         },
       });
 
+    const total = await this.prismaService.productsOnContainer.count({
+      where: search
+        ? {
+            AND: [
+              {
+                OR: [
+                  {
+                    product: {
+                      code: search,
+                    },
+                  },
+                  {
+                    product: {
+                      ean: search,
+                    },
+                  },
+                  {
+                    product: {
+                      description: search,
+                    },
+                  },
+                  {
+                    container: {
+                      id: search,
+                    },
+                  },
+                ],
+              },
+              {
+                container: {
+                  importer: importer ? this.getImporterId(importer) : undefined,
+                },
+              },
+            ],
+          }
+        : {
+            container: {
+              importer: importer ? this.getImporterId(importer) : undefined,
+            },
+          },
+    });
+
     return {
       page,
-      total: productsOnContainer.length,
+      total: total,
       data: productsOnContainer,
     };
   }
@@ -271,7 +369,10 @@ export class ProductsService implements ProductServiceInterface {
    * @param container The container id
    * @returns
    */
-  private async findOrCreateContainer(container: string, importer: Importer): Promise<Container> {
+  private async findOrCreateContainer(
+    container: string,
+    importer: Importer,
+  ): Promise<Container> {
     return this.prismaService.container.upsert({
       where: {
         id: container,
