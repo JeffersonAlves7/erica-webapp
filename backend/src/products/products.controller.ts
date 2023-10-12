@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -75,6 +76,14 @@ export class ProductsController {
       observation: productExit.observation,
       quantity: productExit.quantity,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Delete('transaction')
+  deleteTransaction(@Query() query: Record<string, any>) {
+    const { id } = query;
+    return this.productsService.deleteTransaction(parseInt(id));
   }
 
   @UseGuards(AuthGuard)

@@ -35,6 +35,7 @@ interface ProductServiceInterface {
 
   exitProduct(productExit: ProductExit): Promise<Transaction>;
 
+  deleteTransaction(id: number): Promise<Transaction>;
   getAllTransactionsByPage(
     pageableParams: PageableParams & TransactionFilterParams,
   ): Promise<Pageable<Transaction>>;
@@ -251,33 +252,6 @@ export class ProductsService implements ProductServiceInterface {
       );
     }
 
-    const obj = {
-      skip: (page - 1) * limit,
-      take: limit,
-      where: {
-        container: {
-          importer: importer ? this.getImporterId(importer) : undefined,
-          id: importer ? undefined : search,
-        },
-        product: {
-          OR:
-            (search && [
-              { code: search },
-              { ean: search },
-              { description: search },
-            ]) ||
-            undefined,
-        },
-      },
-      orderBy: {
-        createdAt: orderBy === 'asc' ? 'asc' : 'desc',
-      },
-      include: {
-        product: true,
-        container: true,
-      },
-    };
-
     const productsOnContainer =
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
@@ -460,6 +434,52 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     return transaction;
+  }
+  
+  async deleteTransaction(id: number): Promise<Transaction> {
+    if (!id)
+      throw new HttpException(
+        `Transaction id is required`,
+        HttpStatus.BAD_REQUEST,
+      );
+
+    const deleted = await this.prismaService.transaction.delete({
+      where: {
+        id,
+      },
+    });
+
+    if (!deleted)
+      throw new HttpException(`Transaction not found`, HttpStatus.BAD_REQUEST);
+
+    const { fromStock, toStock, type } = deleted;
+
+    if(type == TransactionType.ENTRY) {
+      await this.prismaService.product.update({
+        where: {
+          id: deleted.productId,
+        },
+        data: {
+          [toStock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+            decrement: deleted.entryAmount,
+          },
+        },
+      });
+    }
+    else if(type == TransactionType.EXIT) {
+      await this.prismaService.product.update({
+        where: {
+          id: deleted.productId,
+        },
+        data: {
+          [fromStock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+            increment: deleted.exitAmount,
+          },
+        },
+      });
+    }
+
+    return deleted;
   }
 
   async getAllTransactionsByPage(
