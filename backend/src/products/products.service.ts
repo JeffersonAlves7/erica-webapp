@@ -136,7 +136,17 @@ export class ProductsService implements ProductServiceInterface {
     if (!product)
       throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
 
-    const container = await this.findOrCreateContainer(productEntry.container);
+    const container = await this.findOrCreateContainer(
+      productEntry.container,
+      this.getImporterId(productEntry.importer),
+    );
+
+    if (container.importer !== this.getImporterId(productEntry.importer)) {
+      throw new HttpException(
+        `Container ${container.id} already exists for another importer`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
 
     const productsOnContainerFound =
       await this.prismaService.productsOnContainer.findFirst({
@@ -162,7 +172,6 @@ export class ProductsService implements ProductServiceInterface {
               id: container.id,
             },
           },
-          importer: this.getImporterId(productEntry.importer),
           product: {
             connect: {
               id: product.id,
@@ -229,7 +238,9 @@ export class ProductsService implements ProductServiceInterface {
         skip: (page - 1) * limit,
         take: limit,
         where: {
-          importer: importer ? this.getImporterId(importer) : undefined,
+          container: {
+            importer: importer ? this.getImporterId(importer) : undefined,
+          },
           product: {
             OR:
               (search && [
@@ -260,13 +271,14 @@ export class ProductsService implements ProductServiceInterface {
    * @param container The container id
    * @returns
    */
-  private async findOrCreateContainer(container: string): Promise<Container> {
+  private async findOrCreateContainer(container: string, importer: Importer): Promise<Container> {
     return this.prismaService.container.upsert({
       where: {
         id: container,
       },
       create: {
         id: container,
+        importer,
       },
       update: {},
     });
