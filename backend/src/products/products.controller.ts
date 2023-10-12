@@ -61,7 +61,19 @@ export class ProductsController {
       limit: Number(query.limit),
       importer,
       search,
-      orderBy
+      orderBy,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('exit')
+  exitProduct(@Body() productExit: Record<string, any>) {
+    return this.productsService.exitProduct({
+      codeOrEan: productExit.codeOrEan,
+      from: productExit.from,
+      observation: productExit.observation,
+      quantity: productExit.quantity,
     });
   }
 
@@ -75,7 +87,7 @@ export class ProductsController {
       page: Number(page),
       limit: Number(limit),
       type,
-      orderBy
+      orderBy,
     });
   }
 }

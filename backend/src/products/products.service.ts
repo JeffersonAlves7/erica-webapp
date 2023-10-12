@@ -17,6 +17,7 @@ import {
   EntriesFilterParams,
   ProductCreation,
   ProductEntry,
+  ProductExit,
   TransactionFilterParams,
 } from './types/product.interface';
 import { EanUtils } from 'src/utils/ean-utils';
@@ -26,10 +27,14 @@ interface ProductServiceInterface {
   getAllProductsByPage(
     pageableParams: PageableParams,
   ): Promise<Pageable<Product>>;
+
   entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer>;
   getAllEntriesByPage(
     pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<ProductsOnContainer>>;
+
+  exitProduct(productExit: ProductExit): Promise<Transaction>;
+
   getAllTransactionsByPage(
     pageableParams: PageableParams & TransactionFilterParams,
   ): Promise<Pageable<Transaction>>;
@@ -53,6 +58,18 @@ export class ProductsService implements ProductServiceInterface {
         return Importer.ALPHA_YNFINITY;
     }
     throw new Error('Importer not found');
+  }
+
+  private getStockId(stock: string): Stock {
+    switch (stock.toLowerCase().trim().replace(/\s/g, '')) {
+      case 'galpao':
+        return Stock.GALPAO;
+      case 'galpão':
+        return Stock.GALPAO;
+      case 'loja':
+        return Stock.LOJA;
+    }
+    throw new Error('Stock not found');
   }
 
   async createProduct(productCreation: ProductCreation): Promise<Product> {
@@ -190,7 +207,7 @@ export class ProductsService implements ProductServiceInterface {
           container: true,
         },
       });
-    
+
     await this.prismaService.product.update({
       where: {
         id: product.id,
@@ -364,7 +381,90 @@ export class ProductsService implements ProductServiceInterface {
     };
   }
 
-  async getAllTransactionsByPage(pageableParams: PageableParams & TransactionFilterParams): Promise<Pageable<Transaction>> {
+  async exitProduct(productExit: ProductExit): Promise<Transaction> {
+    if (!productExit.codeOrEan)
+      throw new HttpException(
+        `Code or EAN is required`,
+        HttpStatus.BAD_REQUEST,
+      );
+
+    if (!productExit.from)
+      throw new HttpException(`From is required`, HttpStatus.BAD_REQUEST);
+
+    if (!productExit.quantity)
+      throw new HttpException(`Quantity is required`, HttpStatus.BAD_REQUEST);
+
+    const product = await this.prismaService.product.findFirst({
+      where: EanUtils.isEan(productExit.codeOrEan)
+        ? {
+            ean: productExit.codeOrEan,
+          }
+        : {
+            code: productExit.codeOrEan,
+          },
+    });
+
+    if (!product)
+      throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
+
+    const stockId = this.getStockId(productExit.from);
+
+    if (stockId === Stock.LOJA) {
+      if (product.lojaQuantity < productExit.quantity)
+        throw new HttpException(
+          `Quantity not available`,
+          HttpStatus.BAD_REQUEST,
+        );
+      await this.prismaService.product.update({
+        where: {
+          id: product.id,
+        },
+        data: {
+          lojaQuantity: {
+            decrement: productExit.quantity,
+          },
+        },
+      });
+    } else if (stockId === Stock.GALPAO) {
+      if (product.galpaoQuantity < productExit.quantity)
+        throw new HttpException(
+          `Quantity not available`,
+          HttpStatus.BAD_REQUEST,
+        );
+      await this.prismaService.product.update({
+        where: {
+          id: product.id,
+        },
+        data: {
+          galpaoQuantity: {
+            decrement: productExit.quantity,
+          },
+        },
+      });
+    } else {
+      throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
+    }
+
+    const transaction = await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: product.id,
+          },
+        },
+        fromStock: stockId,
+        exitAmount: productExit.quantity,
+        type: TransactionType.EXIT,
+        observation: productExit.observation,
+      },
+    });
+
+    return transaction;
+  }
+
+  async getAllTransactionsByPage(
+    pageableParams: PageableParams & TransactionFilterParams,
+  ): Promise<Pageable<Transaction>> {
     const transactions = await this.prismaService.transaction.findMany({
       skip: (pageableParams.page - 1) * pageableParams.limit,
       take: pageableParams.limit,
@@ -375,7 +475,7 @@ export class ProductsService implements ProductServiceInterface {
         createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
       },
     });
-    
+
     const total = await this.prismaService.transaction.count({
       where: {
         type: pageableParams.type,
@@ -387,10 +487,6 @@ export class ProductsService implements ProductServiceInterface {
       total,
       data: transactions,
     };
-  }
-  
-  private async createProductTransaction(type: TransactionType){
-
   }
 
   /**

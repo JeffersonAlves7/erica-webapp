@@ -21,6 +21,13 @@ export interface EntriesFilterParams {
   orderBy?: string; // createdAt_ASC or createdAt_DESC
 }
 
+export interface ProductExit {
+  codeOrEan: string;
+  quantity: number;
+  from: Stock;
+  observation?: string;
+}
+
 export interface TransactionFilterParams {
   type?: TransactionType;
   orderBy?: string; // createdAt_ASC or createdAt_DESC
