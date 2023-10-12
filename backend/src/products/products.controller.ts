@@ -64,4 +64,18 @@ export class ProductsController {
       orderBy
     });
   }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('transactions')
+  getAllTransactions(@Query() query: Record<string, any>) {
+    const { page, limit, type, orderBy } = query;
+
+    return this.productsService.getAllTransactionsByPage({
+      page: Number(page),
+      limit: Number(limit),
+      type,
+      orderBy
+    });
+  }
 }

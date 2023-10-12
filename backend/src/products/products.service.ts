@@ -5,6 +5,8 @@ import {
   Product,
   ProductsOnContainer,
   Stock,
+  Transaction,
+  TransactionType,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
@@ -15,6 +17,7 @@ import {
   EntriesFilterParams,
   ProductCreation,
   ProductEntry,
+  TransactionFilterParams,
 } from './types/product.interface';
 import { EanUtils } from 'src/utils/ean-utils';
 
@@ -27,6 +30,9 @@ interface ProductServiceInterface {
   getAllEntriesByPage(
     pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<ProductsOnContainer>>;
+  getAllTransactionsByPage(
+    pageableParams: PageableParams & TransactionFilterParams,
+  ): Promise<Pageable<Transaction>>;
 }
 
 @Injectable()
@@ -184,37 +190,31 @@ export class ProductsService implements ProductServiceInterface {
           container: true,
         },
       });
+    
+    await this.prismaService.product.update({
+      where: {
+        id: product.id,
+      },
+      data: {
+        galpaoQuantity: {
+          increment: productEntry.quantity,
+        },
+      },
+    });
 
-    const productAlreadyOnStock =
-      await this.prismaService.productsOnStock.findFirst({
-        where: {
-          productId: product.id,
-          stock: Stock.GALPAO,
-        },
-      });
-
-    if (productAlreadyOnStock) {
-      await this.prismaService.productsOnStock.update({
-        where: {
-          id: productAlreadyOnStock.id,
-        },
-        data: {
-          quantity: productAlreadyOnStock.quantity + productEntry.quantity,
-        },
-      });
-    } else {
-      await this.prismaService.productsOnStock.create({
-        data: {
-          quantity: productEntry.quantity,
-          product: {
-            connect: {
-              id: product.id,
-            },
+    await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: product.id,
           },
-          stock: Stock.GALPAO,
         },
-      });
-    }
+        toStock: Stock.GALPAO,
+        entryAmount: productEntry.quantity,
+        type: TransactionType.ENTRY,
+        observation: productEntry.observation,
+      },
+    });
 
     return productsOnContainer;
   }
@@ -362,6 +362,35 @@ export class ProductsService implements ProductServiceInterface {
       total: total,
       data: productsOnContainer,
     };
+  }
+
+  async getAllTransactionsByPage(pageableParams: PageableParams & TransactionFilterParams): Promise<Pageable<Transaction>> {
+    const transactions = await this.prismaService.transaction.findMany({
+      skip: (pageableParams.page - 1) * pageableParams.limit,
+      take: pageableParams.limit,
+      where: {
+        type: pageableParams.type,
+      },
+      orderBy: {
+        createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
+      },
+    });
+    
+    const total = await this.prismaService.transaction.count({
+      where: {
+        type: pageableParams.type,
+      },
+    });
+
+    return {
+      page: pageableParams.page,
+      total,
+      data: transactions,
+    };
+  }
+  
+  private async createProductTransaction(type: TransactionType){
+
   }
 
   /**
