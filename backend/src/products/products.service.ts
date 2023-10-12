@@ -52,7 +52,6 @@ export class ProductsService implements ProductServiceInterface {
   async createProduct(productCreation: ProductCreation): Promise<Product> {
     const productFound = await this.prismaService.product.findFirst({
       where: {
-        importer: this.getImporterId(productCreation.importer),
         code: productCreation.code,
       },
     });
@@ -65,7 +64,6 @@ export class ProductsService implements ProductServiceInterface {
         code: productCreation.code,
         ean: productCreation.ean,
         description: productCreation.description,
-        importer: this.getImporterId(productCreation.importer),
       },
     });
 
@@ -126,11 +124,9 @@ export class ProductsService implements ProductServiceInterface {
       where: EanUtils.isEan(productEntry.codeOrEan)
         ? {
             ean: productEntry.codeOrEan,
-            importer: this.getImporterId(productEntry.importer),
           }
         : {
             code: productEntry.codeOrEan,
-            importer: this.getImporterId(productEntry.importer),
           },
       include: {
         productsOnContainer: true,
@@ -166,6 +162,7 @@ export class ProductsService implements ProductServiceInterface {
               id: container.id,
             },
           },
+          importer: this.getImporterId(productEntry.importer),
           product: {
             connect: {
               id: product.id,
@@ -232,8 +229,8 @@ export class ProductsService implements ProductServiceInterface {
         skip: (page - 1) * limit,
         take: limit,
         where: {
+          importer: importer ? this.getImporterId(importer) : undefined,
           product: {
-            importer: importer ? this.getImporterId(importer) : undefined,
             OR:
               (search && [
                 { code: search },
