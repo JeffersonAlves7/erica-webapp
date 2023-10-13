@@ -22,6 +22,7 @@ import {
   TransactionFilterParams,
 } from './types/product.interface';
 import { EanUtils } from 'src/utils/ean-utils';
+import { TransactionsService } from './transactions/transactions.service';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -47,7 +48,10 @@ interface ProductServiceInterface {
 
 @Injectable()
 export class ProductsService implements ProductServiceInterface {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private transactionsService: TransactionsService,
+  ) {}
 
   private getImporterId(importer: string): Importer {
     switch (importer.toLowerCase().trim().replace(/\s/g, '')) {
@@ -89,7 +93,7 @@ export class ProductsService implements ProductServiceInterface {
           {
             ean: productCreation.ean,
           },
-        ]
+        ],
       },
     });
 
@@ -107,20 +111,21 @@ export class ProductsService implements ProductServiceInterface {
       throw new HttpException(`Product already exists`, HttpStatus.BAD_REQUEST);
     }
 
-
     const product = await this.prismaService.product.create({
       data: {
         code: productCreation.code,
         ean: productCreation.ean,
         description: productCreation.description,
-        importer
+        importer,
       },
     });
 
     return product;
   }
 
-  async getAllProductsWithLastEntryByPage(pageableParams: PageableParams & ProductWithLastEntryParams): Promise<Pageable<Product>> {
+  async getAllProductsWithLastEntryByPage(
+    pageableParams: PageableParams & ProductWithLastEntryParams,
+  ): Promise<Pageable<Product>> {
     const products = await this.prismaService.product.findMany({
       skip: (pageableParams.page - 1) * pageableParams.limit,
       take: pageableParams.limit,
@@ -218,9 +223,7 @@ export class ProductsService implements ProductServiceInterface {
     if (!product)
       throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
 
-    const container = await this.findOrCreateContainer(
-      productEntry.container,
-    );
+    const container = await this.findOrCreateContainer(productEntry.container);
 
     const productsOnContainerFound =
       await this.prismaService.productsOnContainer.findFirst({
@@ -270,23 +273,13 @@ export class ProductsService implements ProductServiceInterface {
       },
     });
 
-    await this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: product.id,
-          },
-        },
-        container: {
-          connect: {
-            id: container.id,
-          },
-        },
-        toStock: Stock.GALPAO,
-        entryAmount: productEntry.quantity,
-        type: TransactionType.ENTRY,
-        observation: productEntry.observation,
-      },
+    await this.transactionsService.create({
+      product,
+      container,
+      entryAmount: productEntry.quantity,
+      toStock: Stock.GALPAO,
+      type: TransactionType.ENTRY,
+      observation: productEntry.observation,
     });
 
     return productsOnContainer;
@@ -343,7 +336,7 @@ export class ProductsService implements ProductServiceInterface {
                     importer: importer
                       ? this.getImporterId(importer)
                       : undefined,
-                  }
+                  },
                 },
               ],
             }
@@ -474,23 +467,17 @@ export class ProductsService implements ProductServiceInterface {
       throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
     }
 
-    const transaction = await this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: product.id,
-          },
-        },
-        fromStock: stockId,
-        exitAmount: productExit.quantity,
-        type: TransactionType.EXIT,
-        observation: productExit.observation,
-      },
+    const transaction = await this.transactionsService.create({
+      product,
+      fromStock: stockId,
+      exitAmount: productExit.quantity,
+      type: TransactionType.EXIT,
+      observation: productExit.observation,
     });
 
     return transaction;
   }
-  
+
   async deleteTransaction(id: number): Promise<Transaction> {
     if (!id)
       throw new HttpException(
@@ -580,9 +567,7 @@ export class ProductsService implements ProductServiceInterface {
    * @param container The container id
    * @returns
    */
-  private async findOrCreateContainer(
-    container: string,
-  ): Promise<Container> {
+  private async findOrCreateContainer(container: string): Promise<Container> {
     return this.prismaService.container.upsert({
       where: {
         id: container,
