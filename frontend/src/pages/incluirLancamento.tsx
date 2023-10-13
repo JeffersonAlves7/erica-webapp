@@ -7,7 +7,7 @@ export function IncluirLancamento() {
     {
       title: "Entrada",
       to: "entrada",
-      or: ["incluir-lancamento", "/incluir-lancamento/entrada"]
+      or: ["incluir-lancamento", "/incluir-lancamento/entrada", "/incluir-lancamento"]
     },
     {
       title: "Saída",
