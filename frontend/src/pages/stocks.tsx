@@ -152,7 +152,7 @@ const itemsExample: ItemHome[] = [
   },
 ];
 
-export function Home() {
+export function Stocks() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [estoque, setEstoque] = useState<Estoque>("Geral");
   const [items, setItems] = useState<ItemHome[]>(itemsExample);

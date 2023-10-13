@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Login } from "./pages/login";
-import { Home } from "./pages/home";
+import { Stocks } from "./pages/stocks";
 import { Template } from "./components/template";
 import { Relatorio } from "./pages/relatorio";
 import { IncluirLancamento } from "./pages/incluirLancamento";
@@ -10,6 +10,8 @@ import { ProtectedRoute } from "./components/protectedRoute";
 import { CriarEntrada } from "./outlets/criarEntrada";
 import { CriarSaida } from "./outlets/criarSaida";
 import { CriarTransferencia } from "./outlets/criarTransferencia";
+import { CriarDevolucao } from "./outlets/criarDevolucao";
+import { CriarReserva } from "./outlets/criarReserva";
 
 function App() {
   return (
@@ -21,7 +23,7 @@ function App() {
             path="/estoques"
             element={
               <ProtectedRoute>
-                <Home />
+                <Stocks />
               </ProtectedRoute>
             }
           />
@@ -33,19 +35,28 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/incluir-lancamento" element={<IncluirLancamento />} children={
-            <>
-              <Route path="" element={<CriarEntrada />} />
-              <Route path="entrada" element={<CriarEntrada />} />
-              <Route path="saida" element={<CriarSaida />} />
-              <Route path="transferencia" element={<CriarTransferencia />} />
-            </>
-          }/>
-          <Route path="conferencias" element={
-            <ProtectedRoute>
-              <Conferencias/>
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/incluir-lancamento"
+            element={<IncluirLancamento />}
+            children={
+              <>
+                <Route path="" element={<CriarEntrada />} />
+                <Route path="entrada" element={<CriarEntrada />} />
+                <Route path="saida" element={<CriarSaida />} />
+                <Route path="transferencia" element={<CriarTransferencia />} />
+                <Route path="devolucao" element={<CriarDevolucao />} />
+                <Route path="reserva" element={<CriarReserva/>} />
+              </>
+            }
+          />
+          <Route
+            path="conferencias"
+            element={
+              <ProtectedRoute>
+                <Conferencias />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/produtos"
             element={

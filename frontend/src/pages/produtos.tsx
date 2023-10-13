@@ -106,7 +106,7 @@ export function Produtos() {
     importer: "Geral",
     search: ""
   });
-  const pageLimit = 10;
+  const pageLimit = 25;
   const { page, products, importer, search } = state;
   const importers = ["Geral", "Attus Bloom", "Attus", "Alpha Ynfinity"];
 
