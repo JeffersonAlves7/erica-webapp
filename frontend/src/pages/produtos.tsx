@@ -123,7 +123,7 @@ export function Produtos() {
           return {
             id: product.id,
             containerNumber: product.container.id,
-            importadora: product.container.importer,
+            importadora: product.product.importer,
             codigo: product.product.code,
             descricao: product.product.description
           };

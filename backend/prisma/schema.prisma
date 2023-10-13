@@ -20,6 +20,7 @@ model Product {
   id                  Int                   @id @default(autoincrement())
   code                String
   ean                 String?
+  importer            Importer              
   description         String?
   galpaoQuantity      Int                   @default(0) @map("galpao_quantity")
   lojaQuantity        Int                   @default(0) @map("loja_quantity")
@@ -43,7 +44,7 @@ model Container {
   id                  String                @id @unique
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
-  importer            Importer              
+  transactions        Transaction[]
   productsOnContainer ProductsOnContainer[]
 
   @@map("containers")
@@ -76,6 +77,8 @@ model Transaction {
   exitAmount       Int?
   observation      String?
   createdAt        DateTime  @default(now()) @map("created_at")
+  containerId      String?   @map("container_id")
+  container        Container? @relation(fields: [containerId], references: [id], map: "Transactions_container_id_fkey")
   product          Product   @relation(fields: [productId], references: [id], map: "Transactions_product_id_fkey")
 
   @@index([productId], map: "Transactions_product_id_fkey")

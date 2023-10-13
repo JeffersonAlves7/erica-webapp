@@ -1,3 +1,5 @@
+import { OperadorSelector } from "@/components/operadorSelector";
+import { Operator } from "@/types/operator.enum";
 import {
   Button,
   Card,
@@ -12,26 +14,33 @@ import {
   Link as ChakraLink,
   Flex
 } from "@chakra-ui/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
 export function CriarTransferencia() {
+  const [operator, setOperator] = useState<Operator>("" as Operator);
+
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
+  const observacoesRef = useRef<HTMLInputElement>(null);
 
-  function handleConfirm() {
+  function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = quantidadeRef.current?.value;
+    const observacoesValue = observacoesRef.current?.value;
 
-    if (!codigoValue || !quantidadeValue) {
+    if (!codigoValue || !quantidadeValue || !operator || !observacoesValue) {
       return;
     }
 
-    console.log({ codigoValue, quantidadeValue });
+    console.log({ codigoValue, quantidadeValue, observacoesValue, operator });
   }
 
   return (
     <Card w={"550px"}>
+      <form onSubmit={handleConfirm}></form>
       <CardHeader>
         <Heading size={"md"}>Criar Transferência</Heading>
       </CardHeader>
@@ -49,6 +58,16 @@ export function CriarTransferencia() {
           </FormControl>
 
           <FormControl>
+            <FormLabel>Operador</FormLabel>
+            <OperadorSelector onChange={(value) => setOperator(value)}/>
+          </FormControl>
+
+          <FormControl>
+            <FormLabel>Observações</FormLabel>
+            <Input ref={observacoesRef}/>
+          </FormControl>
+
+          <FormControl>
             <FormLabel>De</FormLabel>
             <Input disabled defaultValue={"Galpão"} />
           </FormControl>
@@ -62,9 +81,12 @@ export function CriarTransferencia() {
 
       <CardFooter>
         <Flex w={"full"} justify={"space-between"} gap={6}>
+          <Button type="reset" colorScheme="red" backgroundColor={"erica.red"}>
+            Cancelar
+          </Button>
           <Button
-            onClick={handleConfirm}
             colorScheme="green"
+            type="submit"
             backgroundColor={"erica.green"}
             mr={6}
           >
@@ -74,7 +96,7 @@ export function CriarTransferencia() {
             as={RouterLink}
             to={"./conferencias"}
             textDecoration={"underline"}
-            textColor={'#7B65FF'}
+            textColor={"#7B65FF"}
           >
             Conferir Transferências
           </ChakraLink>

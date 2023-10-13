@@ -1,3 +1,4 @@
+import { ButtonSelector } from "@/components/buttonSelector";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -162,7 +163,8 @@ export function Home() {
   const codigoInput = useRef<HTMLInputElement>(null);
   const cancelRef = useRef(null);
 
-  function handleChangeEstoque(estoqueFromButton: Estoque) {
+  function handleChangeEstoque(index: number) {
+    const estoqueFromButton = estoques[index];
     if (estoqueFromButton == estoque) return;
     setItems(estoqueFromButton == "Geral"
       ? [...itemsExample]
@@ -194,26 +196,13 @@ export function Home() {
 
   return (
     <>
-      <Stack h={'full'} justify={'space-between'}>
+      <Stack h={"full"} justify={"space-between"}>
         <Stack gap={10} h={"95%"}>
           <Heading>Estoques</Heading>
 
           {/* Seletor de estoques */}
           <Stack direction={"row"} gap={4}>
-            {estoques.map((currentEstoque) => (
-              <Button
-                key={currentEstoque + "-button"}
-                onClick={() => handleChangeEstoque(currentEstoque)}
-                w={150}
-                backgroundColor={
-                  estoque == currentEstoque ? "erica.green" : "erica.pink"
-                }
-                _hover={{ opacity: 0.7 }}
-                size={"md"}
-              >
-                {currentEstoque}
-              </Button>
-            ))}
+            <ButtonSelector onClick={handleChangeEstoque} titles={estoques} />
           </Stack>
 
           {/* Filtros */}
@@ -223,12 +212,10 @@ export function Home() {
                 <p className="text-xs">Filtrar por Importadora</p>
               </FormLabel>
               <Input
-                placeholder="Ex.: Y888"
+                placeholder="Ex.: ATTUS"
                 ref={importadoraInput}
                 onKeyDown={(e) => {
-                  if (e.key.toLowerCase() === "enter") {
-                    handleSearchPedidos();
-                  }
+                  if (e.key === "Enter") handleSearchPedidos();
                 }}
               />
             </FormControl>
@@ -240,9 +227,7 @@ export function Home() {
                 placeholder={"Ex.: BT0001"}
                 ref={codigoInput}
                 onKeyDown={(e) => {
-                  if (e.key.toLowerCase() === "enter") {
-                    handleSearchPedidos();
-                  }
+                  if (e.key === "Enter") handleSearchPedidos();
                 }}
               />
             </FormControl>

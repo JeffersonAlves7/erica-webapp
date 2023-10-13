@@ -50,11 +50,11 @@ export function Login() {
 
     await authService.login(emailValue, passValue);
 
-    navigator("/home");
+    navigator("/estoques");
     return;
   }
 
-  if (isLogged) navigator("/home");
+  if (isLogged) navigator("/estoques");
 
   return (
     <form onSubmit={handleSubmit}>

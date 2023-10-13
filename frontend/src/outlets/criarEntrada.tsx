@@ -1,5 +1,4 @@
 import { Importer } from "@/types/importer.enum";
-import { Operator } from "@/types/operator.enum";
 import { productService } from "@/services/product.service";
 import {
   Alert,
@@ -16,13 +15,17 @@ import {
   Grid,
   Heading,
   Input,
-  Select
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
+import { Operator } from "@/types/operator.enum";
+import { OperadorSelector } from "@/components/operadorSelector";
+import { ImporterSelector } from "@/components/importerSelector";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");
+  const [operator, setOperator] = useState<Operator>("" as Operator);
+  const [importer, setImporter] = useState<Importer>("" as Importer);
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
   >("idle");
@@ -30,8 +33,6 @@ export function CriarEntrada() {
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLInputElement>(null);
-  const importadoraRef = useRef<HTMLSelectElement>(null);
-  const operadorRef = useRef<HTMLSelectElement>(null);
   const observacaoRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -43,16 +44,14 @@ export function CriarEntrada() {
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
     const containerValue = containerRef.current?.value;
-    const importadoraValue = importadoraRef.current?.value as Importer;
-    const operadorValue = operadorRef.current?.value as Operator;
     const observacaoValue = observacaoRef.current?.value;
 
     if (
       !codigoValue ||
       !quantidadeValue ||
       !containerValue ||
-      !importadoraValue ||
-      !operadorValue
+      !importer ||
+      !operator
     ) {
       setError("Preencha todos os campos");
       setStatus("idle");
@@ -64,8 +63,8 @@ export function CriarEntrada() {
         codeOrEan: codigoValue,
         quantity: quantidadeValue,
         container: containerValue,
-        importer: importadoraValue,
-        operator: operadorValue,
+        importer,
+        operator,
         observation: observacaoValue
       })
       .then(() => {
@@ -112,32 +111,12 @@ export function CriarEntrada() {
 
             <FormControl>
               <FormLabel>Importadora</FormLabel>
-              <Select
-                required
-                ref={importadoraRef}
-                placeholder={"Selecione um estoque"}
-              >
-                <option value={Importer.ALPHA_YNFINITY}>Alpha Ynfinity</option>
-                <option value={Importer.ATTUS}>Attus</option>
-                <option value={Importer.ATTUS_BLOOM}>Attus Bloom</option>
-              </Select>
+              <ImporterSelector onChange={(value) => setImporter(value)} />
             </FormControl>
 
             <FormControl>
               <FormLabel>Operador</FormLabel>
-              <Select
-                required
-                ref={operadorRef}
-                placeholder={"Selecione um operador"}
-              >
-                {Object.keys(Operator).map((key) => {
-                  return (
-                    <option key={"operator-" + key} value={key}>
-                      {Operator[key as keyof typeof Operator]}
-                    </option>
-                  );
-                })}
-              </Select>
+              <OperadorSelector onChange={(value) => setOperator(value)} />
             </FormControl>
 
             <FormControl>

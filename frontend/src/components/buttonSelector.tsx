@@ -1,4 +1,4 @@
-import { Button, Flex, Stack } from "@chakra-ui/react";
+import { Button, Flex } from "@chakra-ui/react";
 import { useState } from "react";
 
 interface ButtonSelectorProps {
@@ -21,9 +21,7 @@ export function ButtonSelector(props: ButtonSelectorProps) {
         <Button
           key={"btn-sel-" + (props.keyPrefix ?? "") + "-" + index}
           backgroundColor={selected === index ? "erica.green" : "erica.pink"}
-          _hover={{
-            opacity: 0.8,
-          }}
+          colorScheme={selected === index ? "green" : "pink"}
           onClick={() => {
             setSelected(index);
             props.onClick && props.onClick(index);

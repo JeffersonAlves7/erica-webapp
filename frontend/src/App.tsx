@@ -7,6 +7,9 @@ import { IncluirLancamento } from "./pages/incluirLancamento";
 import { Conferencias } from "./pages/conferencias";
 import { Produtos } from "./pages/produtos";
 import { ProtectedRoute } from "./components/protectedRoute";
+import { CriarEntrada } from "./outlets/criarEntrada";
+import { CriarSaida } from "./outlets/criarSaida";
+import { CriarTransferencia } from "./outlets/criarTransferencia";
 
 function App() {
   return (
@@ -15,7 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Login />} />
           <Route
-            path="/home"
+            path="/estoques"
             element={
               <ProtectedRoute>
                 <Home />
@@ -30,15 +33,19 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/incluir-lancamento" element={<IncluirLancamento />} />
-          <Route
-            path="/incluir-lancamento/conferencias"
-            element={
-              <ProtectedRoute>
-                <Conferencias />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/incluir-lancamento" element={<IncluirLancamento />} children={
+            <>
+              <Route path="" element={<CriarEntrada />} />
+              <Route path="entrada" element={<CriarEntrada />} />
+              <Route path="saida" element={<CriarSaida />} />
+              <Route path="transferencia" element={<CriarTransferencia />} />
+            </>
+          }/>
+          <Route path="conferencias" element={
+            <ProtectedRoute>
+              <Conferencias/>
+            </ProtectedRoute>
+          } />
           <Route
             path="/produtos"
             element={

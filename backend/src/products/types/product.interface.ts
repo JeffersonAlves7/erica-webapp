@@ -13,12 +13,19 @@ export interface ProductCreation {
   code: string;
   ean?: string;
   description?: string;
+  importer: Importer;
 }
 
 export interface EntriesFilterParams {
   importer?: Importer;
   search?: string; // code, ean, description or container
   orderBy?: string; // createdAt_ASC or createdAt_DESC
+}
+
+export interface ProductWithLastEntryParams {
+  importer?: Importer;
+  code?: string;
+  stock?: Stock;
 }
 
 export interface ProductExit {

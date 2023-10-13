@@ -1,16 +1,42 @@
+import { LinkSelector } from "@/components/linkSelector";
 import { Box, Heading, Stack } from "@chakra-ui/react";
-import { CriarEntrada } from "../components/criarEntrada";
-import { CriarTransferencia } from "@/components/criarTransferencia";
-import { CriarSaida } from "@/components/criarSaida";
+import { Outlet } from "react-router-dom";
 
 export function IncluirLancamento() {
+  const links = [
+    {
+      title: "Entrada",
+      to: "entrada",
+      or: ["incluir-lancamento", "/incluir-lancamento/entrada"]
+    },
+    {
+      title: "Saída",
+      to: "saida",
+      or: ["/incluir-lancamento/saida"]
+    },
+    {
+      title: "Transferência",
+      to: "transferencia",
+      or: ["/incluir-lancamento/transferencia"]
+    },
+    {
+      title: "Devolução",
+      to: "devolucao",
+      or: ["/incluir-lancamento/devolucao"]
+    },
+    {
+      title: "Reserva",
+      to: "reserva",
+      or: ["/incluir-lancamento/reserva"]
+    }
+  ];
+
   return (
     <Box>
       <Heading mb={6}>Incluir Lançamento</Heading>
-      <Stack gap={6} h={"full"} direction={"row"} flexWrap={"wrap"}>
-        <CriarTransferencia/>
-        <CriarEntrada/>
-        <CriarSaida/>
+      <LinkSelector links={links} />
+      <Stack mt={3} w={"full"} align={"center"} justify={"center"}>
+        <Outlet />
       </Stack>
     </Box>
   );

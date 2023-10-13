@@ -24,6 +24,20 @@ export class ProductsController {
       code: productCreation.code,
       description: productCreation.description,
       ean: productCreation.ean,
+      importer: productCreation.importer,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('withentry')
+  getAllProductsWithLastEntry(@Query() query: Record<string, any>) {
+    return this.productsService.getAllProductsWithLastEntryByPage({
+      page: Number(query.page),
+      limit: Number(query.limit),
+      importer: query.importer,
+      code: query.code,
+      stock: query.stock,
     });
   }
 

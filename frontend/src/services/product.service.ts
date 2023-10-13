@@ -17,12 +17,12 @@ interface Product {
   ean: string;
   description: string;
   createdAt: Date;
+  importer: Importer;
   updatedAt: Date;
 }
 
 interface Container {
   id: string;
-  importer: Importer;
 }
 
 interface EntryResponse {

@@ -46,7 +46,7 @@ export function Template(props: PropsWithChildren) {
         style={{ gridArea: "header" }}
       >
         <Stack className="h-full" justify={"center"}>
-          <Link to={"/home"}>
+          <Link to={"/estoques"}>
             <Heading
               fontWeight={"normal"}
               size={"lg"}
