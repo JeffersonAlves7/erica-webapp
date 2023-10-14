@@ -7,73 +7,75 @@ import {
   TransactionType,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { getStockId } from '../utils/stock.utils';
 
-interface CreateParams {
+interface EntryParams {
   product: Product;
-  container?: Container;
-  exitAmount?: number;
-  entryAmount?: number;
-  fromStock?: Stock;
-  toStock?: Stock;
-  type: TransactionType;
+  container: Container;
+  entryAmount: number;
+  toStock: Stock;
+  observation?: string;
+}
+
+interface ExitParams {
+  product: Product;
+  fromStock: Stock;
+  exitAmount: number;
   observation?: string;
 }
 
 interface TransactionsServiceInterface {
-  create(data: CreateParams): Promise<Transaction>;
+  createExit(data: ExitParams): Promise<Transaction>;
+  createEntry(data: EntryParams): Promise<Transaction>;
 }
 
 @Injectable()
 export class TransactionsService implements TransactionsServiceInterface {
   constructor(private prismaService: PrismaService) {}
 
-  async create(data: CreateParams) {
+  async createExit(data: ExitParams) {
+    if(!data.product) throw new Error('Missing product');
+    if(!data.fromStock) throw new Error('Missing fromStock');
+    if(!data.exitAmount) throw new Error('Missing exitAmount');
+
+
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
+          },
+        },
+        fromStock: data.fromStock,
+        exitAmount: data.exitAmount,
+        type: TransactionType.EXIT,
+        observation: data.observation,
+      },
+    });
+  }
+
+  async createEntry(data: EntryParams) {
     if (!data.product) throw new Error('Missing product');
-    if(!data.type) throw new Error('Missing type');
+    if (!data.container) throw new Error('Missing container');
+    if (!data.entryAmount) throw new Error('Missing entryAmount');
+    if (!data.toStock) throw new Error('Missing toStock');
 
-    if (data.type === TransactionType.ENTRY) {
-      if (!data.toStock) throw new Error('Missing toStock');
-      if (!data.container) throw new Error('Missing container');
-      if (!data.entryAmount) throw new Error('Missing entryAmount');
-
-      return this.prismaService.transaction.create({
-        data: {
-          product: {
-            connect: {
-              id: data.product.id,
-            },
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
           },
-          container: {
-            connect: {
-              id: data.container.id,
-            },
-          },
-          toStock: getStockId(data.toStock),
-          entryAmount: data.entryAmount,
-          type: TransactionType.ENTRY,
-          observation: data.observation,
         },
-      });
-    } else if (data.type === TransactionType.EXIT) {
-      if (!data.fromStock) throw new Error('Missing fromStock');
-      if (!data.exitAmount) throw new Error('Missing exitAmount');
-
-      return this.prismaService.transaction.create({
-        data: {
-          product: {
-            connect: {
-              id: data.product.id,
-            },
+        container: {
+          connect: {
+            id: data.container.id,
           },
-          fromStock: getStockId(data.fromStock),
-          exitAmount: data.exitAmount,
-          type: TransactionType.EXIT,
-          observation: data.observation,
         },
-      });
-    } else {
-      throw new Error('Invalid transaction type');
-    }
+        toStock: data.toStock,
+        entryAmount: data.entryAmount,
+        type: TransactionType.ENTRY,
+        observation: data.observation,
+      },
+    });
   }
 }

@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   Container,
-  Importer,
   Product,
   ProductsOnContainer,
   Stock,
@@ -23,6 +22,9 @@ import {
 } from './types/product.interface';
 import { EanUtils } from 'src/utils/ean-utils';
 import { TransactionsService } from './transactions/transactions.service';
+import { ContainerService } from './container/container.service';
+import { getImporterId } from './utils/importer.utils';
+import { getStockId } from './utils/stock.utils';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -51,38 +53,11 @@ export class ProductsService implements ProductServiceInterface {
   constructor(
     private prismaService: PrismaService,
     private transactionsService: TransactionsService,
+    private containerService: ContainerService
   ) {}
 
-  private getImporterId(importer: string): Importer {
-    switch (importer.toLowerCase().trim().replace(/\s/g, '')) {
-      case 'attus':
-        return Importer.ATTUS;
-      case 'attusbloom':
-        return Importer.ATTUS_BLOOM;
-      case 'attus_bloom':
-        return Importer.ATTUS_BLOOM;
-      case 'alphaynfinity':
-        return Importer.ALPHA_YNFINITY;
-      case 'alpha_ynfinity':
-        return Importer.ALPHA_YNFINITY;
-    }
-    throw new Error('Importer not found');
-  }
-
-  private getStockId(stock: string): Stock {
-    switch (stock.toLowerCase().trim().replace(/\s/g, '')) {
-      case 'galpao':
-        return Stock.GALPAO;
-      case 'galpão':
-        return Stock.GALPAO;
-      case 'loja':
-        return Stock.LOJA;
-    }
-    throw new Error('Stock not found');
-  }
-
   async createProduct(productCreation: ProductCreation): Promise<Product> {
-    const importer = this.getImporterId(productCreation.importer);
+    const importer = getImporterId(productCreation.importer);
 
     const productFound = await this.prismaService.product.findFirst({
       where: {
@@ -201,7 +176,7 @@ export class ProductsService implements ProductServiceInterface {
       throw new HttpException(`Operator is required`, HttpStatus.BAD_REQUEST);
     }
 
-    const importer = this.getImporterId(productEntry.importer);
+    const importer = getImporterId(productEntry.importer);
 
     const product = await this.prismaService.product.findFirst({
       where: {
@@ -223,15 +198,12 @@ export class ProductsService implements ProductServiceInterface {
     if (!product)
       throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
 
-    const container = await this.findOrCreateContainer(productEntry.container);
+    const container = await this.containerService.findOrCreateContainer(
+      productEntry.container,
+    );
 
     const productsOnContainerFound =
-      await this.prismaService.productsOnContainer.findFirst({
-        where: {
-          containerId: container.id,
-          productId: product.id,
-        },
-      });
+      this.containerService.getProductOnContainer(product, container);
 
     if (productsOnContainerFound)
       throw new HttpException(
@@ -239,28 +211,12 @@ export class ProductsService implements ProductServiceInterface {
         HttpStatus.BAD_REQUEST,
       );
 
-    const productsOnContainer =
-      await this.prismaService.productsOnContainer.create({
-        data: {
-          quantityExpected: productEntry.quantity,
-          quantityReceived: productEntry.quantity,
-          container: {
-            connect: {
-              id: container.id,
-            },
-          },
-          product: {
-            connect: {
-              id: product.id,
-            },
-          },
-          observation: productEntry.observation,
-        },
-        include: {
-          product: true,
-          container: true,
-        },
-      });
+    const productsOnContainer = this.containerService.addProductToContainerOnEntry(
+      product,
+      container,
+      productEntry.quantity,
+      productEntry.observation,
+    );
 
     await this.prismaService.product.update({
       where: {
@@ -273,12 +229,11 @@ export class ProductsService implements ProductServiceInterface {
       },
     });
 
-    await this.transactionsService.create({
+    await this.transactionsService.createEntry({
       product,
       container,
       entryAmount: productEntry.quantity,
       toStock: Stock.GALPAO,
-      type: TransactionType.ENTRY,
       observation: productEntry.observation,
     });
 
@@ -334,7 +289,7 @@ export class ProductsService implements ProductServiceInterface {
                 {
                   product: {
                     importer: importer
-                      ? this.getImporterId(importer)
+                      ? getImporterId(importer)
                       : undefined,
                   },
                 },
@@ -342,7 +297,7 @@ export class ProductsService implements ProductServiceInterface {
             }
           : {
               product: {
-                importer: importer ? this.getImporterId(importer) : undefined,
+                importer: importer ? getImporterId(importer) : undefined,
               },
             },
         orderBy: {
@@ -384,14 +339,14 @@ export class ProductsService implements ProductServiceInterface {
               },
               {
                 product: {
-                  importer: importer ? this.getImporterId(importer) : undefined,
+                  importer: importer ? getImporterId(importer) : undefined,
                 },
               },
             ],
           }
         : {
             product: {
-              importer: importer ? this.getImporterId(importer) : undefined,
+              importer: importer ? getImporterId(importer) : undefined,
             },
           },
     });
@@ -429,7 +384,7 @@ export class ProductsService implements ProductServiceInterface {
     if (!product)
       throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
 
-    const stockId = this.getStockId(productExit.from);
+    const stockId = getStockId(productExit.from);
 
     if (stockId === Stock.LOJA) {
       if (product.lojaQuantity < productExit.quantity)
@@ -467,11 +422,10 @@ export class ProductsService implements ProductServiceInterface {
       throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
     }
 
-    const transaction = await this.transactionsService.create({
+    const transaction = await this.transactionsService.createExit({
       product,
       fromStock: stockId,
       exitAmount: productExit.quantity,
-      type: TransactionType.EXIT,
       observation: productExit.observation,
     });
 
