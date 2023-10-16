@@ -70,10 +70,9 @@ export class ProductsController {
   @Get('entries')
   getAllEntries(@Query() query: Record<string, any>) {
     const { page, limit, importer, search, orderBy } = query;
-
     return this.productsService.getAllEntriesByPage({
-      page: Number(query.page),
-      limit: Number(query.limit),
+      page: Number(page),
+      limit: Number(limit),
       importer,
       search,
       orderBy,
@@ -89,7 +88,27 @@ export class ProductsController {
       from: productExit.from,
       observation: productExit.observation,
       quantity: productExit.quantity,
+      operator: productExit.operator,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('transference')
+  productTransference(@Body() productTransference: Record<string, any>) {
+    return this.productsService.transferProduct({
+      code: productTransference.code,
+      operator: productTransference.operator,
+      observation: productTransference.observation,
+      quantity: productTransference.quantity, 
+    })
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('transference/confirm')
+  confirmTransference(@Query() query: Record<string, any>){
+
   }
 
   @UseGuards(AuthGuard)

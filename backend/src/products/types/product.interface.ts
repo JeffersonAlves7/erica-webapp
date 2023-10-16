@@ -33,4 +33,12 @@ export interface ProductExit {
   quantity: number;
   from: Stock;
   observation?: string;
+  operator?: string
+}
+
+export interface ProductTransference {
+  code: string;
+  quantity: number;
+  operator: string;
+  observation?: string;
 }

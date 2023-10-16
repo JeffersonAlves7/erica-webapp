@@ -73,9 +73,11 @@ model Transaction {
   fromStock        Stock?
   toStock          Stock?
   client           String?
+  operator         String?
   entryAmount      Int?
   exitAmount       Int?
   observation      String?
+  checked          Boolean   @default(false)
   createdAt        DateTime  @default(now()) @map("created_at")
   containerId      String?   @map("container_id")
   container        Container? @relation(fields: [containerId], references: [id], map: "Transactions_container_id_fkey")

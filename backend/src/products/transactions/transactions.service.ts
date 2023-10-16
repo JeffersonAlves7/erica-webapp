@@ -1,5 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
+  $Enums,
   Container,
   Product,
   Stock,
@@ -13,12 +14,12 @@ import {
 } from 'src/types/pageable/pageable.interface';
 import { TransactionFilterParams } from '../types/transaction.interface';
 
-interface EntryParams {
+interface EntryGalpaoParams {
   product: Product;
   container: Container;
   entryAmount: number;
-  toStock: Stock;
   observation?: string;
+  operator?: string;
 }
 
 interface ExitParams {
@@ -26,11 +27,22 @@ interface ExitParams {
   fromStock: Stock;
   exitAmount: number;
   observation?: string;
+  operator?: string;
+}
+
+interface LojaTransferParams {
+  product: Product;
+  entryAmount: number;
+  operator: string;
+  observation?: string;
 }
 
 interface TransactionsServiceInterface {
   createExit(data: ExitParams): Promise<Transaction>;
-  createEntry(data: EntryParams): Promise<Transaction>;
+  createGalpaoEntry(data: EntryGalpaoParams): Promise<Transaction>;
+  createLojaTransfer(
+    data: LojaTransferParams,
+  ): Promise<{ galpao: Transaction; loja: Transaction }>;
   deleteEntry(id: number): Promise<Transaction>;
   deleteExit(id: number): Promise<Transaction>;
   getAllTransactionsByPage(
@@ -62,11 +74,10 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
   }
 
-  async createEntry(data: EntryParams) {
+  async createGalpaoEntry(data: EntryGalpaoParams) {
     if (!data.product) throw new Error('Missing product');
     if (!data.container) throw new Error('Missing container');
     if (!data.entryAmount) throw new Error('Missing entryAmount');
-    if (!data.toStock) throw new Error('Missing toStock');
 
     return this.prismaService.transaction.create({
       data: {
@@ -80,12 +91,62 @@ export class TransactionsService implements TransactionsServiceInterface {
             id: data.container.id,
           },
         },
-        toStock: data.toStock,
+        operator: data.operator,
+        toStock: Stock.GALPAO,
         entryAmount: data.entryAmount,
         type: TransactionType.ENTRY,
         observation: data.observation,
       },
     });
+  }
+
+  async createLojaTransfer(
+    data: LojaTransferParams,
+  ): Promise<{ loja: Transaction; galpao: Transaction }> {
+    const product = data.product;
+
+    if (!product)
+      throw new HttpException('Product not found.', HttpStatus.BAD_REQUEST);
+
+    if (product.galpaoQuantity < data.entryAmount)
+      throw new HttpException('Not enough stock.', HttpStatus.BAD_REQUEST);
+
+    const galpao = await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: product.id,
+          },
+        },
+        fromStock: Stock.GALPAO,
+        toStock: Stock.LOJA,
+        exitAmount: data.entryAmount,
+        type: TransactionType.TRANSFERENCE,
+        observation: data.observation,
+        operator: data.operator,
+      },
+    });
+
+    const loja = await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: product.id,
+          },
+        },
+        fromStock: Stock.GALPAO,
+        toStock: Stock.LOJA,
+        entryAmount: data.entryAmount,
+        type: TransactionType.TRANSFERENCE,
+        observation: data.observation,
+        operator: data.operator,
+      },
+    });
+
+    return {
+      galpao,
+      loja,
+    };
   }
 
   async deleteEntry(id: number) {
