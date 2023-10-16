@@ -1,4 +1,7 @@
 import { ButtonSelector } from "@/components/buttonSelector";
+import { PaginationSelector } from "@/components/paginationSelector";
+import { handleError401 } from "@/services/api";
+import { productService } from "@/services/product.service";
 import {
   AlertDialog,
   AlertDialogBody,
@@ -22,8 +25,9 @@ import {
   useDisclosure
 } from "@chakra-ui/react";
 import { format } from "date-fns";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { BsSearch } from "react-icons/bs";
+import { Link } from "react-router-dom";
 
 type Estoque = "Geral" | "Galpão" | "Loja";
 
@@ -33,11 +37,7 @@ enum EstoqueEnum {
   loja = "Loja"
 }
 
-const estoques = Object.entries(EstoqueEnum).map(
-  (item) => item[1]
-) as Estoque[];
-
-interface ItemHome {
+interface ProductsWithStock {
   id: number;
   sku: string;
   quantidadeEntrada: number;
@@ -46,129 +46,85 @@ interface ItemHome {
   importadora: string;
   dataDeEntrada: Date;
   diasEmEstoque: number;
-  estoque: Estoque;
 }
 
-const itemsExample: ItemHome[] = [
-  {
-    id: 1,
-    sku: "BT001",
-    container: "AY-0909",
-    dataDeEntrada: new Date(),
-    quantidadeEntrada: 100,
-    diasEmEstoque: 2,
-    saldo: 10,
-    importadora: "Y888",
-    estoque: "Galpão"
-  },
-  {
-    id: 2,
-    sku: "BT0201",
-    container: "AY-0909",
-    dataDeEntrada: new Date(),
-    quantidadeEntrada: 100,
-    diasEmEstoque: 2,
-    saldo: 10,
-    importadora: "Y888",
-    estoque: "Loja"
-  },
-  // add more products
-  {
-    id: 3,
-    sku: 'BT42002',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 4,
-    sku: 'BT45002',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 5,
-    sku: 'BT0032',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 6,
-    sku: 'BT0022',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 7,
-    sku: 'BT0021',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 8,
-    sku: 'BT0020',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-  {
-    id: 9,
-    sku: 'BT0010',
-    container: 'AY-0919',
-    dataDeEntrada: new Date(),
-    diasEmEstoque: 2,
-    estoque: "Galpão",
-    importadora: 'Y888',
-    quantidadeEntrada: 100,
-    saldo: 10,
-  },
-];
-
 export function Stocks() {
+  const productsLimit = 10;
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [estoque, setEstoque] = useState<Estoque>("Geral");
-  const [items, setItems] = useState<ItemHome[]>(itemsExample);
-  const [itemIdToDelete, setItemIdToDelete] = useState<ItemHome["id"] | null>(
-    null
-  );
+  const [page, setPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+
+  const [items, setItems] = useState<ProductsWithStock[]>([]);
+  const [itemIdToDelete, setItemIdToDelete] = useState<
+    ProductsWithStock["id"] | null
+  >(null);
   const importadoraInput = useRef<HTMLInputElement>(null);
   const codigoInput = useRef<HTMLInputElement>(null);
   const cancelRef = useRef(null);
 
+  const estoques = Object.entries(EstoqueEnum).map(
+    (item) => item[1]
+  ) as Estoque[];
+
+  useEffect(() => {
+    productService
+      .getAllProductsStock({
+        page,
+        limit: productsLimit,
+        stock: estoque == "Geral" ? undefined : estoque
+      })
+      .then((data) => {
+        const items = data.data.map((item: any) => {
+          const entradaSum = item.entries.reduce(
+            (previous: any, current: any) => {
+              if (typeof previous == "number")
+                return previous + current.quantityReceived;
+              return previous.quantityReceived + current.quantityReceived;
+            },
+            0
+          );
+
+          const containerNames = item.entries
+            .map((entry: any) => entry.containerId)
+            .join(", ");
+
+          const lastDate = new Date(
+            item.entries[item.entries.length - 1].createdAt
+          );
+          const diasEmEstoque = Math.floor(
+            (new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24)
+          );
+          const saldo =
+            estoque == "Geral"
+              ? item.galpaoQuantity + item.lojaQuantity
+              : estoque == "Galpão"
+              ? item.galpaoQuantity
+              : item.lojaQuantity;
+
+          return {
+            id: item.id,
+            sku: item.code,
+            quantidadeEntrada: entradaSum,
+            saldo,
+            container: containerNames,
+            importadora: item.importer,
+            diasEmEstoque,
+            dataDeEntrada: lastDate
+          };
+        });
+
+        setItems(items);
+        setTotalItems(data.total);
+      })
+      .catch((error) => {
+        handleError401(error);
+      });
+  }, [estoque, page]);
+
   function handleChangeEstoque(index: number) {
     const estoqueFromButton = estoques[index];
     if (estoqueFromButton == estoque) return;
-    setItems(estoqueFromButton == "Geral"
-      ? [...itemsExample]
-      : [...itemsExample.filter((item) => item.estoque == estoqueFromButton)]);
     setEstoque(estoqueFromButton);
   }
 
@@ -186,13 +142,16 @@ export function Stocks() {
     onClose();
   }
 
-  const qntDeCaixas = items.reduce<number | ItemHome>((previous, current) => {
-    if (typeof previous !== "number") {
-      return previous.saldo + current.saldo;
-    } else {
-      return previous + current.saldo;
-    }
-  }, 0) as number;
+  const qntDeCaixas = items.reduce<number | ProductsWithStock>(
+    (previous, current) => {
+      if (typeof previous !== "number") {
+        return previous.saldo + current.saldo;
+      } else {
+        return previous + current.saldo;
+      }
+    },
+    0
+  ) as number;
 
   return (
     <>
@@ -242,7 +201,7 @@ export function Stocks() {
           </Stack>
 
           {/* Tabela de Produtos */}
-          <Box overflowX={"auto"}>
+          <Box overflow={"auto"}>
             <Table>
               <Thead>
                 <Tr>
@@ -259,7 +218,14 @@ export function Stocks() {
               <Tbody>
                 {items.map((item) => (
                   <Tr key={"item-" + item.sku}>
-                    <Td>{item.sku}</Td>
+                    <Td>
+                      <Link
+                        to={`/produtos/${item.sku}`}
+                        className=" underline text-blue-500"
+                      >
+                        {item.sku}
+                      </Link>
+                    </Td>
                     <Td>{item.quantidadeEntrada}</Td>
                     <Td>{item.saldo}</Td>
                     <Td>{item.container}</Td>
@@ -281,6 +247,17 @@ export function Stocks() {
               </Tbody>
             </Table>
           </Box>
+          <PaginationSelector
+            page={page}
+            increasePage={() => {
+              const pageLimmit = Math.ceil(totalItems / productsLimit);
+              if (page <= pageLimmit) setPage(page + 1);
+            }}
+            decreasePage={() => {
+              if (page > 1) setPage(page - 1);
+            }}
+            pageQuantity={Math.ceil(totalItems / productsLimit)}
+          />
 
           {/* Modal para confirmar deletar produto */}
           <AlertDialog

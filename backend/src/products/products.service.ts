@@ -27,7 +27,7 @@ import { TransactionFilterParams } from './types/transaction.interface';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
-  getAllProductsWithLastEntryByPage(
+  getAllProductsAndStockByPage(
     pageableParams: PageableParams & ProductWithLastEntryParams,
   ): Promise<Pageable<Product>>;
   getAllProductsByPage(
@@ -97,31 +97,99 @@ export class ProductsService implements ProductServiceInterface {
     return product;
   }
 
-  async getAllProductsWithLastEntryByPage(
+  async getAllProductsAndStockByPage(
     pageableParams: PageableParams & ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {
+    if (!pageableParams.limit) pageableParams.limit = 10;
+    if (!pageableParams.page) pageableParams.page = 1;
+    if (pageableParams.limit > 100)
+      throw new HttpException(
+        `Maximum limit is ${100}`,
+        HttpStatus.BAD_REQUEST,
+      );
+
+    let importer;
+    if (pageableParams.importer) {
+      try {
+        importer = getImporterId(pageableParams.importer);
+      } catch {
+        importer = undefined;
+      }
+    }
+
+    let stock;
+    if(pageableParams.stock) {
+      try {
+        stock = getStockId(pageableParams.stock);
+      } catch {
+        stock = undefined;
+      }
+    }
+
+    const where = {
+      importer: importer,
+      code: pageableParams.code ?? undefined,
+    };
+
     const products = await this.prismaService.product.findMany({
       skip: (pageableParams.page - 1) * pageableParams.limit,
       take: pageableParams.limit,
-      include: {
-        productsOnContainer: {
-          orderBy: {
-            createdAt: 'desc',
-          },
-          include: {
-            container: true,
-          },
-          take: 1,
-        },
-      },
+      where,
     });
 
-    const total = await this.prismaService.product.count();
+    const total = await this.prismaService.product.count({
+      where,
+    });
+
+    const productsToSend = [];
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const entriesToSend = [];
+
+      for (let j = 0; ; j++) {
+        const productsOnContainer =
+          await this.prismaService.productsOnContainer.findMany({
+            skip: j * 10,
+            take: 10,
+            where: {
+              productId: product.id,
+            },
+            orderBy: {
+              createdAt: 'desc',
+            },
+          });
+
+        if (productsOnContainer.length === 0) break;
+
+        let quantity = 0;
+
+        for (let k = 0; k < productsOnContainer.length; k++) {
+          const productOnContainer = productsOnContainer[k];
+          quantity += productOnContainer.quantityReceived;
+          entriesToSend.push(productOnContainer);
+        }
+
+        if (!stock) {
+          if (quantity >= product.lojaQuantity + product.galpaoQuantity) break;
+        }
+        else if(stock === Stock.GALPAO) {
+          if(quantity >= product.galpaoQuantity) break;
+        }
+        else{
+          if(quantity >= product.lojaQuantity) break;
+        }
+      }
+      
+      productsToSend.push({
+        ...product,
+        entries: entriesToSend,
+      });
+    }
 
     return {
       page: pageableParams.page,
       total,
-      data: products,
+      data: productsToSend,
     };
   }
 
@@ -460,9 +528,8 @@ export class ProductsService implements ProductServiceInterface {
   async getAllTransactionsByPage(
     pageableParams: PageableParams & TransactionFilterParams,
   ): Promise<Pageable<Transaction>> {
-    const transactions = await this.transactionsService.getAllTransactionsByPage(
-      pageableParams,
-    );
+    const transactions =
+      await this.transactionsService.getAllTransactionsByPage(pageableParams);
 
     return transactions;
   }

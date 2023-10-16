@@ -30,9 +30,9 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get('withentry')
-  getAllProductsWithLastEntry(@Query() query: Record<string, any>) {
-    return this.productsService.getAllProductsWithLastEntryByPage({
+  @Get('stock')
+  getAllProductsAndStock(@Query() query: Record<string, any>) {
+    return this.productsService.getAllProductsAndStockByPage({
       page: Number(query.page),
       limit: Number(query.limit),
       importer: query.importer,

@@ -16,6 +16,7 @@ import {
   Tr
 } from "@chakra-ui/react";
 import { useEffect, useReducer } from "react";
+import { PaginationSelector } from "@/components/paginationSelector";
 
 interface Product {
   id: number;
@@ -201,31 +202,16 @@ export function Produtos() {
           </Tbody>
         </Table>
       </Box>
-      <Stack direction="row" spacing={3} align="center" justify={"end"} mt={3}>
-        <Button
-          colorScheme="green"
-          backgroundColor={"erica.green"}
-          onClick={() => {
-            if (page > 1) dispatch({ type: "set_page", payload: page - 1 });
-          }}
-          padding={0}
-        >
-          <MdKeyboardArrowLeft className="text-2xl" />
-        </Button>
-        <Box>
-          <span>
-            Página {page} de {state.productsQuantity}
-          </span>
-        </Box>
-        <Button
-          colorScheme="green"
-          backgroundColor={"erica.green"}
-          onClick={() => dispatch({ type: "set_page", payload: page + 1 })}
-          padding={0}
-        >
-          <MdKeyboardArrowRight className="text-2xl" />
-        </Button>
-      </Stack>
+      <PaginationSelector
+        page={page}
+        decreasePage={() => {
+          if (page > 1) dispatch({ type: "set_page", payload: page - 1 });
+        }}
+        increasePage={() => {
+          dispatch({ type: "set_page", payload: page + 1 });
+        }}
+        pageQuantity={state.productsQuantity}
+      />
     </Box>
   );
 }

@@ -1,6 +1,7 @@
 import { Pageable, PageableParams } from "@/types/pageable.interface";
 import api from "./api";
 import { Importer } from "@/types/importer.enum";
+import { Stock } from "@/types/stock.enum";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -43,13 +44,22 @@ interface EntriesFilterParams {
   orderBy?: string // createdAt_ASC or createdAt_DESC
 }
 
+interface ProductsWithStockFilterParams extends PageableParams {
+  importer?: Importer | string;
+  code?: string;
+  stock?: Stock | string;
+}
+
+interface ProductWithStock extends Pageable<any>{
+}
+
 class ProductService {
   async getProducts(pageableParams: PageableParams): Promise<Pageable<any>> {
     const response = await api.get("/products", {
       params: pageableParams
     });
 
-    if(response.status === 401) {
+    if (response.status === 401) {
       throw new Error("Unauthorized");
     }
 
@@ -69,6 +79,15 @@ class ProductService {
   async createEntry(productEntry: ProductEntry): Promise<EntryResponse> {
     const response = await api.post("/products/entry", productEntry);
     return response.data as EntryResponse;
+  }
+
+  async getAllProductsStock(
+    pageableParams: ProductsWithStockFilterParams
+  ): Promise<ProductWithStock> {
+    const response = await api.get(`/products/stock`, {
+      params: pageableParams
+    });
+    return response.data;
   }
 }
 
