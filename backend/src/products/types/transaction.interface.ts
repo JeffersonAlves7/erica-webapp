@@ -1,14 +1,18 @@
-import { Stock, TransactionType } from "@prisma/client";
-import { PageableParams } from "src/types/pageable/pageable.interface";
+import { Stock, TransactionType } from '@prisma/client';
+import { PageableParams } from 'src/types/pageable/pageable.interface';
 
-export interface TransactionFilterParams {
+export interface TransactionFilterParams extends PageableParams {
   type?: TransactionType;
   orderBy?: string; // createdAt_ASC or createdAt_DESC
+  code?: string;
+  toStock?: Stock;
 }
 
-export interface TransferenceFilterParams extends PageableParams{
+export interface TransferenceFilterParams extends PageableParams {
   orderBy?: string; // createdAt_ASC or createdAt_DESC
   confirmed?: boolean;
+  code?: string;
+  selectAll?: boolean;
 }
 
 export interface TransactionCreation {

@@ -1,4 +1,4 @@
-import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { DestinyInput } from "@/components/inputs/destiny.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
