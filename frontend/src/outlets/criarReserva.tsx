@@ -9,23 +9,21 @@ import {
   CardFooter,
   CardHeader,
   Flex,
-  FormControl,
-  FormLabel,
   Grid,
   Heading,
-  Input
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
-import { Operator } from "@/types/operator.enum";
-import { OperadorSelector } from "@/components/operadorSelector";
-import { StockSelector } from "@/components/stockSelector";
-import { Stock } from "@/types/stock.enum";
+import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { QuantityInput } from "@/components/inputs/quantity.input";
+import { ClientInput } from "@/components/inputs/client.input";
+import { OperatorInput } from "@/components/inputs/operator.input";
+import { ObservacaoInput } from "@/components/inputs/observacao.input";
+import { StockInput } from "@/components/inputs/stock.input";
+import { LancamentoFooter } from "@/components/lancamentoFooter";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");
-  const [operator, setOperator] = useState<Operator>("" as Operator);
-  const [stock, setStock] = useState<Stock>("" as Stock);
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
   >("idle");
@@ -34,6 +32,8 @@ export function CriarReserva() {
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const clienteRef = useRef<HTMLInputElement>(null);
   const observacaoRef = useRef<HTMLInputElement>(null);
+  const operatorRef = useRef<HTMLSelectElement>(null);
+  const stockRef = useRef<HTMLSelectElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -41,10 +41,12 @@ export function CriarReserva() {
     setError("");
     setStatus("loading");
 
+    const stock = stockRef.current?.value;
     const codigoValue = codigoOuEanRef.current?.value;
     const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
     const containerValue = clienteRef.current?.value;
     const observacaoValue = observacaoRef.current?.value;
+    const operator = operatorRef.current?.value;
 
     if (
       !codigoValue ||
@@ -94,66 +96,16 @@ export function CriarReserva() {
 
         <CardBody>
           <Grid templateColumns={"1fr 1fr"} gap={6}>
-            <FormControl>
-              <FormLabel>Código ou Ean</FormLabel>
-              <Input required ref={codigoOuEanRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Quantidade</FormLabel>
-              <Input required type="number" min={1} ref={quantidadeRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Cliente</FormLabel>
-              <Input required ref={clienteRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Destino</FormLabel>
-              <StockSelector onChange={(value) => setStock(value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Operador</FormLabel>
-              <OperadorSelector onChange={(value) => setOperator(value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Observação</FormLabel>
-              <Input ref={observacaoRef} />
-            </FormControl>
+            <CodeOrEanInput ref={codigoOuEanRef} />
+            <QuantityInput ref={quantidadeRef} />
+            <ClientInput ref={clienteRef} /> 
+            <StockInput label="Destino" ref={stockRef} /> 
+            <OperatorInput ref={operatorRef} />
+            <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>
 
-        <CardFooter>
-          <Box mt={3} w={"full"}>
-            {status == "error" && error && (
-              <Alert status="error">
-                <AlertIcon />
-                {error}
-              </Alert>
-            )}
-            {status == "success" && (
-              <Alert status="success">
-                <AlertIcon />
-                Entrada criada com sucesso!
-              </Alert>
-            )}
-            <Flex mt={3} gap={3}>
-              <Button type="reset" colorScheme="red">
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                colorScheme="green"
-                backgroundColor={"erica.green"}
-              >
-                Criar
-              </Button>
-            </Flex>
-          </Box>
-        </CardFooter>
+        <LancamentoFooter status={status} error={error} /> 
       </form>
     </Card>
   );

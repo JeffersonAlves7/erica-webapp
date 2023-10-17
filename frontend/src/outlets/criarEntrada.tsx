@@ -1,31 +1,24 @@
 import { Importer } from "@/types/importer.enum";
 import { productService } from "@/services/product.service";
 import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  Flex,
-  FormControl,
-  FormLabel,
   Grid,
-  Heading,
-  Input,
+  Heading
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
-import { Operator } from "@/types/operator.enum";
-import { OperadorSelector } from "@/components/operadorSelector";
-import { ImporterSelector } from "@/components/importerSelector";
+import { LancamentoFooter } from "@/components/lancamentoFooter";
+import { OperatorInput } from "@/components/inputs/operator.input";
+import { ObservacaoInput } from "@/components/inputs/observacao.input";
+import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { QuantityInput } from "@/components/inputs/quantity.input";
+import { ContainerInput } from "@/components/inputs/container.input";
+import { ImporterInput } from "@/components/inputs/importer.input";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");
-  const [operator, setOperator] = useState<Operator>("" as Operator);
-  const [importer, setImporter] = useState<Importer>("" as Importer);
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
   >("idle");
@@ -34,6 +27,8 @@ export function CriarEntrada() {
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLInputElement>(null);
   const observacaoRef = useRef<HTMLInputElement>(null);
+  const operatorRef = useRef<HTMLSelectElement>(null);
+  const importerRef = useRef<HTMLSelectElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -45,6 +40,8 @@ export function CriarEntrada() {
     const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
     const containerValue = containerRef.current?.value;
     const observacaoValue = observacaoRef.current?.value;
+    const operator = operatorRef.current?.value;
+    const importer = importerRef.current?.value as Importer;
 
     if (
       !codigoValue ||
@@ -94,66 +91,16 @@ export function CriarEntrada() {
 
         <CardBody>
           <Grid templateColumns={"1fr 1fr"} gap={6}>
-            <FormControl>
-              <FormLabel>Código ou Ean</FormLabel>
-              <Input required ref={codigoRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Quantidade</FormLabel>
-              <Input required type="number" min={1} ref={quantidadeRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Lote Container</FormLabel>
-              <Input required ref={containerRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Importadora</FormLabel>
-              <ImporterSelector onChange={(value) => setImporter(value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Operador</FormLabel>
-              <OperadorSelector onChange={(value) => setOperator(value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Observação</FormLabel>
-              <Input ref={observacaoRef} />
-            </FormControl>
+            <CodeOrEanInput ref={codigoRef} />
+            <QuantityInput ref={quantidadeRef} />
+            <ContainerInput ref={containerRef} />
+            <ImporterInput ref={importerRef} />
+            <OperatorInput ref={operatorRef} />
+            <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>
 
-        <CardFooter>
-          <Box mt={3} w={"full"}>
-            {status == "error" && error && (
-              <Alert status="error">
-                <AlertIcon />
-                {error}
-              </Alert>
-            )}
-            {status == "success" && (
-              <Alert status="success">
-                <AlertIcon />
-                Entrada criada com sucesso!
-              </Alert>
-            )}
-            <Flex mt={3} gap={3}>
-              <Button type="reset" colorScheme="red">
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                colorScheme="green"
-                backgroundColor={"erica.green"}
-              >
-                Criar
-              </Button>
-            </Flex>
-          </Box>
-        </CardFooter>
+        <LancamentoFooter status={status} error={error} />
       </form>
     </Card>
   );

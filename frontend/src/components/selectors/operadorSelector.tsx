@@ -1,20 +1,11 @@
 import { Select } from "@chakra-ui/react";
 import { Operator } from "@/types/operator.enum";
-import { useRef } from "react";
+import { PropsWithRef, Ref } from "react";
 
-export function OperadorSelector(props: {
-  onChange?: (value: Operator) => void;
-}) {
-  const ref = useRef<HTMLSelectElement>(null);
-
+export function OperadorSelector(props: PropsWithRef<{ref: Ref<HTMLSelectElement>}>) {
   return (
     <Select
-      ref={ref}
-      onChange={(e) => {
-        if (props.onChange) {
-          props.onChange(e.target.value as Operator);
-        }
-      }}
+      ref={props.ref}
       required
       placeholder={"Selecione um operador"}
     >

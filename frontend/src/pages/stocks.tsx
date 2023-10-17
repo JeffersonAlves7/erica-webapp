@@ -1,5 +1,5 @@
-import { ButtonSelector } from "@/components/buttonSelector";
-import { PaginationSelector } from "@/components/paginationSelector";
+import { ButtonSelector } from "@/components/selectors/buttonSelector";
+import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import {

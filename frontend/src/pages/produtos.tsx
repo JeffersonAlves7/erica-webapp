@@ -1,4 +1,4 @@
-import { ButtonSelector } from "@/components/buttonSelector";
+import { ButtonSelector } from "@/components/selectors/buttonSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
@@ -16,7 +16,7 @@ import {
   Tr
 } from "@chakra-ui/react";
 import { useEffect, useReducer } from "react";
-import { PaginationSelector } from "@/components/paginationSelector";
+import { PaginationSelector } from "@/components/selectors/paginationSelector";
 
 interface Product {
   id: number;

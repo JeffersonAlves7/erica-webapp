@@ -1,4 +1,4 @@
-import { LinkSelector } from "@/components/linkSelector";
+import { LinkSelector } from "@/components/selectors/linkSelector";
 import { Box, Heading, Stack } from "@chakra-ui/react";
 import { Outlet } from "react-router-dom";
 

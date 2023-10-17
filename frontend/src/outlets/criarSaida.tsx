@@ -1,99 +1,83 @@
+import { ClientInput } from "@/components/inputs/client.input";
+import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { StockInput } from "@/components/inputs/stock.input";
+import { ObservacaoInput } from "@/components/inputs/observacao.input";
+import { OperatorInput } from "@/components/inputs/operator.input";
+import { QuantityInput } from "@/components/inputs/quantity.input";
+import { LancamentoFooter } from "@/components/lancamentoFooter";
 import {
-  Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  FormControl,
-  FormLabel,
   Grid,
   Heading,
-  Input,
-  Select
 } from "@chakra-ui/react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { DestinyInput } from "@/components/inputs/destiny.input";
 
 export function CriarSaida() {
+  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle'); // 'idle' | 'loading' | 'error' | 'success'
+  const [error, setError] = useState<string>("");
+
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const clienteRef = useRef<HTMLInputElement>(null);
-  const operadorRef = useRef<HTMLInputElement>(null);
+  const observacaoRef = useRef<HTMLInputElement>(null);
+  const operadorRef = useRef<HTMLSelectElement>(null);
   const estoqueRef = useRef<HTMLSelectElement>(null);
 
-  function handleConfirm() {
+  function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = quantidadeRef.current?.value;
     const clienteValue = clienteRef.current?.value;
-    const operadorValue = operadorRef.current?.value;
-    const estoqueValue = estoqueRef.current?.value;
+    const observacalValue = observacaoRef.current?.value;
+    const operador = operadorRef.current?.value;
+    const estoque = estoqueRef.current?.value;
 
     if (
       !codigoValue ||
       !quantidadeValue ||
       !clienteValue ||
-      !operadorValue ||
-      !estoqueValue
+      !operador ||
+      !estoque
     ) {
       return;
     }
 
-    console.log({
-      codigoValue,
-      quantidadeValue,
-      clienteValue,
-      operadorValue,
-      estoqueValue
-    });
+    const data = {
+      codeOrEan: codigoValue,
+      quantity: quantidadeValue,
+      client: clienteValue,
+      operator: operador,
+      stock: estoque,
+      observacao: observacalValue
+    };
+
+    console.log(data);
   }
 
   return (
     <Card w={"550px"}>
-      <CardHeader>
-        <Heading size={"md"}>Saída</Heading>
-      </CardHeader>
+      <form onSubmit={handleConfirm}>
+        <CardHeader>
+          <Heading size={"md"}>Saída</Heading>
+        </CardHeader>
 
-      <CardBody>
-        <Grid templateColumns={"1fr 1fr"} gap={6}>
-          <FormControl>
-            <FormLabel>Código ou Ean</FormLabel>
-            <Input ref={codigoRef} />
-          </FormControl>
+        <CardBody>
+          <Grid templateColumns={"1fr 1fr"} gap={6}>
+            <CodeOrEanInput ref={codigoRef} />
+            <QuantityInput ref={quantidadeRef}/> 
+            <StockInput label="Origem" ref={estoqueRef} />
+            <DestinyInput placeholder="Ex.: Client 01" ref={clienteRef} />
+            <OperatorInput ref={operadorRef}/> 
+            <ObservacaoInput ref={observacaoRef} />
+          </Grid>
+        </CardBody>
 
-          <FormControl>
-            <FormLabel>Quantidade</FormLabel>
-            <Input type="number" ref={quantidadeRef} />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>Cliente</FormLabel>
-            <Input ref={clienteRef} />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>Operador</FormLabel>
-            <Input ref={operadorRef} />
-          </FormControl>
-
-          <FormControl>
-            <FormLabel>De</FormLabel>
-            <Select  ref={estoqueRef} placeholder={"Selecione um estoque"}>
-              <option value="Galpão">Galpão</option>
-              <option value="Loja">Loja</option>
-            </Select>
-          </FormControl>
-        </Grid>
-      </CardBody>
-
-      <CardFooter>
-        <Button
-          onClick={handleConfirm}
-          colorScheme="green"
-          backgroundColor={"erica.green"}
-          mt={6}
-        >
-          Criar
-        </Button>
-      </CardFooter>
+        <LancamentoFooter status={status} error={error} />
+      </form>
     </Card>
   );
 }

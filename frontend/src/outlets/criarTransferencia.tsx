@@ -1,11 +1,14 @@
-import { OperadorSelector } from "@/components/operadorSelector";
+import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { DestinyInput } from "@/components/inputs/destiny.input";
+import { ObservacaoInput } from "@/components/inputs/observacao.input";
+import { OperatorInput } from "@/components/inputs/operator.input";
+import { QuantityInput } from "@/components/inputs/quantity.input";
+import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import {
-  Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
   FormControl,
   FormLabel,
@@ -19,12 +22,16 @@ import { useRef, useState } from "react";
 import { Link as RouterLink } from "react-router-dom";
 
 export function CriarTransferencia() {
-  const [operator, setOperator] = useState<Operator>("" as Operator);
+  const [error, setError] = useState<string>("");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "error" | "success"
+  >("idle");
 
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const observacaoRef = useRef<HTMLInputElement>(null);
   const locationRef = useRef<HTMLInputElement>(null);
+  const operatorRef = useRef<HTMLSelectElement>(null);
 
   function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -32,6 +39,7 @@ export function CriarTransferencia() {
     const quantidadeValue = quantidadeRef.current?.value;
     const observacaoValue = observacaoRef.current?.value;
     const locationValue = locationRef.current?.value;
+    const operator = operatorRef.current?.value as Operator;
 
     if (!codigoValue || !quantidadeValue || !operator) {
       return;
@@ -58,60 +66,28 @@ export function CriarTransferencia() {
 
         <CardBody>
           <Grid templateColumns={"1fr 1fr"} gap={6}>
-            <FormControl>
-              <FormLabel>Código ou Ean</FormLabel>
-              <Input ref={codigoRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Quantidade</FormLabel>
-              <Input type="number" ref={quantidadeRef} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Operador</FormLabel>
-              <OperadorSelector onChange={(value) => setOperator(value)} />
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Destino</FormLabel>
-              <Input ref={locationRef} placeholder="Ex.: Loja 1 Andar 2"/>
-            </FormControl>
-
-            <FormControl>
-              <FormLabel>Observações</FormLabel>
-              <Input ref={observacaoRef} />
-            </FormControl>
+            <CodeOrEanInput ref={codigoRef} />
+            <QuantityInput ref={quantidadeRef} />
+            <OperatorInput ref={operatorRef} />
+            <DestinyInput ref={locationRef} />
+            <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>
 
-        <CardFooter>
-          <Flex w={"full"} justify={"space-between"} gap={6}>
-            <Button
-              type="reset"
-              colorScheme="red"
-              backgroundColor={"erica.red"}
-            >
-              Cancelar
-            </Button>
-            <Button
-              colorScheme="green"
-              type="submit"
-              backgroundColor={"erica.green"}
-              mr={6}
-            >
-              Criar
-            </Button>
-            <ChakraLink
-              as={RouterLink}
-              to={"./conferencias"}
-              textDecoration={"underline"}
-              textColor={"#7B65FF"}
-            >
-              Conferir Transferências
-            </ChakraLink>
-          </Flex>
-        </CardFooter>
+        <Flex align={"center"} justify={"space-between"}>
+          <LancamentoFooter status={status} error={error} />
+          <ChakraLink
+            as={RouterLink}
+            to={"./conferencias"}
+            textDecoration={"underline"}
+            textColor={"#7B65FF"}
+            textAlign={"center"}
+            marginTop={"1.5rem"}
+            marginRight={"1rem"}
+          >
+            Conferir Transferências
+          </ChakraLink>
+        </Flex>
       </form>
     </Card>
   );
