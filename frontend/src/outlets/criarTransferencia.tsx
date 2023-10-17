@@ -1,4 +1,5 @@
 import { OperadorSelector } from "@/components/operadorSelector";
+import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import {
   Button,
@@ -22,86 +23,96 @@ export function CriarTransferencia() {
 
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
-  const observacoesRef = useRef<HTMLInputElement>(null);
+  const observacaoRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<HTMLInputElement>(null);
 
   function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = quantidadeRef.current?.value;
-    const observacoesValue = observacoesRef.current?.value;
+    const observacaoValue = observacaoRef.current?.value;
+    const locationValue = locationRef.current?.value;
 
-    if (!codigoValue || !quantidadeValue || !operator || !observacoesValue) {
+    if (!codigoValue || !quantidadeValue || !operator) {
       return;
     }
 
-    console.log({ codigoValue, quantidadeValue, observacoesValue, operator });
+    productService
+      .createTransference({
+        codeOrEan: codigoValue,
+        quantity: parseInt(quantidadeValue),
+        operator,
+        observation: observacaoValue,
+        location: locationValue
+      })
+      .then(() => {})
+      .catch((err) => {});
   }
 
   return (
     <Card w={"550px"}>
-      <form onSubmit={handleConfirm}></form>
-      <CardHeader>
-        <Heading size={"md"}>Criar Transferência</Heading>
-      </CardHeader>
+      <form onSubmit={handleConfirm}>
+        <CardHeader>
+          <Heading size={"md"}>Criar Transferência</Heading>
+        </CardHeader>
 
-      <CardBody>
-        <Grid templateColumns={"1fr 1fr"} gap={6}>
-          <FormControl>
-            <FormLabel>Código</FormLabel>
-            <Input ref={codigoRef} />
-          </FormControl>
+        <CardBody>
+          <Grid templateColumns={"1fr 1fr"} gap={6}>
+            <FormControl>
+              <FormLabel>Código ou Ean</FormLabel>
+              <Input ref={codigoRef} />
+            </FormControl>
 
-          <FormControl>
-            <FormLabel>Quantidade</FormLabel>
-            <Input type="number" ref={quantidadeRef} />
-          </FormControl>
+            <FormControl>
+              <FormLabel>Quantidade</FormLabel>
+              <Input type="number" ref={quantidadeRef} />
+            </FormControl>
 
-          <FormControl>
-            <FormLabel>Operador</FormLabel>
-            <OperadorSelector onChange={(value) => setOperator(value)}/>
-          </FormControl>
+            <FormControl>
+              <FormLabel>Operador</FormLabel>
+              <OperadorSelector onChange={(value) => setOperator(value)} />
+            </FormControl>
 
-          <FormControl>
-            <FormLabel>Observações</FormLabel>
-            <Input ref={observacoesRef}/>
-          </FormControl>
+            <FormControl>
+              <FormLabel>Destino</FormLabel>
+              <Input ref={locationRef} placeholder="Ex.: Loja 1 Andar 2"/>
+            </FormControl>
 
-          <FormControl>
-            <FormLabel>De</FormLabel>
-            <Input disabled defaultValue={"Galpão"} />
-          </FormControl>
+            <FormControl>
+              <FormLabel>Observações</FormLabel>
+              <Input ref={observacaoRef} />
+            </FormControl>
+          </Grid>
+        </CardBody>
 
-          <FormControl>
-            <FormLabel>Para</FormLabel>
-            <Input disabled defaultValue={"Loja"} />
-          </FormControl>
-        </Grid>
-      </CardBody>
-
-      <CardFooter>
-        <Flex w={"full"} justify={"space-between"} gap={6}>
-          <Button type="reset" colorScheme="red" backgroundColor={"erica.red"}>
-            Cancelar
-          </Button>
-          <Button
-            colorScheme="green"
-            type="submit"
-            backgroundColor={"erica.green"}
-            mr={6}
-          >
-            Criar
-          </Button>
-          <ChakraLink
-            as={RouterLink}
-            to={"./conferencias"}
-            textDecoration={"underline"}
-            textColor={"#7B65FF"}
-          >
-            Conferir Transferências
-          </ChakraLink>
-        </Flex>
-      </CardFooter>
+        <CardFooter>
+          <Flex w={"full"} justify={"space-between"} gap={6}>
+            <Button
+              type="reset"
+              colorScheme="red"
+              backgroundColor={"erica.red"}
+            >
+              Cancelar
+            </Button>
+            <Button
+              colorScheme="green"
+              type="submit"
+              backgroundColor={"erica.green"}
+              mr={6}
+            >
+              Criar
+            </Button>
+            <ChakraLink
+              as={RouterLink}
+              to={"./conferencias"}
+              textDecoration={"underline"}
+              textColor={"#7B65FF"}
+            >
+              Conferir Transferências
+            </ChakraLink>
+          </Flex>
+        </CardFooter>
+      </form>
     </Card>
   );
 }

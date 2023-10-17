@@ -37,8 +37,9 @@ export interface ProductExit {
 }
 
 export interface ProductTransference {
-  code: string;
+  codeOrEan: string;
   quantity: number;
   operator: string;
   observation?: string;
+  location?: string;
 }

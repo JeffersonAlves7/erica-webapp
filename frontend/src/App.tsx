@@ -37,7 +37,11 @@ function App() {
           />
           <Route
             path="/incluir-lancamento"
-            element={<IncluirLancamento />}
+            element={
+              <ProtectedRoute>
+                <IncluirLancamento />
+              </ProtectedRoute>
+            }
             children={
               <>
                 <Route path="" element={<CriarEntrada />} />
@@ -45,12 +49,12 @@ function App() {
                 <Route path="saida" element={<CriarSaida />} />
                 <Route path="transferencia" element={<CriarTransferencia />} />
                 <Route path="devolucao" element={<CriarDevolucao />} />
-                <Route path="reserva" element={<CriarReserva/>} />
+                <Route path="reserva" element={<CriarReserva />} />
               </>
             }
           />
           <Route
-            path="conferencias"
+            path="/incluir-lancamento/transferencia/conferencias"
             element={
               <ProtectedRoute>
                 <Conferencias />

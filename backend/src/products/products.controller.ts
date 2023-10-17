@@ -4,8 +4,11 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
+  Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -97,18 +100,54 @@ export class ProductsController {
   @Post('transference')
   productTransference(@Body() productTransference: Record<string, any>) {
     return this.productsService.transferProduct({
-      code: productTransference.code,
+      codeOrEan: productTransference.codeOrEan,
       operator: productTransference.operator,
       observation: productTransference.observation,
-      quantity: productTransference.quantity, 
-    })
+      quantity: productTransference.quantity,
+      location: productTransference.location,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Patch('transferences')
+  async confirmTransferences(@Body() body: Record<string, any>) {
+    const { transferences } = body;
+
+    if(!transferences) throw new HttpException('No transferences to confirm', HttpStatus.BAD_REQUEST);
+
+    if(!Array.isArray(transferences)) throw new HttpException('Transferences must be an array', HttpStatus.BAD_REQUEST);
+
+    const length = transferences.length;
+    if(length === 0) throw new HttpException('No transferences to confirm', HttpStatus.BAD_REQUEST);
+    if(length > 100) throw new HttpException('Max 100 transferences to confirm', HttpStatus.BAD_REQUEST);
+
+    if(transferences.some(transference => !transference.id || !transference.entryAmount)) throw new HttpException('Invalid products', HttpStatus.BAD_REQUEST);
+    
+    for(let product of transferences) {
+      await this.productsService.confirmTransference({
+        id: parseInt(product.id),
+        entryAmount: parseInt(product.id),
+        location: product.location,
+      });
+    }
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Post('transference/confirm')
-  confirmTransference(@Query() query: Record<string, any>){
+  @Get('transferences')
+  getAllTransferences(@Query() query: Record<string, any>) {
+    if (query.confirmed) {
+      if (query.confirmed === 'false') query.confirmed = false;
+      if (query.confirmed === 'true') query.confirmed = true;
+    }
 
+    return this.productsService.getAllTransferencesByPage({
+      limit: Number(query.limit),
+      page: Number(query.page),
+      confirmed: query.confirmed,
+      orderBy: query.orderBy,
+    });
   }
 
   @UseGuards(AuthGuard)

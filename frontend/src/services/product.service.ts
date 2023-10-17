@@ -39,9 +39,9 @@ interface EntryResponse {
 }
 
 interface EntriesFilterParams {
-  importer?: Importer | string
-  search?: string // code, ean, description or container
-  orderBy?: string // createdAt_ASC or createdAt_DESC
+  importer?: Importer | string;
+  search?: string; // code, ean, description or container
+  orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
 }
 
 interface ProductsWithStockFilterParams extends PageableParams {
@@ -50,7 +50,31 @@ interface ProductsWithStockFilterParams extends PageableParams {
   stock?: Stock | string;
 }
 
-interface ProductWithStock extends Pageable<any>{
+interface ProductWithStock extends Pageable<any> {}
+
+interface GetTransferencesQueryParams extends PageableParams {
+  confirmed: boolean;
+  orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
+}
+
+interface CreateTransferenceParams {
+  codeOrEan: string;
+  quantity: number;
+  operator: string;
+  observation?: string;
+  location?: string;
+}
+
+interface ConfirmTransferenceParams {
+  transferences: { id: number; entryAmount: number; location?: string }[];
+}
+
+interface ExitProductParams {
+  codeOrEan: string;
+  quantity: number;
+  operator: string;
+  from: string;
+  observation?: string;
 }
 
 class ProductService {
@@ -76,6 +100,17 @@ class ProductService {
     return response.data;
   }
 
+  async createTransference(data: CreateTransferenceParams) {
+    const response = await api.post("/products/transference", data);
+    return response.data;
+  }
+
+  async confirmTransferences(
+    params: ConfirmTransferenceParams
+  ) {
+    return api.patch(`/products/transferences`, params);
+  }
+
   async createEntry(productEntry: ProductEntry): Promise<EntryResponse> {
     const response = await api.post("/products/entry", productEntry);
     return response.data as EntryResponse;
@@ -85,6 +120,15 @@ class ProductService {
     pageableParams: ProductsWithStockFilterParams
   ): Promise<ProductWithStock> {
     const response = await api.get(`/products/stock`, {
+      params: pageableParams
+    });
+    return response.data;
+  }
+
+  async getAllTransferences(
+    pageableParams: GetTransferencesQueryParams
+  ): Promise<Pageable<any>> {
+    const response = await api.get(`/products/transferences`, {
       params: pageableParams
     });
     return response.data;

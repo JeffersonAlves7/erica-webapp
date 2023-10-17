@@ -44,7 +44,7 @@ interface ProductsWithStock {
   saldo: number;
   container: string;
   importadora: string;
-  dataDeEntrada: Date;
+  dataDeEntrada: Date | null;
   diasEmEstoque: number;
 }
 
@@ -76,25 +76,34 @@ export function Stocks() {
       })
       .then((data) => {
         const items = data.data.map((item: any) => {
-          const entradaSum = item.entries.reduce(
-            (previous: any, current: any) => {
-              if (typeof previous == "number")
-                return previous + current.quantityReceived;
-              return previous.quantityReceived + current.quantityReceived;
-            },
-            0
-          );
+          const entriesLength =  item.entries.length;
 
-          const containerNames = item.entries
-            .map((entry: any) => entry.containerId)
-            .join(", ");
+          const entradaSum =
+            entriesLength > 0
+              ? item.entries.reduce((previous: any, current: any) => {
+                  if (typeof previous == "number")
+                    return previous + current.quantityReceived;
+                  return previous.quantityReceived + current.quantityReceived;
+                }, 0)
+              : 0;
 
-          const lastDate = new Date(
+          const containerNames =
+            estoque != "Loja"
+              ? item.entries.map((entry: any) => entry.containerId).join(", ")
+              : "";
+
+          const lastDate = item.entries.length > 0 ? new Date(
             item.entries[item.entries.length - 1].createdAt
-          );
-          const diasEmEstoque = Math.floor(
-            (new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24)
-          );
+          ) : null;
+
+          const diasEmEstoque =
+            lastDate != null
+              ? Math.floor(
+                  (new Date().getTime() - lastDate.getTime()) /
+                    (1000 * 3600 * 24)
+                )
+              : 0;
+
           const saldo =
             estoque == "Geral"
               ? item.galpaoQuantity + item.lojaQuantity
@@ -208,7 +217,7 @@ export function Stocks() {
                   <Th>Código</Th>
                   <Th>Entrada</Th>
                   <Th>Saldo Atual</Th>
-                  <Th>Container</Th>
+                  {estoque !== "Loja" && <Th>Container</Th>}
                   <Th>Importadora</Th>
                   <Th>Data de Entrada</Th>
                   <Th>Dias em Estoque</Th>
@@ -228,9 +237,9 @@ export function Stocks() {
                     </Td>
                     <Td>{item.quantidadeEntrada}</Td>
                     <Td>{item.saldo}</Td>
-                    <Td>{item.container}</Td>
+                    {estoque !== "Loja" && <Td>{item.container}</Td>}
                     <Td>{item.importadora}</Td>
-                    <Td>{format(item.dataDeEntrada, "dd/MM/yyyy")}</Td>
+                    <Td>{item.dataDeEntrada ? format(item.dataDeEntrada, "dd/MM/yyyy") : ''}</Td>
                     <Td>{item.diasEmEstoque} dia(s)</Td>
                     <Td>
                       <CloseButton

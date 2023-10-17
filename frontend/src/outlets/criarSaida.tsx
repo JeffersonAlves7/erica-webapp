@@ -55,7 +55,7 @@ export function CriarSaida() {
       <CardBody>
         <Grid templateColumns={"1fr 1fr"} gap={6}>
           <FormControl>
-            <FormLabel>Código</FormLabel>
+            <FormLabel>Código ou Ean</FormLabel>
             <Input ref={codigoRef} />
           </FormControl>
 
