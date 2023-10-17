@@ -1,11 +1,5 @@
 import { productService } from "@/services/product.service";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Grid,
-  Heading,
-} from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
 import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
@@ -92,14 +86,14 @@ export function CriarReserva() {
           <Grid templateColumns={"1fr 1fr"} gap={6}>
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
-            <ClientInput ref={clienteRef} /> 
-            <StockInput label="Destino" ref={stockRef} /> 
+            <ClientInput ref={clienteRef} />
+            <StockInput label="Destino" ref={stockRef} />
             <OperatorInput ref={operatorRef} />
             <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} /> 
+        <LancamentoFooter status={status} error={error} />
       </form>
     </Card>
   );

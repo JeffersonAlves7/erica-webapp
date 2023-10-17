@@ -42,7 +42,7 @@ api.interceptors.response.use(
               baseURL: "http://localhost:3000/api",
               headers: {
                 "Content-Type": "application/json"
-              },
+              }
             }
           );
 
@@ -52,8 +52,7 @@ api.interceptors.response.use(
         } catch (_error) {
           return Promise.reject(_error);
         }
-      }
-      else{
+      } else {
         return Promise.reject(err);
       }
     }

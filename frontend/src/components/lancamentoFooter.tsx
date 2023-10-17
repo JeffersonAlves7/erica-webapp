@@ -4,7 +4,7 @@ import {
   Box,
   Button,
   CardFooter,
-  Flex,
+  Flex
 } from "@chakra-ui/react";
 
 interface LancamentoFooterProps {
@@ -46,4 +46,3 @@ export function LancamentoFooter(props: LancamentoFooterProps) {
     </CardFooter>
   );
 }
-

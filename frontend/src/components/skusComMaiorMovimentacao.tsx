@@ -1,4 +1,15 @@
-import { Card, CardBody, CardHeader, Heading, Table, Tbody, Td, Th, Thead, Tr } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Heading,
+  Table,
+  Tbody,
+  Td,
+  Th,
+  Thead,
+  Tr
+} from "@chakra-ui/react";
 import { useState } from "react";
 
 interface ProdutoPorMovimentacao {

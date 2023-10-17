@@ -106,9 +106,7 @@ class ProductService {
     return response.data;
   }
 
-  async confirmTransferences(
-    params: ConfirmTransferenceParams
-  ) {
+  async confirmTransferences(params: ConfirmTransferenceParams) {
     return api.patch(`/products/transferences`, params);
   }
 
@@ -117,7 +115,7 @@ class ProductService {
     return response.data as EntryResponse;
   }
 
-  async createExit(productExit: ProductExit){
+  async createExit(productExit: ProductExit) {
     const response = await api.post("/products/exit", productExit);
     return response.data;
   }

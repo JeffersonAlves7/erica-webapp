@@ -3,7 +3,7 @@ import { StockSelector } from "../selectors/stockSelector";
 import { PropsWithRef, Ref } from "react";
 
 export function StockInput(
-  props: PropsWithRef<{ ref: Ref<HTMLSelectElement>, label: string }>
+  props: PropsWithRef<{ ref: Ref<HTMLSelectElement>; label: string }>
 ) {
   return (
     <FormControl>

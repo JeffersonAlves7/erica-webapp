@@ -4,18 +4,14 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Grid,
-  Heading,
-} from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { DestinyInput } from "@/components/inputs/destiny.input";
 
 export function CriarSaida() {
-  const [status, setStatus] = useState<'idle' | 'loading' | 'error' | 'success'>('idle'); // 'idle' | 'loading' | 'error' | 'success'
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "error" | "success"
+  >("idle"); // 'idle' | 'loading' | 'error' | 'success'
   const [error, setError] = useState<string>("");
 
   const codigoRef = useRef<HTMLInputElement>(null);
@@ -67,10 +63,10 @@ export function CriarSaida() {
         <CardBody>
           <Grid templateColumns={"1fr 1fr"} gap={6}>
             <CodeOrEanInput ref={codigoRef} />
-            <QuantityInput ref={quantidadeRef}/> 
+            <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={estoqueRef} />
             <DestinyInput placeholder="Ex.: Client 01" ref={clienteRef} />
-            <OperatorInput ref={operadorRef}/> 
+            <OperatorInput ref={operadorRef} />
             <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>
