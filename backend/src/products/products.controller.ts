@@ -89,6 +89,7 @@ export class ProductsController {
     return this.productsService.exitProduct({
       codeOrEan: productExit.codeOrEan,
       from: productExit.from,
+      client: productExit.client,
       observation: productExit.observation,
       quantity: productExit.quantity,
       operator: productExit.operator,

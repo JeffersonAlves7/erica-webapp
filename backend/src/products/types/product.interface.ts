@@ -34,6 +34,7 @@ export interface ProductExit {
   from: Stock;
   observation?: string;
   operator?: string
+  client: string;
 }
 
 export interface ProductTransference {

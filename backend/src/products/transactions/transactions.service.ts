@@ -29,7 +29,8 @@ interface ExitParams {
   fromStock: Stock;
   exitAmount: number;
   observation?: string;
-  operator?: string;
+  operator: string;
+  client: string;
 }
 
 interface LojaTransferParams {
@@ -71,6 +72,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     if (!data.product) throw new Error('Missing product');
     if (!data.fromStock) throw new Error('Missing fromStock');
     if (!data.exitAmount) throw new Error('Missing exitAmount');
+    if (!data.client) throw new Error('Missing client');
 
     return this.prismaService.transaction.create({
       data: {
@@ -83,6 +85,8 @@ export class TransactionsService implements TransactionsServiceInterface {
         exitAmount: data.exitAmount,
         type: TransactionType.EXIT,
         observation: data.observation,
+        operator: data.operator,
+        client: data.client,
       },
     });
   }
@@ -194,6 +198,7 @@ export class TransactionsService implements TransactionsServiceInterface {
       exitAmount: entryAmount,
       operator: transaction.operator,
       observation: transaction.observation,
+      client: 'Loja',
     });
 
     await this.prismaService.transaction.update({

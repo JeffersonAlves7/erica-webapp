@@ -19,7 +19,6 @@ import {
   ProductTransference,
   ProductWithLastEntryParams,
 } from './types/product.interface';
-import { EanUtils } from 'src/utils/ean-utils';
 import { TransactionsService } from './transactions/transactions.service';
 import { ContainerService } from './container/container.service';
 import { getImporterId } from './utils/importer.utils';
@@ -379,12 +378,27 @@ export class ProductsService implements ProductServiceInterface {
 
     const stockId = getStockId(productExit.from);
 
+    if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
+      throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
+    if (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) {
+      throw new HttpException(`Quantity not available`, HttpStatus.BAD_REQUEST);
+    } else if (
+      stockId === Stock.GALPAO &&
+      product.galpaoQuantity < productExit.quantity
+    ) {
+      throw new HttpException(`Quantity not available`, HttpStatus.BAD_REQUEST);
+    }
+
+    const transaction = await this.transactionsService.createExit({
+      product,
+      fromStock: stockId,
+      exitAmount: productExit.quantity,
+      observation: productExit.observation,
+      operator: productExit.operator,
+      client: productExit.client,
+    });
+
     if (stockId === Stock.LOJA) {
-      if (product.lojaQuantity < productExit.quantity)
-        throw new HttpException(
-          `Quantity not available`,
-          HttpStatus.BAD_REQUEST,
-        );
       await this.prismaService.product.update({
         where: {
           id: product.id,
@@ -396,11 +410,6 @@ export class ProductsService implements ProductServiceInterface {
         },
       });
     } else if (stockId === Stock.GALPAO) {
-      if (product.galpaoQuantity < productExit.quantity)
-        throw new HttpException(
-          `Quantity not available`,
-          HttpStatus.BAD_REQUEST,
-        );
       await this.prismaService.product.update({
         where: {
           id: product.id,
@@ -411,17 +420,7 @@ export class ProductsService implements ProductServiceInterface {
           },
         },
       });
-    } else {
-      throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
     }
-
-    const transaction = await this.transactionsService.createExit({
-      product,
-      fromStock: stockId,
-      exitAmount: productExit.quantity,
-      observation: productExit.observation,
-      operator: productExit.operator,
-    });
 
     return transaction;
   }
