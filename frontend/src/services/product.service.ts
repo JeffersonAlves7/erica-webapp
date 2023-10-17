@@ -2,6 +2,7 @@ import { Pageable, PageableParams } from "@/types/pageable.interface";
 import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
+import { Operator } from "@/types/operator.enum";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -74,7 +75,7 @@ interface ProductExit {
   quantity: number;
   from: string;
   observation?: string;
-  operator: string;
+  operator: Operator | string;
   client: string;
 }
 
@@ -116,6 +117,9 @@ class ProductService {
   }
 
   async createExit(productExit: ProductExit) {
+    console.log({
+      productExit
+    })
     const response = await api.post("/products/exit", productExit);
     return response.data;
   }

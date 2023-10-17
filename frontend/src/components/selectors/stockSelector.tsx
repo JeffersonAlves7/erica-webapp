@@ -1,14 +1,19 @@
 import { Stock } from "@/types/stock.enum";
 import { Select } from "@chakra-ui/react";
-import { PropsWithRef, Ref } from "react";
+import { PropsWithRef, forwardRef } from "react";
 
-export function StockSelector(
-  props: PropsWithRef<{ ref: Ref<HTMLSelectElement> }>
-) {
-  return (
-    <Select required ref={props.ref} placeholder={"Selecione um estoque"}>
-      <option value={Stock.GALPAO}>Galpão</option>
-      <option value={Stock.LOJA}>Loja</option>
-    </Select>
-  );
-}
+export const StockSelector = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
+  (props, ref) => {
+    return (
+      <Select required ref={ref} placeholder={"Selecione um estoque"}>
+        {Object.keys(Stock).map((key) => {
+          return (
+            <option key={"stock-" + key} value={key}>
+              {Stock[key as keyof typeof Stock]}
+            </option>
+          );
+        })}
+      </Select>
+    );
+  }
+);

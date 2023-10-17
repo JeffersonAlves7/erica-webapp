@@ -7,6 +7,9 @@ import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { DestinyInput } from "@/components/inputs/destiny.input";
+import { productService } from "@/services/product.service";
+import { Operator } from "@/types/operator.enum";
+import { Stock } from "@/types/stock.enum";
 
 export function CriarSaida() {
   const [status, setStatus] = useState<
@@ -24,33 +27,43 @@ export function CriarSaida() {
   function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
+    setError("");
+    setStatus("loading");
+
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = quantidadeRef.current?.value;
     const clienteValue = clienteRef.current?.value;
     const observacalValue = observacaoRef.current?.value;
-    const operador = operadorRef.current?.value;
-    const estoque = estoqueRef.current?.value;
+    const operator = operadorRef.current?.value as Operator;
+    const estoque = estoqueRef.current?.value as Stock;
 
     if (
       !codigoValue ||
       !quantidadeValue ||
       !clienteValue ||
-      !operador ||
+      !operator ||
       !estoque
     ) {
-      return;
+      setError("Preencha todos os campos");
+      setStatus("idle");
     }
 
-    const data = {
-      codeOrEan: codigoValue,
-      quantity: quantidadeValue,
-      client: clienteValue,
-      operator: operador,
-      stock: estoque,
-      observacao: observacalValue
-    };
-
-    console.log(data);
+    productService
+      .createExit({
+        client: clienteValue ?? "",
+        codeOrEan: codigoValue ?? "",
+        quantity: parseInt(quantidadeValue ?? ""),
+        operator: operator,
+        from: estoque,
+        observation: observacalValue
+      })
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        setError(err.message);
+        setStatus("error");
+      });
   }
 
   return (
