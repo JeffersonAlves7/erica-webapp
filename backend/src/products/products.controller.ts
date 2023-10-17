@@ -8,7 +8,6 @@ import {
   HttpStatus,
   Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -115,20 +114,41 @@ export class ProductsController {
   async confirmTransferences(@Body() body: Record<string, any>) {
     const { transferences } = body;
 
-    if(!transferences) throw new HttpException('No transferences to confirm', HttpStatus.BAD_REQUEST);
+    if (!transferences)
+      throw new HttpException(
+        'No transferences to confirm',
+        HttpStatus.BAD_REQUEST,
+      );
 
-    if(!Array.isArray(transferences)) throw new HttpException('Transferences must be an array', HttpStatus.BAD_REQUEST);
+    if (!Array.isArray(transferences))
+      throw new HttpException(
+        'Transferences must be an array',
+        HttpStatus.BAD_REQUEST,
+      );
 
     const length = transferences.length;
-    if(length === 0) throw new HttpException('No transferences to confirm', HttpStatus.BAD_REQUEST);
-    if(length > 100) throw new HttpException('Max 100 transferences to confirm', HttpStatus.BAD_REQUEST);
+    if (length === 0)
+      throw new HttpException(
+        'No transferences to confirm',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (length > 100)
+      throw new HttpException(
+        'Max 100 transferences to confirm',
+        HttpStatus.BAD_REQUEST,
+      );
 
-    if(transferences.some(transference => !transference.id || !transference.entryAmount)) throw new HttpException('Invalid products', HttpStatus.BAD_REQUEST);
-    
-    for(let product of transferences) {
+    if (
+      transferences.some(
+        (transference) => !transference.id || !transference.entryAmount,
+      )
+    )
+      throw new HttpException('Invalid products', HttpStatus.BAD_REQUEST);
+
+    for (let product of transferences) {
       await this.productsService.confirmTransference({
         id: parseInt(product.id),
-        entryAmount: parseInt(product.id),
+        entryAmount: parseInt(product.entryAmount),
         location: product.location,
       });
     }
@@ -148,6 +168,8 @@ export class ProductsController {
       page: Number(query.page),
       confirmed: query.confirmed,
       orderBy: query.orderBy,
+      code: query.code,
+      selectAll: query.selectAll,
     });
   }
 
@@ -163,13 +185,15 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('transactions')
   getAllTransactions(@Query() query: Record<string, any>) {
-    const { page, limit, type, orderBy } = query;
+    const { page, limit, type, orderBy, code, toStock } = query;
 
     return this.productsService.getAllTransactionsByPage({
       page: Number(page),
       limit: Number(limit),
       type,
       orderBy,
+      code,
+      toStock,
     });
   }
 }

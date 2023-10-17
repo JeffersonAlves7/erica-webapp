@@ -192,13 +192,21 @@ export class TransactionsService implements TransactionsServiceInterface {
       data: updateParams,
     });
 
-    await this.createExit({
-      product: transaction.product,
-      fromStock: Stock.LOJA,
-      exitAmount: entryAmount,
-      operator: transaction.operator,
-      observation: transaction.observation,
-      client: 'Loja',
+    await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: transaction.productId,
+          },
+        },
+        exitAmount: entryAmount,
+        fromStock: Stock.GALPAO,
+        toStock: Stock.LOJA,
+        type: TransactionType.TRANSFERENCE,
+        observation: transaction.observation,
+        operator: transaction.operator,
+        location: data.location,
+      },
     });
 
     await this.prismaService.transaction.update({
@@ -289,14 +297,25 @@ export class TransactionsService implements TransactionsServiceInterface {
   async getAllTransferencesByPage(
     pageableParams: TransferenceFilterParams,
   ): Promise<Pageable<any>> {
-    const transactions = await this.prismaService.transaction.findMany({
+    const search: any = {
       skip: (pageableParams.page - 1) * pageableParams.limit,
       take: pageableParams.limit,
       where: {
         type: TransactionType.TRANSFERENCE,
         confirmed: pageableParams.confirmed,
+        product: {
+          code: {
+            contains: pageableParams.code,
+          },
+        },
       },
-      select: {
+      orderBy: {
+        createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
+      },
+    };
+
+    if (!pageableParams.selectAll) {
+      search.select = {
         id: true,
         entryAmount: true,
         entryExpected: true,
@@ -311,10 +330,15 @@ export class TransactionsService implements TransactionsServiceInterface {
         },
         productId: true,
         createdAt: true,
-      },
-      orderBy: {
-        createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
-      },
+      };
+    } else {
+      search.include = {
+        product: true,
+      };
+    }
+
+    const transactions = await this.prismaService.transaction.findMany({
+      ...search,
     });
 
     const total = await this.prismaService.transaction.count({
@@ -332,14 +356,22 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async getAll(
-    pageableParams: PageableParams & TransactionFilterParams,
+    pageableParams: TransactionFilterParams,
   ): Promise<Pageable<Transaction>> {
+    const where = {
+      type: pageableParams.type,
+      product: {
+        code: {
+          contains: pageableParams.code,
+        },
+      },
+      toStock: pageableParams.toStock,
+    };
+
     const transactions = await this.prismaService.transaction.findMany({
       skip: (pageableParams.page - 1) * pageableParams.limit,
       take: pageableParams.limit,
-      where: {
-        type: pageableParams.type,
-      },
+      where,
       include: {
         product: true,
       },

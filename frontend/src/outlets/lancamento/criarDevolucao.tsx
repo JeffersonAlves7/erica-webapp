@@ -2,7 +2,7 @@ import { productService } from "@/services/product.service";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
-import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
+import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
@@ -41,32 +41,6 @@ export function CriarDevolucao() {
       setStatus("idle");
       return;
     }
-
-    // productService
-    //   .createEntry({
-    //     codeOrEan: codigoValue,
-    //     quantity: quantidadeValue,
-    //     container: containerValue,
-    //     stock,
-    //     operator,
-    //     observation: observacaoValue
-    //   })
-    //   .then(() => {
-    //     console.log("Entrada criada com sucesso!");
-    //     setStatus("success");
-    //   })
-    //   .catch((err) => {
-    //     handleError401(err);
-    //     switch (err.response.data.message) {
-    //       case "Product not found":
-    //         setError("Produto não encontrado");
-    //         break;
-    //       default:
-    //         setError("Erro ao criar entrada");
-    //         break;
-    //     }
-    //     setStatus("error");
-    //   });
   }
 
   return (

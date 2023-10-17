@@ -1,9 +1,10 @@
 import { FormControl, FormLabel } from "@chakra-ui/react";
 import { PropsWithRef, forwardRef } from "react";
 import { ImporterSelector } from "../selectors/importerSelector";
+import { Importer } from "@/types/importer.enum";
 
 export const ImporterInput = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <FormControl>
         <FormLabel>Importadora</FormLabel>
@@ -12,3 +13,16 @@ export const ImporterInput = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
     );
   }
 );
+
+export function ImporterInputForStock(props: {
+  onChange: (importer: Importer) => void;
+}) {
+  return (
+    <FormControl maxW={250}>
+      <FormLabel>
+        <p className="text-xs">Filtrar por Importadora</p>
+      </FormLabel>
+      <ImporterSelector onChange={props.onChange} />
+    </FormControl>
+  );
+}

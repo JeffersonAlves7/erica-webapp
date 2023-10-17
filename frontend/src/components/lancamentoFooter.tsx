@@ -27,7 +27,7 @@ export function LancamentoFooter(props: LancamentoFooterProps) {
         {status == "success" && (
           <Alert status="success">
             <AlertIcon />
-            Entrada criada com sucesso!
+            Lançamento incluído com sucesso!
           </Alert>
         )}
         <Flex mt={3} gap={3}>

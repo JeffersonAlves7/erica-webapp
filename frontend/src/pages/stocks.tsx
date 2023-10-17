@@ -1,154 +1,97 @@
-import { ButtonSelector } from "@/components/selectors/buttonSelector";
+import { CloseButton } from "@/components/buttons/closeButton";
+import { SearchButton } from "@/components/buttons/searchButton";
+import { CodeInputForStock } from "@/components/inputs/codeInput";
+import { ImporterInputForStock } from "@/components/inputs/importerInput";
+import { PercentageInput } from "@/components/inputs/percentageInput";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
+import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
+import { Importer } from "@/types/importer.enum";
+import { ProductsWithStock } from "@/types/products.interface";
+import { Stock } from "@/types/stock.enum";
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogOverlay,
   Box,
-  Button,
-  CloseButton,
-  FormControl,
-  FormLabel,
   Heading,
-  Input,
   Stack,
   Table,
   Tbody,
   Td,
   Th,
   Thead,
-  Tr,
-  useDisclosure
+  Tr
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
-import { BsSearch } from "react-icons/bs";
 import { Link } from "react-router-dom";
 
-type Estoque = "Geral" | "Galpão" | "Loja";
-
-enum EstoqueEnum {
-  geral = "Geral",
-  galpao = "Galpão",
-  loja = "Loja"
-}
-
-interface ProductsWithStock {
-  id: number;
-  sku: string;
-  quantidadeEntrada: number;
-  saldo: number;
-  container: string;
-  importadora: string;
-  dataDeEntrada: Date | null;
-  diasEmEstoque: number;
-}
-
 export function Stocks() {
-  const productsLimit = 10;
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const [estoque, setEstoque] = useState<Estoque>("Geral");
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-
   const [items, setItems] = useState<ProductsWithStock[]>([]);
-  const [itemIdToDelete, setItemIdToDelete] = useState<
-    ProductsWithStock["id"] | null
-  >(null);
-  const importadoraInput = useRef<HTMLInputElement>(null);
-  const codigoInput = useRef<HTMLInputElement>(null);
-  const cancelRef = useRef(null);
+  const [importer, setImporter] = useState<Importer | undefined>(undefined);
+  const [stock, setStock] = useState<Stock | undefined>(undefined);
+  const [code, setCode] = useState<string | undefined>(undefined);
+  const [alertaPorcentagem, setAlertaPorcentagem] = useState(50);
 
-  const estoques = Object.entries(EstoqueEnum).map(
-    (item) => item[1]
-  ) as Estoque[];
+  const productsLimit = 10;
+  const codigoRef = useRef<HTMLInputElement>(null);
+  const pageLimmit = Math.ceil(totalItems / productsLimit);
 
   useEffect(() => {
     productService
       .getAllProductsStock({
         page,
         limit: productsLimit,
-        stock: estoque == "Geral" ? undefined : estoque
+        stock,
+        importer,
+        code
       })
       .then((data) => {
-        const items = data.data.map((item: any) => {
-          const entriesLength =  item.entries.length;
-
-          const entradaSum =
-            entriesLength > 0
-              ? item.entries.reduce((previous: any, current: any) => {
-                  if (typeof previous == "number")
-                    return previous + current.quantityReceived;
-                  return previous.quantityReceived + current.quantityReceived;
-                }, 0)
-              : 0;
-
-          const containerNames =
-            estoque != "Loja"
-              ? item.entries.map((entry: any) => entry.containerId).join(", ")
-              : "";
-
-          const lastDate = item.entries.length > 0 ? new Date(
-            item.entries[item.entries.length - 1].createdAt
-          ) : null;
-
-          const diasEmEstoque =
-            lastDate != null
-              ? Math.floor(
-                  (new Date().getTime() - lastDate.getTime()) /
-                    (1000 * 3600 * 24)
-                )
-              : 0;
-
-          const saldo =
-            estoque == "Geral"
-              ? item.galpaoQuantity + item.lojaQuantity
-              : estoque == "Galpão"
-              ? item.galpaoQuantity
-              : item.lojaQuantity;
-
-          return {
-            id: item.id,
-            sku: item.code,
-            quantidadeEntrada: entradaSum,
-            saldo,
-            container: containerNames,
-            importadora: item.importer,
-            diasEmEstoque,
-            dataDeEntrada: lastDate
-          };
-        });
-
-        setItems(items);
+        setItems(data.data);
         setTotalItems(data.total);
+        setPage(1);
       })
       .catch((error) => {
         handleError401(error);
       });
-  }, [estoque, page]);
+  }, [importer, code, stock]);
 
-  function handleChangeEstoque(index: number) {
-    const estoqueFromButton = estoques[index];
-    if (estoqueFromButton == estoque) return;
-    setEstoque(estoqueFromButton);
+  function handleChangePage(page: number) {
+    setPage(page);
+
+    productService
+      .getAllProductsStock({
+        page,
+        limit: productsLimit,
+        stock,
+        importer,
+        code
+      })
+      .then((data) => {
+        setItems(data.data);
+        setTotalItems(data.total);
+        setPage(1);
+      })
+      .catch((error) => {
+        handleError401(error);
+      });
   }
 
   function handleSearchPedidos() {
-    const importadoraValue = importadoraInput.current?.value;
-    const codigoValue = codigoInput.current?.value;
-
-    if (!importadoraValue && !codigoValue) return;
-
-    console.log({ importadoraValue, codigoValue });
+    const codigo = codigoRef.current?.value;
+    if (!codigo) return;
+    setCode(codigo);
   }
 
-  function handleDeleteItem() {
-    setItems((items) => items.filter((item) => item.id !== itemIdToDelete));
-    onClose();
+  function handleChangeStock(stock: string) {
+    if (stock === "Geral") {
+      setStock(undefined);
+    } else if (stock === "Galpão") {
+      setStock(Stock.GALPAO);
+    } else if (stock === "Loja") {
+      setStock(Stock.LOJA);
+    }
   }
 
   const qntDeCaixas = items.reduce<number | ProductsWithStock>(
@@ -168,108 +111,59 @@ export function Stocks() {
         <Stack gap={10} h={"95%"}>
           <Heading>Estoques</Heading>
 
-          {/* Seletor de estoques */}
-          <Stack direction={"row"} gap={4}>
-            <ButtonSelector onClick={handleChangeEstoque} titles={estoques} />
-          </Stack>
+          <StockButtonSelector onClick={handleChangeStock} />
 
-          {/* Filtros */}
           <Stack direction={"row"} gap={4} align={"center"}>
-            <FormControl w={150}>
-              <FormLabel>
-                <p className="text-xs">Filtrar por Importadora</p>
-              </FormLabel>
-              <Input
-                placeholder="Ex.: ATTUS"
-                ref={importadoraInput}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearchPedidos();
-                }}
-              />
-            </FormControl>
-            <FormControl w={150}>
-              <FormLabel>
-                <p className="text-xs">Filtrar por Código</p>
-              </FormLabel>
-              <Input
-                placeholder={"Ex.: BT0001"}
-                ref={codigoInput}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleSearchPedidos();
-                }}
-              />
-            </FormControl>
-            <Button
-              _hover={{ opacity: 0.7 }}
-              backgroundColor={"erica.green"}
-              marginTop={6}
-              onClick={handleSearchPedidos}
-            >
-              <BsSearch />
-            </Button>
+            <ImporterInputForStock onChange={setImporter} />
+            <CodeInputForStock onSearch={handleSearchPedidos} ref={codigoRef} />
+            {!stock && (
+              <Box w={150}>
+                <PercentageInput
+                  label="Porcentagem para Alerta"
+                  value={alertaPorcentagem}
+                  onChange={(value) => {
+                    setAlertaPorcentagem(value);
+                  }}
+                />
+              </Box>
+            )}
+            <SearchButton onSearch={handleSearchPedidos} />
           </Stack>
 
-          {/* Tabela de Produtos */}
           <Box overflow={"auto"}>
             <Table>
-              <Thead>
-                <Tr>
-                  <Th>Código</Th>
-                  <Th>Entrada</Th>
-                  <Th>Saldo Atual</Th>
-                  {estoque !== "Loja" && <Th>Container</Th>}
-                  <Th>Importadora</Th>
-                  <Th>Data de Entrada</Th>
-                  <Th>Dias em Estoque</Th>
-                  <Th>Apagar</Th>
-                </Tr>
-              </Thead>
+              <StockTableHead stock={stock} />
               <Tbody>
                 {items.map((item) => (
-                  <Tr key={"item-" + item.sku}>
-                    <Td>
-                      <Link
-                        to={`/produtos/${item.sku}`}
-                        className=" underline text-blue-500"
-                      >
-                        {item.sku}
-                      </Link>
-                    </Td>
-                    <Td>{item.quantidadeEntrada}</Td>
-                    <Td>{item.saldo}</Td>
-                    {estoque !== "Loja" && <Td>{item.container}</Td>}
-                    <Td>{item.importadora}</Td>
-                    <Td>{item.dataDeEntrada ? format(item.dataDeEntrada, "dd/MM/yyyy") : ''}</Td>
-                    <Td>{item.diasEmEstoque} dia(s)</Td>
-                    <Td>
-                      <CloseButton
-                        onClick={() => {
-                          setItemIdToDelete(item.id);
-                          onOpen();
-                        }}
-                        backgroundColor={"red.400"}
-                        _hover={{ opacity: 0.7 }}
-                      />
-                    </Td>
-                  </Tr>
+                  <StockItem
+                    key={item.sku}
+                    item={item}
+                    alertaPorcentagem={alertaPorcentagem}
+                    stock={stock}
+                  />
                 ))}
               </Tbody>
             </Table>
           </Box>
+
           <PaginationSelector
             page={page}
             increasePage={() => {
-              const pageLimmit = Math.ceil(totalItems / productsLimit);
-              if (page <= pageLimmit) setPage(page + 1);
+              if (page <= pageLimmit) handleChangePage(page + 1);
             }}
             decreasePage={() => {
-              if (page > 1) setPage(page - 1);
+              if (page > 1) handleChangePage(page - 1);
             }}
-            pageQuantity={Math.ceil(totalItems / productsLimit)}
+            pageQuantity={pageLimmit}
           />
+        </Stack>
 
-          {/* Modal para confirmar deletar produto */}
-          <AlertDialog
+        <Box justifySelf={"flex-end"}>
+          <span>
+            {items.length} Produto(s) | Total de {qntDeCaixas} caixas.
+          </span>
+        </Box>
+        {/* <AlertDialog
             isOpen={isOpen}
             onClose={onClose}
             leastDestructiveRef={cancelRef}
@@ -297,15 +191,100 @@ export function Stocks() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialogOverlay>
-          </AlertDialog>
-        </Stack>
-        {/* Resumo da quantidade */}
-        <Box justifySelf={"flex-end"}>
-          <span>
-            {items.length} Produto(s) | Total de {qntDeCaixas} caixas.
-          </span>
-        </Box>
+          </AlertDialog> */}
       </Stack>
     </>
+  );
+}
+
+function StockTableHead(props: { stock: Stock | undefined }) {
+  return (
+    <Thead>
+      <Tr>
+        <Th>Código</Th>
+        <Th>
+          Quantidade <br /> de entrada
+        </Th>
+        <Th>
+          Saldo <br />
+          Atual
+        </Th>
+        {props.stock != Stock.LOJA && (
+          <Th>
+            Container <br /> de Origem
+          </Th>
+        )}
+        <Th>Importadora</Th>
+        <Th>
+          Data <br />
+          de Entrada
+        </Th>
+        <Th>
+          Dias <br />
+          em Estoque
+        </Th>
+        {!props.stock && <Th>Giro</Th>}
+        {!props.stock && (
+          <Th>
+            Quantidade
+            <br /> para alerta
+          </Th>
+        )}
+        <Th>Observação</Th>
+        <Th>Apagar</Th>
+      </Tr>
+    </Thead>
+  );
+}
+
+function StockItem({
+  item,
+  alertaPorcentagem,
+  stock
+}: {
+  item: ProductsWithStock;
+  alertaPorcentagem: number;
+  stock: Stock | undefined;
+}) {
+  const quantidadeParaAlerta =
+    item.quantidadeEntrada * (alertaPorcentagem / 100);
+
+  let saldoColor = !stock
+    ? item.saldo > quantidadeParaAlerta
+      ? "erica.green"
+      : item.saldo < quantidadeParaAlerta
+      ? "red.500"
+      : "yellow.500"
+    : "";
+
+  const date = item.dataDeEntrada
+    ? format(item.dataDeEntrada, "dd/MM/yyyy")
+    : "";
+
+  return (
+    <Tr>
+      <Td>
+        <Link to={item.sku} className=" underline text-blue-500">
+          {item.sku}
+        </Link>
+      </Td>
+      <Td>{item.quantidadeEntrada}</Td>
+      <Td backgroundColor={saldoColor}>{item.saldo} </Td>
+      {stock != Stock.LOJA && <Td>{item.container}</Td>}
+      <Td>{item.importadora}</Td>
+      <Td>{date}</Td>
+      <Td>{item.diasEmEstoque} dia(s)</Td>
+      {!stock && <Td>{item.giro}%</Td>}
+      {!stock && <Td>{quantidadeParaAlerta}</Td>}
+      <Td>{item.observacao}</Td>
+      <Td>
+        <CloseButton
+          onClick={() => {
+            // setItemIdToDelete(item.id);
+            // onOpen();
+          }}
+        />
+      </Td>
+    </Tr>
   );
 }

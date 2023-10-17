@@ -55,8 +55,8 @@ model ProductsOnContainer {
   id               Int       @id @default(autoincrement())
   containerId      String    @map("container_id")
   productId        Int       @map("product_id")
-  quantityExpected Int
-  quantityReceived Int
+  quantityExpected Int      @map("quantity_expected")
+  quantityReceived Int      @map("quantity_received")
   container        Container @relation(fields: [containerId], references: [id], map: "ProductsOnContainer_container_id_fkey")
   product          Product   @relation(fields: [productId], references: [id], map: "ProductsOnContainer_product_id_fkey")
   observation      String?
@@ -71,13 +71,13 @@ model Transaction {
   id               Int       @id @default(autoincrement())
   productId        Int       @map("product_id")
   type             TransactionType
-  fromStock        Stock?
-  toStock          Stock?
+  fromStock        Stock?    @map("from_stock")
+  toStock          Stock?    @map("to_stock")
   client           String?
   operator         String?
-  entryAmount      Int?
-  entryExpected    Int?
-  exitAmount       Int?
+  entryAmount      Int?      @default(0) @map("entry_amount")
+  entryExpected    Int?      @default(0) @map("entry_expected")
+  exitAmount       Int?      @default(0) @map("exit_amount")
   observation      String?
   location         String?
   confirmed        Boolean   @default(false) @map("checked")

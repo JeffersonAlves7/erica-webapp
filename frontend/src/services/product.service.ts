@@ -3,6 +3,7 @@ import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
+import { ProductsWithStock } from "@/types/products.interface";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -51,11 +52,15 @@ interface ProductsWithStockFilterParams extends PageableParams {
   stock?: Stock | string;
 }
 
-interface ProductWithStock extends Pageable<any> {}
-
 interface GetTransferencesQueryParams extends PageableParams {
-  confirmed: boolean;
+  confirmed?: boolean;
   orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
+}
+
+interface GetTransactionsQueryParams extends PageableParams {
+  orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
+  code?: string | undefined;
+  toStock?: Stock | string | undefined;
 }
 
 interface CreateTransferenceParams {
@@ -102,6 +107,16 @@ class ProductService {
     return response.data;
   }
 
+  async getTransactions(
+    pageableParams: GetTransactionsQueryParams
+  ): Promise<Pageable<any>> {
+    const response = await api.get("/products/transactions", {
+      params: pageableParams
+    });
+
+    return response.data;
+  }
+
   async createTransference(data: CreateTransferenceParams) {
     const response = await api.post("/products/transference", data);
     return response.data;
@@ -117,20 +132,82 @@ class ProductService {
   }
 
   async createExit(productExit: ProductExit) {
-    console.log({
-      productExit
-    })
     const response = await api.post("/products/exit", productExit);
     return response.data;
   }
 
   async getAllProductsStock(
     pageableParams: ProductsWithStockFilterParams
-  ): Promise<ProductWithStock> {
+  ): Promise<Pageable<ProductsWithStock>> {
     const response = await api.get(`/products/stock`, {
       params: pageableParams
     });
-    return response.data;
+
+    const data = response.data as Pageable<any>;
+
+    const items = data.data.map((item: any) => {
+      const entriesLength = item.entries.length;
+
+      const entradaSum =
+        entriesLength > 0
+          ? item.entries.reduce((previous: any, current: any) => {
+              if (typeof previous == "number")
+                return previous + current.quantityReceived;
+              return previous.quantityReceived + current.quantityReceived;
+            }, 0)
+          : 0;
+
+      const containerNames =
+        pageableParams.stock != Stock.LOJA
+          ? item.entries.map((entry: any) => entry.containerId).join(", ")
+          : "";
+
+      const lastDate =
+        item.entries.length > 0
+          ? new Date(item.entries[item.entries.length - 1].createdAt)
+          : null;
+
+      const diasEmEstoque =
+        lastDate != null
+          ? Math.floor(
+              (new Date().getTime() - lastDate.getTime()) / (1000 * 3600 * 24)
+            )
+          : 0;
+
+      const saldo = !pageableParams.stock
+        ? item.galpaoQuantity + item.lojaQuantity
+        : pageableParams.stock == Stock.GALPAO
+        ? item.galpaoQuantity
+        : item.lojaQuantity;
+
+      const giro =
+        pageableParams.stock != Stock.LOJA
+          ? diasEmEstoque > 0
+            ? item.sales / diasEmEstoque
+            : item.sales / 1
+          : 0;
+
+      const observacao = entriesLength > 0 ? item.entries[0].observation : "";
+
+      return {
+        id: item.id,
+        sku: item.code,
+        quantidadeEntrada: entradaSum,
+        saldo,
+        container: containerNames,
+        importadora: item.importer,
+        diasEmEstoque,
+        dataDeEntrada: lastDate,
+        giro,
+        observacao
+      };
+    });
+
+    return {
+      page: data.page,
+      data: items,
+      total: data.total
+    };
   }
 
   async getAllTransferences(

@@ -7,11 +7,12 @@ import { IncluirLancamento } from "./pages/incluirLancamento";
 import { Conferencias } from "./pages/conferencias";
 import { Produtos } from "./pages/produtos";
 import { ProtectedRoute } from "./components/protectedRoute";
-import { CriarEntrada } from "./outlets/criarEntrada";
-import { CriarSaida } from "./outlets/criarSaida";
-import { CriarTransferencia } from "./outlets/criarTransferencia";
-import { CriarDevolucao } from "./outlets/criarDevolucao";
-import { CriarReserva } from "./outlets/criarReserva";
+import { CriarEntrada } from "./outlets/lancamento/criarEntrada";
+import { CriarSaida } from "./outlets/lancamento/criarSaida";
+import { CriarTransferencia } from "./outlets/lancamento/criarTransferencia";
+import { CriarDevolucao } from "./outlets/lancamento/criarDevolucao";
+import { CriarReserva } from "./outlets/lancamento/criarReserva";
+import { ProductTransactions } from "./pages/productTransactions";
 
 function App() {
   return (
@@ -24,6 +25,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Stocks />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/estoques/:codigo"
+            element={
+              <ProtectedRoute>
+                <ProductTransactions />
               </ProtectedRoute>
             }
           />

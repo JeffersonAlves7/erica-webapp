@@ -57,7 +57,7 @@ interface ProductServiceInterface {
 
   deleteTransaction(id: number): Promise<Transaction>;
   getAllTransactionsByPage(
-    pageableParams: PageableParams & TransactionFilterParams,
+    pageableParams: TransactionFilterParams,
   ): Promise<Pageable<Transaction>>;
 }
 
@@ -80,6 +80,25 @@ export class ProductsService implements ProductServiceInterface {
             ean: codeOrEan,
           },
         ],
+      },
+    });
+  }
+
+  private getProductSales(
+    id: Product['id'],
+    filter: { date?: Date; stock?: Stock },
+  ): Promise<Transaction[]> {
+    return this.prismaService.transaction.findMany({
+      where: {
+        productId: id,
+        type: TransactionType.EXIT,
+        fromStock: filter.stock ?? undefined,
+        client: {
+          not: 'Loja',
+        },
+        createdAt: {
+          gte: filter.date ?? new Date(0),
+        },
       },
     });
   }
@@ -234,9 +253,22 @@ export class ProductsService implements ProductServiceInterface {
         }
       }
 
+      const salesData = await this.getProductSales(product.id, {
+        date: entriesToSend[0]?.createdAt ?? new Date(),
+        stock: stock ?? undefined,
+      });
+
+      const sales = salesData.reduce((acc: any, curr) => {
+        if (typeof acc === 'number') return acc + curr.exitAmount;
+        else {
+          return acc.exitAmount + curr.exitAmount;
+        }
+      }, 0);
+
       productsToSend.push({
         ...product,
         entries: entriesToSend,
+        sales,
       });
     }
 
@@ -645,10 +677,9 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async getAllTransactionsByPage(
-    pageableParams: PageableParams & TransactionFilterParams,
+    pageableParams: TransactionFilterParams,
   ): Promise<Pageable<Transaction>> {
     const transactions = await this.transactionsService.getAll(pageableParams);
-
     return transactions;
   }
 }
