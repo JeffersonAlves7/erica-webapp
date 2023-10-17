@@ -24,6 +24,7 @@ model Product {
   description         String?
   galpaoQuantity      Int                   @default(0) @map("galpao_quantity")
   lojaQuantity        Int                   @default(0) @map("loja_quantity")
+  lojaLocation        String?               @map("loja_location")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
   productsOnContainer ProductsOnContainer[] 
@@ -73,9 +74,13 @@ model Transaction {
   fromStock        Stock?
   toStock          Stock?
   client           String?
+  operator         String?
   entryAmount      Int?
+  entryExpected    Int?
   exitAmount       Int?
   observation      String?
+  location         String?
+  confirmed        Boolean   @default(false) @map("checked")
   createdAt        DateTime  @default(now()) @map("created_at")
   containerId      String?   @map("container_id")
   container        Container? @relation(fields: [containerId], references: [id], map: "Transactions_container_id_fkey")
