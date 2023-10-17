@@ -69,12 +69,13 @@ interface ConfirmTransferenceParams {
   transferences: { id: number; entryAmount: number; location?: string }[];
 }
 
-interface ExitProductParams {
+interface ProductExit {
   codeOrEan: string;
   quantity: number;
-  operator: string;
   from: string;
   observation?: string;
+  operator: string;
+  client: string;
 }
 
 class ProductService {
@@ -114,6 +115,11 @@ class ProductService {
   async createEntry(productEntry: ProductEntry): Promise<EntryResponse> {
     const response = await api.post("/products/entry", productEntry);
     return response.data as EntryResponse;
+  }
+
+  async createExit(productExit: ProductExit){
+    const response = await api.post("/products/exit", productExit);
+    return response.data;
   }
 
   async getAllProductsStock(
