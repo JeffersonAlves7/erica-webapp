@@ -1,4 +1,3 @@
-import { ClientInput } from "@/components/inputs/client.input";
 import { CodeOrEanInput } from "@/components/inputs/codeOrEan.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";

@@ -1,14 +1,8 @@
 import { productService } from "@/services/product.service";
 import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  Flex,
   Grid,
   Heading,
 } from "@chakra-ui/react";

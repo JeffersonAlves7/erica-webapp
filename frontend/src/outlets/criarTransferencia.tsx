@@ -10,11 +10,8 @@ import {
   Card,
   CardBody,
   CardHeader,
-  FormControl,
-  FormLabel,
   Grid,
   Heading,
-  Input,
   Link as ChakraLink,
   Flex
 } from "@chakra-ui/react";

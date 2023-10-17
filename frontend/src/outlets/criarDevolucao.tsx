@@ -1,16 +1,10 @@
 import { productService } from "@/services/product.service";
 import {
-  Alert,
-  AlertIcon,
-  Box,
-  Button,
   Card,
   CardBody,
-  CardFooter,
   CardHeader,
-  Flex,
   Grid,
-  Heading,
+  Heading
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
@@ -48,13 +42,7 @@ export function CriarDevolucao() {
     const stock = stockRef.current?.value;
     const observacao = observacaoRef.current?.value;
 
-    if (
-      !codigo ||
-      !quantidade ||
-      !container ||
-      !stock ||
-      !operator
-    ) {
+    if (!codigo || !quantidade || !container || !stock || !operator) {
       setError("Preencha todos os campos");
       setStatus("idle");
       return;
@@ -97,7 +85,7 @@ export function CriarDevolucao() {
         <CardBody>
           <Grid templateColumns={"1fr 1fr"} gap={6}>
             <CodeOrEanInput ref={codigoOuEanRef} />
-            <QuantityInput ref={quantidadeRef}/>
+            <QuantityInput ref={quantidadeRef} />
             <ClientInput ref={clienteRef} />
             <StockInput label="Destino" ref={stockRef} />
             <OperatorInput ref={operadorRef} />
@@ -105,7 +93,7 @@ export function CriarDevolucao() {
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} /> 
+        <LancamentoFooter status={status} error={error} />
       </form>
     </Card>
   );
