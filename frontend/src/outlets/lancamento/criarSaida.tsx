@@ -6,10 +6,10 @@ import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { DestinyInput } from "@/components/inputs/destiny.input";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import { Stock } from "@/types/stock.enum";
+import { ClientInput } from "@/components/inputs/client.input";
 
 export function CriarSaida() {
   const [status, setStatus] = useState<
@@ -78,7 +78,7 @@ export function CriarSaida() {
             <CodeOrEanInput ref={codigoRef} />
             <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={estoqueRef} />
-            <DestinyInput placeholder="Ex.: Client 01" ref={clienteRef} />
+            <ClientInput ref={clienteRef} />
             <OperatorInput ref={operadorRef} />
             <ObservacaoInput ref={observacaoRef} />
           </Grid>

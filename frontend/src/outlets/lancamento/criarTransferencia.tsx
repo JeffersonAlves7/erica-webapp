@@ -3,7 +3,7 @@ import { DestinyInput } from "@/components/inputs/destiny.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
-import { LancamentoFooter } from "@/components/lancamentoFooter";
+import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import {
@@ -12,11 +12,8 @@ import {
   CardHeader,
   Grid,
   Heading,
-  Link as ChakraLink,
-  Flex
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { Link as RouterLink } from "react-router-dom";
 
 export function CriarTransferencia() {
   const [error, setError] = useState<string>("");
@@ -32,6 +29,10 @@ export function CriarTransferencia() {
 
   function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    setStatus("loading");
+    setError("");
+
     const codigoValue = codigoRef.current?.value;
     const quantidadeValue = quantidadeRef.current?.value;
     const observacaoValue = observacaoRef.current?.value;
@@ -39,6 +40,8 @@ export function CriarTransferencia() {
     const operator = operatorRef.current?.value as Operator;
 
     if (!codigoValue || !quantidadeValue || !operator) {
+      setError("Preencha todos os campos");
+      setStatus("error");
       return;
     }
 
@@ -50,8 +53,18 @@ export function CriarTransferencia() {
         observation: observacaoValue,
         location: locationValue
       })
-      .then(() => {})
-      .catch((err) => {});
+      .then(() => {
+        setStatus("success");
+        codigoRef.current!.value = "";
+        quantidadeRef.current!.value = "";
+        observacaoRef.current!.value = "";
+        locationRef.current!.value = "";
+        operatorRef.current!.value = "";
+      })
+      .catch((err) => {
+        setStatus("error");
+        setError(err.response.data.message);
+      });
   }
 
   return (
@@ -71,20 +84,12 @@ export function CriarTransferencia() {
           </Grid>
         </CardBody>
 
-        <Flex align={"center"} justify={"space-between"}>
-          <LancamentoFooter status={status} error={error} />
-          <ChakraLink
-            as={RouterLink}
-            to={"./conferencias"}
-            textDecoration={"underline"}
-            textColor={"#7B65FF"}
-            textAlign={"center"}
-            marginTop={"1.5rem"}
-            marginRight={"1rem"}
-          >
-            Conferir Transferências
-          </ChakraLink>
-        </Flex>
+        <LancamentoFooterWithLink
+          status={status}
+          error={error}
+          to="./conferencias"
+          linkText="Conferir Transferências"
+        />
       </form>
     </Card>
   );

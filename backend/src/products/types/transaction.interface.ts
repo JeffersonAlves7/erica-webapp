@@ -5,7 +5,7 @@ export interface TransactionFilterParams extends PageableParams {
   type?: TransactionType;
   orderBy?: string; // createdAt_ASC or createdAt_DESC
   code?: string;
-  toStock?: Stock;
+  stock?: Stock;
 }
 
 export interface TransferenceFilterParams extends PageableParams {

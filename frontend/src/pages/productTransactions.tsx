@@ -1,6 +1,8 @@
 import { CloseButton } from "@/components/buttons/closeButton";
+import { ModalDelete } from "@/components/modalDelete";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
+import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import { ProductTransaction } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
@@ -15,56 +17,68 @@ import {
   Text,
   Th,
   Thead,
-  Tr
+  Tr,
+  useDisclosure
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export function ProductTransactions() {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  const [transactionToDelete, setTransactionToDelete] = useState<
+    number | undefined
+  >(undefined);
   const [product, setProduct] = useState<any>(undefined);
   const [stock, setStock] = useState<Stock | undefined>(undefined);
   const [transactions, setTransactions] = useState<ProductTransaction[]>([]);
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
 
-  const { codigo } = useParams<{ codigo: string }>();
+  const { codigo: code } = useParams<{ codigo: string }>();
 
   const transactionsLimit = 20;
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
 
   useEffect(() => {
-    productService.getTransactions({
-      limit: transactionsLimit,
-      page: page,
-      orderBy: 'desc',
-      code: codigo,
-      toStock: stock,
-    }).then((response) => {
-      const items = response.data.map((transaction) => {
-        if(!product) setProduct(transaction.product);
-      
-        return {
-          id: transaction.id,
-          code: transaction.product.code,  
-          entryAmount: transaction.entryAmount,
-          exitAmount: transaction.exitAmount,
-          type: transaction.type,
-          from: transaction.fromStock,
-          to: transaction.toStock,
-          client: transaction.client,
-          operator: transaction.operator,
-          createdAt: transaction.createdAt,
-          observation: transaction.observation,
-        }
+    productService
+      .getTransactions({
+        limit: transactionsLimit,
+        page: page,
+        orderBy: "desc",
+        code,
+        stock
       })
-
-      setTransactions(items);
-    });
+      .then((response) => {
+        setProduct(response.data[0]?.product);
+        setPage(1);
+        setPageQuantity(response.total);
+        setTransactions(response.data);
+      })
+      .catch((error) => {
+        handleError401(error);
+      });
   }, [stock]);
 
   function handleChangePage(page: number) {
     setPage(page);
+
+    productService
+      .getTransactions({
+        limit: transactionsLimit,
+        page: page,
+        orderBy: "desc",
+        code,
+        stock
+      })
+      .then((response) => {
+        setProduct(response.data[0]?.product);
+        setTransactions(response.data);
+      })
+      .catch((error) => {
+        handleError401(error);
+      });
   }
 
   function handleChangeStock(stock: string) {
@@ -77,25 +91,57 @@ export function ProductTransactions() {
     }
   }
 
+  function handleDelete(id: number) {
+    setTransactionToDelete(id);
+    onOpen();
+  }
+
+  function handleConfirmDelete() {
+    if (!transactionToDelete) {
+      onClose();
+      return;
+    }
+
+    productService
+      .deleteTransaction(transactionToDelete)
+      .then(() => {
+        setTransactionToDelete(undefined);
+        onClose();
+        handleChangePage(page);
+      })
+      .catch((error) => {
+        handleError401(error);
+      });
+
+    onClose();
+  }
+
   return (
     <Stack>
-      <Heading>Rotação - {codigo}</Heading>
+      <Heading>Rotação - {code}</Heading>
       <StockButtonSelector onClick={handleChangeStock} />
+
       <ProductInfo
         galpaoQuantity={product?.galpaoQuantity ?? 0}
         lojaQuantity={product?.lojaQuantity ?? 0}
         reservado={0}
       />
-      <Box overflow={"auto"}>
+
+      <Box overflow={"auto"} minH={300}>
         <Table>
           <ProductTableHead />
           <Tbody>
             {transactions.map((transaction) => (
-              <ProductTableItem transaction={transaction} key={transaction.id} />
+              <ProductTableItem
+                transaction={transaction}
+                key={transaction.id}
+                handleDelete={handleDelete}
+              />
             ))}
           </Tbody>
         </Table>
       </Box>
+
       <PaginationSelector
         page={page}
         pageQuantity={pageLimit}
@@ -108,6 +154,15 @@ export function ProductTransactions() {
           handleChangePage(page - 1);
         }}
       />
+
+      <ModalDelete
+        isOpen={isOpen}
+        onClose={onClose}
+        handleConfirm={handleConfirmDelete}
+      >
+        Você realmente deseja excluir esta transação? Essa ação não pode ser
+        desfeita.
+      </ModalDelete>
     </Stack>
   );
 }
@@ -167,9 +222,11 @@ function ProductTableHead() {
 }
 
 function ProductTableItem({
-  transaction
+  transaction,
+  handleDelete
 }: {
   transaction: ProductTransaction;
+  handleDelete?: (id: number) => void;
 }) {
   const date = transaction.createdAt
     ? format(new Date(transaction.createdAt), "dd/MM/yyyy")
@@ -188,7 +245,9 @@ function ProductTableItem({
       <Td>{date}</Td>
       <Td>{transaction.observation}</Td>
       <Td>
-        <CloseButton onClick={() => {}} />
+        <CloseButton
+          onClick={() => handleDelete && handleDelete(transaction.id)}
+        />
       </Td>
     </Tr>
   );

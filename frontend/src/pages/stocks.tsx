@@ -107,63 +107,63 @@ export function Stocks() {
 
   return (
     <>
-      <Stack h={"full"} justify={"space-between"}>
-        <Stack gap={10} h={"95%"}>
-          <Heading>Estoques</Heading>
+      <Stack gap={10} overflowY={'auto'}>
+        <Heading>Estoques</Heading>
 
-          <StockButtonSelector onClick={handleChangeStock} />
+        <StockButtonSelector onClick={handleChangeStock} />
 
-          <Stack direction={"row"} gap={4} align={"center"}>
-            <ImporterInputForStock onChange={setImporter} />
-            <CodeInputForStock onSearch={handleSearchPedidos} ref={codigoRef} />
-            {!stock && (
-              <Box w={150}>
-                <PercentageInput
-                  label="Porcentagem para Alerta"
-                  value={alertaPorcentagem}
-                  onChange={(value) => {
-                    setAlertaPorcentagem(value);
-                  }}
-                />
-              </Box>
-            )}
-            <SearchButton onSearch={handleSearchPedidos} />
-          </Stack>
-
-          <Box overflow={"auto"}>
-            <Table>
-              <StockTableHead stock={stock} />
-              <Tbody>
-                {items.map((item) => (
-                  <StockItem
-                    key={item.sku}
-                    item={item}
-                    alertaPorcentagem={alertaPorcentagem}
-                    stock={stock}
-                  />
-                ))}
-              </Tbody>
-            </Table>
-          </Box>
-
-          <PaginationSelector
-            page={page}
-            increasePage={() => {
-              if (page <= pageLimmit) handleChangePage(page + 1);
-            }}
-            decreasePage={() => {
-              if (page > 1) handleChangePage(page - 1);
-            }}
-            pageQuantity={pageLimmit}
-          />
+        <Stack direction={"row"} gap={4} align={"center"}>
+          <ImporterInputForStock onChange={setImporter} />
+          <CodeInputForStock onSearch={handleSearchPedidos} ref={codigoRef} />
+          {!stock && (
+            <Box w={150}>
+              <PercentageInput
+                label="Porcentagem para Alerta"
+                value={alertaPorcentagem}
+                onChange={(value) => {
+                  setAlertaPorcentagem(value);
+                }}
+              />
+            </Box>
+          )}
+          <SearchButton onSearch={handleSearchPedidos} />
         </Stack>
+
+        <Box overflow={"auto"} minH={200}>
+          <Table>
+            <StockTableHead stock={stock} />
+            <Tbody>
+              {items.map((item) => (
+                <StockItem
+                  key={item.sku}
+                  item={item}
+                  alertaPorcentagem={alertaPorcentagem}
+                  stock={stock}
+                />
+              ))}
+            </Tbody>
+          </Table>
+        </Box>
+
+        <PaginationSelector
+          page={page}
+          increasePage={() => {
+            if (page <= pageLimmit) handleChangePage(page + 1);
+          }}
+          decreasePage={() => {
+            if (page > 1) handleChangePage(page - 1);
+          }}
+          pageQuantity={pageLimmit}
+        />
 
         <Box justifySelf={"flex-end"}>
           <span>
             {items.length} Produto(s) | Total de {qntDeCaixas} caixas.
           </span>
         </Box>
-        {/* <AlertDialog
+      </Stack>
+
+      {/* <AlertDialog
             isOpen={isOpen}
             onClose={onClose}
             leastDestructiveRef={cancelRef}
@@ -192,7 +192,6 @@ export function Stocks() {
               </AlertDialogContent>
             </AlertDialogOverlay>
           </AlertDialog> */}
-      </Stack>
     </>
   );
 }

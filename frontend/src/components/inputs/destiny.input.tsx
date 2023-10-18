@@ -9,7 +9,6 @@ export const DestinyInput = forwardRef<
     <FormControl>
       <FormLabel>Destino</FormLabel>
       <Input
-        required
         ref={ref}
         placeholder={
           props.placeholder ? props.placeholder : "Ex.: Loja 1 Andar 2"

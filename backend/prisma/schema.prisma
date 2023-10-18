@@ -79,12 +79,14 @@ model Transaction {
   entryExpected    Int?      @default(0) @map("entry_expected")
   exitAmount       Int?      @default(0) @map("exit_amount")
   observation      String?
+  partnerId        Int?   @map("partner_id")
   location         String?
   confirmed        Boolean   @default(false) @map("checked")
-  createdAt        DateTime  @default(now()) @map("created_at")
   containerId      String?   @map("container_id")
   container        Container? @relation(fields: [containerId], references: [id], map: "Transactions_container_id_fkey")
   product          Product   @relation(fields: [productId], references: [id], map: "Transactions_product_id_fkey")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@index([productId], map: "Transactions_product_id_fkey")
   @@map("transactions")

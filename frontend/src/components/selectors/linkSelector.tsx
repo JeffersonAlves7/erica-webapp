@@ -1,6 +1,7 @@
-import { Button, Flex, Link } from "@chakra-ui/react";
+import { Flex, Link } from "@chakra-ui/react";
 import { useState } from "react";
 import { Link as RouterLink, useLocation } from "react-router-dom";
+import { ColorButton } from "../buttons/colorButton";
 
 interface LinkSelectorProps {
   links: { title: string; to: string; or?: string[] }[];
@@ -27,16 +28,15 @@ export function LinkSelector(props: LinkSelectorProps) {
           as={RouterLink}
           to={link.to}
         >
-          <Button
-            backgroundColor={selected === index ? "erica.green" : "erica.pink"}
-            colorScheme={selected === index ? "green" : "pink"}
+          <ColorButton
+            color={selected === index ? "green" : "pink"}
             onClick={() => {
               setSelected(index);
               props.onClick && props.onClick(index);
             }}
           >
             {link.title}
-          </Button>
+          </ColorButton>
         </Link>
       ))}
     </Flex>

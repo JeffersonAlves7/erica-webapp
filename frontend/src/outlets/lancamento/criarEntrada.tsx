@@ -59,7 +59,6 @@ export function CriarEntrada() {
         observation: observacaoValue
       })
       .then(() => {
-        console.log("Entrada criada com sucesso!");
         setStatus("success");
       })
       .catch((err) => {

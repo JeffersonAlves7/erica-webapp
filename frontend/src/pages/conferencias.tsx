@@ -1,12 +1,8 @@
+import { ModalDelete } from "@/components/modalDelete";
+import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import {
-  AlertDialog,
-  AlertDialogBody,
-  Text,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogOverlay,
   Button,
   Heading,
   Input,
@@ -18,9 +14,10 @@ import {
   Thead,
   Tr,
   useDisclosure,
-  Checkbox
+  Checkbox,
+  Box
 } from "@chakra-ui/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Conferencia {
   id: number;
@@ -33,11 +30,14 @@ interface Conferencia {
 export function Conferencias() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [page, setPage] = useState(0);
+  const [pageQuantity, setPageQuantity] = useState(0);
   const [conferencias, setConferencias] = useState<Conferencia[]>([]);
   const [idsConferencias, setIdsConferencias] = useState<Conferencia["id"][]>(
     []
   );
-  const cancelRef = useRef(null);
+
+  const conferenciasLimit = 20;
+  const pageMax = Math.ceil(pageQuantity / conferenciasLimit);
 
   useEffect(() => {
     productService
@@ -120,85 +120,101 @@ export function Conferencias() {
     <Stack maxW={1100}>
       <Heading>Conferir Conferências</Heading>
 
-      <Table>
-        <Thead>
-          <Tr>
-            <Th>Código</Th>
-            <Th>De</Th>
-            <Th>Para</Th>
-            <Th>Quantidade Esperada</Th>
-            <Th>Quantidade Verificada</Th>
-            <Th>Localização</Th>
-          </Tr>
-        </Thead>
+      <Box overflow={'auto'}>
+        <Table>
+          <Thead>
+            <Tr>
+              <Th>Código</Th>
+              <Th>De</Th>
+              <Th>Para</Th>
+              <Th>Quantidade Esperada</Th>
+              <Th>Quantidade Verificada</Th>
+              <Th>Localização</Th>
+            </Tr>
+          </Thead>
 
-        <Tbody>
-          {conferencias.map((conferencia) => {
-            const color =
-              typeof conferencia.quantidadeVerificada == "number" &&
-              conferencia.quantidadeEsperada > conferencia.quantidadeVerificada
-                ? "red.200"
-                : "";
+          <Tbody>
+            {conferencias.map((conferencia) => {
+              const color =
+                typeof conferencia.quantidadeVerificada == "number" &&
+                conferencia.quantidadeEsperada >
+                  conferencia.quantidadeVerificada
+                  ? "red.200"
+                  : "";
 
-            return (
-              <Tr key={"conferencia" + conferencia.id}>
-                <Td backgroundColor={color}>{conferencia.sku}</Td>
-                <Td backgroundColor={color}>Galpão</Td>
-                <Td backgroundColor={color}>Loja</Td>
-                <Td backgroundColor={color}>
-                  {conferencia.quantidadeEsperada}
-                </Td>
-                <Td backgroundColor={color}>
-                  <Input
-                    maxW={20}
-                    border={"1px"}
-                    borderColor={"black"}
-                    textAlign={"center"}
-                    type="number"
-                    value={"" + conferencia.quantidadeVerificada ?? ""}
-                    onChange={(e) => {
-                      handleChangeQuantidadeVerificada(
-                        conferencia.id,
-                        e.target.value ? parseInt(e.target.value) : undefined
-                      );
-                    }}
-                  />
-                </Td>
-                <Td backgroundColor={color}>
-                  <Input
-                    maxW={40}
-                    border={"1px"}
-                    borderColor={"black"}
-                    textAlign={"center"}
-                    type="text"
-                    defaultValue={conferencia.localizacao ?? ""}
-                    onChange={(e) => {
-                      handleChangeLocalizacao(conferencia.id, e.target.value);
-                    }}
-                  />
-                </Td>
-                <Td backgroundColor={color}>
-                  <Checkbox
-                    size={"lg"}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setIdsConferencias([
-                          ...idsConferencias,
-                          conferencia.id
-                        ]);
-                      } else {
-                        setIdsConferencias(
-                          idsConferencias.filter((id) => id !== conferencia.id)
+              return (
+                <Tr key={"conferencia" + conferencia.id}>
+                  <Td backgroundColor={color}>{conferencia.sku}</Td>
+                  <Td backgroundColor={color}>Galpão</Td>
+                  <Td backgroundColor={color}>Loja</Td>
+                  <Td backgroundColor={color}>
+                    {conferencia.quantidadeEsperada}
+                  </Td>
+                  <Td backgroundColor={color}>
+                    <Input
+                      maxW={20}
+                      border={"1px"}
+                      borderColor={"black"}
+                      textAlign={"center"}
+                      type="number"
+                      value={"" + conferencia.quantidadeVerificada ?? ""}
+                      onChange={(e) => {
+                        handleChangeQuantidadeVerificada(
+                          conferencia.id,
+                          e.target.value ? parseInt(e.target.value) : undefined
                         );
-                      }
-                    }}
-                  />
-                </Td>
-              </Tr>
-            );
-          })}
-        </Tbody>
-      </Table>
+                      }}
+                    />
+                  </Td>
+                  <Td backgroundColor={color}>
+                    <Input
+                      maxW={40}
+                      border={"1px"}
+                      borderColor={"black"}
+                      textAlign={"center"}
+                      type="text"
+                      defaultValue={conferencia.localizacao ?? ""}
+                      onChange={(e) => {
+                        handleChangeLocalizacao(conferencia.id, e.target.value);
+                      }}
+                    />
+                  </Td>
+                  <Td backgroundColor={color}>
+                    <Checkbox
+                      size={"lg"}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setIdsConferencias([
+                            ...idsConferencias,
+                            conferencia.id
+                          ]);
+                        } else {
+                          setIdsConferencias(
+                            idsConferencias.filter(
+                              (id) => id !== conferencia.id
+                            )
+                          );
+                        }
+                      }}
+                    />
+                  </Td>
+                </Tr>
+              );
+            })}
+          </Tbody>
+        </Table>
+      </Box>
+
+      <PaginationSelector
+        page={page}
+        pageQuantity={pageQuantity}
+        increasePage={() => {
+          if (page < pageMax) setPage(page + 1);
+        }}
+        decreasePage={() => {
+          if (page > 0) setPage(page - 1);
+        }}
+      />
 
       <Button
         maxW={200}
@@ -215,32 +231,13 @@ export function Conferencias() {
         Confirmar Transferências
       </Button>
 
-      <AlertDialog
+      <ModalDelete
         isOpen={isOpen}
         onClose={onClose}
-        leastDestructiveRef={cancelRef}
+        handleConfirm={handleConfirmButton}
       >
-        <AlertDialogOverlay>
-          <AlertDialogContent>
-            <AlertDialogBody>
-              <Text>Você realmente deseja confirmar essa conferência?</Text>
-            </AlertDialogBody>
-            <AlertDialogFooter>
-              <Button colorScheme="red" ref={cancelRef} onClick={onClose}>
-                Cancelar
-              </Button>
-              <Button
-                colorScheme="green"
-                backgroundColor={"erica.green"}
-                onClick={handleConfirmButton}
-                ml={3}
-              >
-                Confirmar
-              </Button>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialogOverlay>
-      </AlertDialog>
+        Você realmente deseja confirmar essa conferência?
+      </ModalDelete>
     </Stack>
   );
 }

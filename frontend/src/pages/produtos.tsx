@@ -138,7 +138,6 @@ export function Produtos() {
       })
       .catch((error) => {
         handleError401(error);
-        console.log(error);
       });
   }
 

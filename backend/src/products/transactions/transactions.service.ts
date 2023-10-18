@@ -50,7 +50,7 @@ interface ConfirmTransferenceParams {
 interface TransactionsServiceInterface {
   createExit(data: ExitParams): Promise<Transaction>;
   createGalpaoEntry(data: EntryGalpaoParams): Promise<Transaction>;
-  createLojaTransference(data: LojaTransferParams): Promise<Transaction>;
+  createTransferences(data: LojaTransferParams): Promise<any>;
   confirmTransference(data: ConfirmTransferenceParams): Promise<Transaction>;
 
   deleteEntry(id: number): Promise<Transaction>;
@@ -68,12 +68,14 @@ interface TransactionsServiceInterface {
 export class TransactionsService implements TransactionsServiceInterface {
   constructor(private prismaService: PrismaService) {}
 
-  async createExit(data: ExitParams) {
-    if (!data.product) throw new Error('Missing product');
-    if (!data.fromStock) throw new Error('Missing fromStock');
-    if (!data.exitAmount) throw new Error('Missing exitAmount');
-    if (!data.client) throw new Error('Missing client');
-
+  private createExitTransaction(data: {
+    product: Product;
+    fromStock: Stock;
+    exitAmount: number;
+    observation?: string;
+    operator: string;
+    client: string;
+  }) {
     return this.prismaService.transaction.create({
       data: {
         product: {
@@ -87,15 +89,44 @@ export class TransactionsService implements TransactionsServiceInterface {
         observation: data.observation,
         operator: data.operator,
         client: data.client,
+        confirmed: true,
       },
     });
   }
 
-  async createGalpaoEntry(data: EntryGalpaoParams) {
-    if (!data.product) throw new Error('Missing product');
-    if (!data.container) throw new Error('Missing container');
-    if (!data.entryAmount) throw new Error('Missing entryAmount');
+  private async updateProductQuantities(
+    productId: number,
+    entryAmount: number,
+    location?: string,
+  ) {
+    const updateParams: any = {
+      lojaQuantity: {
+        increment: entryAmount,
+      },
+      galpaoQuantity: {
+        decrement: entryAmount,
+      },
+    };
 
+    if (location) {
+      updateParams.lojaLocation = location;
+    }
+
+    await this.prismaService.product.update({
+      where: {
+        id: productId,
+      },
+      data: updateParams,
+    });
+  }
+
+  private createEntryTransaction(data: {
+    product: Product;
+    container: Container;
+    entryAmount: number;
+    observation?: string;
+    operator?: string;
+  }): Promise<any> {
     return this.prismaService.transaction.create({
       data: {
         product: {
@@ -113,11 +144,63 @@ export class TransactionsService implements TransactionsServiceInterface {
         entryAmount: data.entryAmount,
         type: TransactionType.ENTRY,
         observation: data.observation,
+        confirmed: true,
       },
     });
   }
 
-  async createLojaTransference(data: LojaTransferParams): Promise<Transaction> {
+  async createExit(data: ExitParams) {
+    if (!data.product) throw new Error('Missing product');
+    if (!data.fromStock) throw new Error('Missing fromStock');
+    if (!data.exitAmount) throw new Error('Missing exitAmount');
+    if (!data.client) throw new Error('Missing client');
+
+    return this.createExitTransaction(data);
+  }
+
+  async createGalpaoEntry(data: EntryGalpaoParams) {
+    if (!data.product) throw new Error('Missing product');
+    if (!data.container) throw new Error('Missing container');
+    if (!data.entryAmount) throw new Error('Missing entryAmount');
+
+    return this.createEntryTransaction(data);
+  }
+
+  // ***** TRANSFERENCES *****/
+  private createTransferenceTransaction(data: {
+    confirmed?: boolean;
+    product: Product;
+    entryExpected?: number;
+    entryAmount?: number;
+    exitAmount?: number;
+    observation?: string;
+    operator?: string;
+    location?: string;
+    partnerId?: number;
+  }): Promise<any> {
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
+          },
+        },
+        fromStock: Stock.GALPAO,
+        toStock: Stock.LOJA,
+        entryAmount: data.entryAmount,
+        entryExpected: data.entryExpected,
+        exitAmount: data.exitAmount,
+        type: TransactionType.TRANSFERENCE,
+        observation: data.observation,
+        operator: data.operator,
+        location: data.location,
+        confirmed: data.confirmed,
+        partnerId: data.partnerId,
+      },
+    });
+  }
+
+  async createTransferences(data: LojaTransferParams): Promise<any> {
     const product = data.product;
 
     if (!product)
@@ -126,21 +209,12 @@ export class TransactionsService implements TransactionsServiceInterface {
     if (product.galpaoQuantity < data.entryAmount)
       throw new HttpException('Not enough stock.', HttpStatus.BAD_REQUEST);
 
-    return this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: product.id,
-          },
-        },
-        fromStock: Stock.GALPAO,
-        toStock: Stock.LOJA,
-        entryExpected: data.entryAmount,
-        type: TransactionType.TRANSFERENCE,
-        observation: data.observation,
-        operator: data.operator,
-        location: data.location,
-      },
+    return this.createTransferenceTransaction({
+      entryExpected: data.entryAmount,
+      product,
+      operator: data.operator,
+      observation: data.observation,
+      location: data.location,
     });
   }
 
@@ -174,40 +248,23 @@ export class TransactionsService implements TransactionsServiceInterface {
     if (transaction.product.galpaoQuantity < entryAmount)
       throw new HttpException('Not enough stock.', HttpStatus.BAD_REQUEST);
 
-    const updateParams: any = {
-      lojaQuantity: {
-        increment: entryAmount,
-      },
-      galpaoQuantity: {
-        decrement: entryAmount,
-      },
-    };
-
-    if (data.location) updateParams.lojaLocation = data.location;
-
-    await this.prismaService.product.update({
-      where: {
-        id: transaction.productId,
-      },
-      data: updateParams,
+    // create the transference of galpao
+    await this.createTransferenceTransaction({
+      product: transaction.product,
+      confirmed: true,
+      exitAmount: entryAmount,
+      partnerId: transaction.id,
+      entryExpected: transaction.entryExpected,
+      observation: transaction.observation,
+      operator: transaction.operator,
+      location: data.location,
     });
 
-    await this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: transaction.productId,
-          },
-        },
-        exitAmount: entryAmount,
-        fromStock: Stock.GALPAO,
-        toStock: Stock.LOJA,
-        type: TransactionType.TRANSFERENCE,
-        observation: transaction.observation,
-        operator: transaction.operator,
-        location: data.location,
-      },
-    });
+    await this.updateProductQuantities(
+      transaction.productId,
+      entryAmount,
+      data.location,
+    );
 
     await this.prismaService.transaction.update({
       where: {
@@ -221,6 +278,140 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     return transaction;
+  }
+
+  async getAllTransferencesByPage(
+    pageableParams: TransferenceFilterParams,
+  ): Promise<Pageable<any>> {
+    const { limit, code, page, confirmed, orderBy, selectAll } = pageableParams;
+
+    const search: any = {
+      skip: (page - 1) * limit,
+      take: limit,
+      where: {
+        type: TransactionType.TRANSFERENCE,
+        confirmed: confirmed,
+        product: {
+          code: {
+            contains: code,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
+      },
+    };
+
+    if (!selectAll) {
+      search.select = {
+        id: true,
+        entryAmount: true,
+        entryExpected: true,
+        type: true,
+        confirmed: true,
+        location: true,
+        product: {
+          select: {
+            id: true,
+            code: true,
+          },
+        },
+        productId: true,
+        createdAt: true,
+      };
+    } else {
+      search.include = {
+        product: true,
+      };
+    }
+
+    const transactions = await this.prismaService.transaction.findMany(search);
+
+    const total = await this.prismaService.transaction.count({
+      where: {
+        type: TransactionType.TRANSFERENCE,
+        confirmed: confirmed,
+      },
+    });
+
+    return {
+      page: page,
+      total,
+      data: transactions,
+    };
+  }
+
+  async deleteTransference(id: number) {
+    if (!id) {
+      throw new HttpException(
+        'Missing transaction id.',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const transference = await this.prismaService.transaction.findUnique({
+      where: {
+        id,
+      },
+      include: {
+        product: true,
+      },
+    });
+
+    if (!transference)
+      throw new HttpException('Transaction not found.', HttpStatus.BAD_REQUEST);
+
+    const { confirmed, entryAmount, productId, partnerId, exitAmount } = transference;
+
+    return this.prismaService.$transaction(async (prisma) => {
+      const deletions = await prisma.transaction.deleteMany({
+        where: {
+          OR: transference.partnerId
+            ? [
+                {
+                  id,
+                },
+                {
+                  id: partnerId,
+                },
+              ]
+            : [
+                {
+                  id,
+                },
+                {
+                  partnerId: id,
+                },
+              ],
+        },
+      });
+
+      if (!deletions || deletions.count === 0) {
+        throw new HttpException(
+          'Transaction not found.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      if (confirmed){
+        await prisma.product.update({
+          where: {
+            id: productId,
+          },
+          data: {
+            galpaoQuantity: {
+              increment: entryAmount || exitAmount,
+            },
+            lojaQuantity: {
+              decrement: entryAmount || exitAmount,
+            },
+          },
+        });
+      }
+
+
+      return deletions;
+    });
   }
 
   async deleteEntry(id: number) {
@@ -294,100 +485,39 @@ export class TransactionsService implements TransactionsServiceInterface {
     return deleted;
   }
 
-  async getAllTransferencesByPage(
-    pageableParams: TransferenceFilterParams,
-  ): Promise<Pageable<any>> {
-    const search: any = {
-      skip: (pageableParams.page - 1) * pageableParams.limit,
-      take: pageableParams.limit,
-      where: {
-        type: TransactionType.TRANSFERENCE,
-        confirmed: pageableParams.confirmed,
-        product: {
-          code: {
-            contains: pageableParams.code,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
-      },
-    };
-
-    if (!pageableParams.selectAll) {
-      search.select = {
-        id: true,
-        entryAmount: true,
-        entryExpected: true,
-        type: true,
-        confirmed: true,
-        location: true,
-        product: {
-          select: {
-            id: true,
-            code: true,
-          },
-        },
-        productId: true,
-        createdAt: true,
-      };
-    } else {
-      search.include = {
-        product: true,
-      };
-    }
-
-    const transactions = await this.prismaService.transaction.findMany({
-      ...search,
-    });
-
-    const total = await this.prismaService.transaction.count({
-      where: {
-        type: TransactionType.TRANSFERENCE,
-        confirmed: pageableParams.confirmed,
-      },
-    });
-
-    return {
-      page: pageableParams.page,
-      total,
-      data: transactions,
-    };
-  }
-
   async getAll(
     pageableParams: TransactionFilterParams,
   ): Promise<Pageable<Transaction>> {
+    const { limit, page, code, orderBy, stock, type } = pageableParams;
     const where = {
-      type: pageableParams.type,
+      type,
       product: {
         code: {
-          contains: pageableParams.code,
+          contains: code,
         },
       },
-      toStock: pageableParams.toStock,
+      fromStock: stock,
+      confirmed: true,
     };
 
     const transactions = await this.prismaService.transaction.findMany({
-      skip: (pageableParams.page - 1) * pageableParams.limit,
-      take: pageableParams.limit,
+      skip: (page - 1) * limit,
+      take: limit,
       where,
       include: {
         product: true,
       },
       orderBy: {
-        createdAt: pageableParams.orderBy === 'asc' ? 'asc' : 'desc',
+        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
       },
     });
 
     const total = await this.prismaService.transaction.count({
-      where: {
-        type: pageableParams.type,
-      },
+      where,
     });
 
     return {
-      page: pageableParams.page,
+      page,
       total,
       data: transactions,
     };

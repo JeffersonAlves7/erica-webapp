@@ -1,5 +1,6 @@
-import { Button, Flex } from "@chakra-ui/react";
+import { Flex } from "@chakra-ui/react";
 import { useState } from "react";
+import { ColorButton } from "../buttons/colorButton";
 
 interface ButtonSelectorProps {
   titles: string[];
@@ -18,17 +19,16 @@ export function ButtonSelector(props: ButtonSelectorProps) {
   return (
     <Flex gap={6}>
       {props.titles.map((title, index) => (
-        <Button
+        <ColorButton
+          color={selected === index ? "green" : "pink"}
           key={"btn-sel-" + (props.keyPrefix ?? "") + "-" + index}
-          backgroundColor={selected === index ? "erica.green" : "erica.pink"}
-          colorScheme={selected === index ? "green" : "pink"}
           onClick={() => {
             setSelected(index);
             props.onClick && props.onClick(index);
           }}
         >
           {title}
-        </Button>
+        </ColorButton>
       ))}
     </Flex>
   );

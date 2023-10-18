@@ -476,7 +476,7 @@ export class ProductsService implements ProductServiceInterface {
     if (!product)
       throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
 
-    const transference = await this.transactionsService.createLojaTransference({
+    const transference = await this.transactionsService.createTransferences({
       product,
       entryAmount: productTransference.quantity,
       observation: productTransference.observation,
@@ -667,11 +667,13 @@ export class ProductsService implements ProductServiceInterface {
     if (!transactionToDelete)
       throw new HttpException(`Transaction not found`, HttpStatus.BAD_REQUEST);
 
-    if (transactionToDelete.type === TransactionType.ENTRY) {
-      await this.transactionsService.deleteEntry(transactionToDelete.id);
-    } else if (transactionToDelete.type === TransactionType.EXIT) {
-      await this.transactionsService.deleteExit(transactionToDelete.id);
-    }
+    const { type } = transactionToDelete;
+    if (type === TransactionType.ENTRY)
+      await this.transactionsService.deleteEntry(id);
+    else if (type === TransactionType.EXIT)
+      await this.transactionsService.deleteExit(id);
+    else if (type === TransactionType.TRANSFERENCE)
+      await this.transactionsService.deleteTransference(id);
 
     return transactionToDelete;
   }

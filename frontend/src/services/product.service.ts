@@ -3,7 +3,7 @@ import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
-import { ProductsWithStock } from "@/types/products.interface";
+import { ProductTransaction, ProductsWithStock } from "@/types/products.interface";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -60,7 +60,7 @@ interface GetTransferencesQueryParams extends PageableParams {
 interface GetTransactionsQueryParams extends PageableParams {
   orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
   code?: string | undefined;
-  toStock?: Stock | string | undefined;
+  stock?: Stock | string | undefined;
 }
 
 interface CreateTransferenceParams {
@@ -90,10 +90,6 @@ class ProductService {
       params: pageableParams
     });
 
-    if (response.status === 401) {
-      throw new Error("Unauthorized");
-    }
-
     return response.data as Pageable<any>;
   }
 
@@ -109,12 +105,33 @@ class ProductService {
 
   async getTransactions(
     pageableParams: GetTransactionsQueryParams
-  ): Promise<Pageable<any>> {
+  ): Promise<Pageable<ProductTransaction>> {
     const response = await api.get("/products/transactions", {
       params: pageableParams
     });
 
-    return response.data;
+    const items = response.data.data.map((transaction: any, index: number) => {
+      return {
+        id: transaction.id,
+        code: transaction.product.code,
+        entryAmount: transaction.entryAmount,
+        exitAmount: transaction.exitAmount,
+        type: transaction.type,
+        from: transaction.fromStock,
+        to: transaction.toStock,
+        client: transaction.client,
+        operator: transaction.operator,
+        createdAt: transaction.createdAt,
+        observation: transaction.observation,
+        product: index == 0 ? transaction.product : undefined
+      };
+    });
+
+    return {
+      data: items,
+      page: response.data.page,
+      total: response.data.total
+    };
   }
 
   async createTransference(data: CreateTransferenceParams) {
@@ -216,6 +233,11 @@ class ProductService {
     const response = await api.get(`/products/transferences`, {
       params: pageableParams
     });
+    return response.data;
+  }
+
+  async deleteTransaction(id: number) {
+    const response = await api.delete(`/products/transaction/${id}`);
     return response.data;
   }
 }

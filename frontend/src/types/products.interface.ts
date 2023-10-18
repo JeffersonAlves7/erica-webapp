@@ -23,4 +23,5 @@ export interface ProductTransaction {
   operator: string;
   createdAt: Date;
   observation?: string;
+  product?: any;
 }

@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Param,
   Patch,
   Post,
   Query,
@@ -161,6 +162,8 @@ export class ProductsController {
     if (query.confirmed) {
       if (query.confirmed === 'false') query.confirmed = false;
       if (query.confirmed === 'true') query.confirmed = true;
+    } else {
+      query.confirmed = false;
     }
 
     return this.productsService.getAllTransferencesByPage({
@@ -175,9 +178,8 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Delete('transaction')
-  deleteTransaction(@Query() query: Record<string, any>) {
-    const { id } = query;
+  @Delete('transaction/:id')
+  deleteTransaction(@Param('id') id: string) {
     return this.productsService.deleteTransaction(parseInt(id));
   }
 
@@ -185,7 +187,7 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('transactions')
   getAllTransactions(@Query() query: Record<string, any>) {
-    const { page, limit, type, orderBy, code, toStock } = query;
+    const { page, limit, type, orderBy, code, stock } = query;
 
     return this.productsService.getAllTransactionsByPage({
       page: Number(page),
@@ -193,7 +195,7 @@ export class ProductsController {
       type,
       orderBy,
       code,
-      toStock,
+      stock,
     });
   }
 }
