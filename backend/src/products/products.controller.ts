@@ -14,6 +14,8 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { AuthGuard } from 'src/auth/auth.guard';
+import { TransactionNoTranserencesToConfirmError, TransactionMaxTransferencePerRequestError, TransactionTransferencesMustBeAnArrayError } from 'src/error/transaction.errors';
+import { ProductInvalidProductsError } from 'src/error/products.errors';
 
 @Controller('products')
 export class ProductsController {
@@ -116,35 +118,24 @@ export class ProductsController {
     const { transferences } = body;
 
     if (!transferences)
-      throw new HttpException(
-        'Sem transferences para confirmar',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionNoTranserencesToConfirmError();
 
     if (!Array.isArray(transferences))
-      throw new HttpException(
-        'Transferencias deve ser um array',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionTransferencesMustBeAnArrayError();
 
     const length = transferences.length;
     if (length === 0)
-      throw new HttpException(
-        'Sem transferencias para confirmar',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionNoTranserencesToConfirmError();
+
     if (length > 100)
-      throw new HttpException(
-        'Máximo de 100 transferencias por vez',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionMaxTransferencePerRequestError();
 
     if (
       transferences.some(
         (transference) => !transference.id || !transference.entryAmount,
       )
     )
-      throw new HttpException('Produtos inválidos', HttpStatus.BAD_REQUEST);
+      throw new ProductInvalidProductsError();
 
     for (let product of transferences) {
       await this.productsService.confirmTransference({

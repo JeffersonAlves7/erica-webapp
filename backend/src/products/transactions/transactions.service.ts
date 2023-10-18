@@ -15,6 +15,10 @@ import {
   TransactionFilterParams,
   TransferenceFilterParams,
 } from '../types/transaction.interface';
+import { ProductInsuficientStockError, ProductNotFoundError } from 'src/error/products.errors';
+import { StockNotFoundError } from 'src/error/stock.errors';
+import { TransactionClientNotFoundError, TransactionIdNotFoundError, TransactionsExitAmountNotFoundError, TransferenceEntryAmountNotFoundError, TransactionNotFoundError, TransactionAlreadyConfirmedError } from 'src/error/transaction.errors';
+import { ContainerNotFoundError } from 'src/error/container.errors';
 
 interface EntryGalpaoParams {
   product: Product;
@@ -150,31 +154,18 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async createExit(data: ExitParams) {
-    if (!data.product)
-      throw new HttpException('Produto não encontrado', HttpStatus.BAD_REQUEST);
-    if (!data.fromStock)
-      throw new HttpException(
-        'Estoque de origem não encontrado',
-        HttpStatus.BAD_REQUEST,
-      );
-    if (!data.exitAmount)
-      throw new HttpException(
-        'Quantidade de saída não encontrada',
-        HttpStatus.BAD_REQUEST,
-      );
-    if (!data.client)
-      throw new HttpException('Cliente não encontrado', HttpStatus.BAD_REQUEST);
+    if (!data.product) throw new ProductNotFoundError();
+    if (!data.fromStock) throw new StockNotFoundError();
+    if (!data.exitAmount) throw new TransactionsExitAmountNotFoundError();
+    if (!data.client) throw new TransactionClientNotFoundError();
 
     return this.createExitTransaction(data);
   }
 
   async createGalpaoEntry(data: EntryGalpaoParams) {
-    if (!data.product) 
-      throw new HttpException('Produto não encontrado', HttpStatus.BAD_REQUEST);
-    if (!data.container) 
-      throw new HttpException('Container não encontrado', HttpStatus.BAD_REQUEST);
-    if (!data.entryAmount) 
-      throw new HttpException('Quantidade de entrada não encontrada', HttpStatus.BAD_REQUEST);
+    if (!data.product) throw new ProductNotFoundError();
+    if (!data.container) throw new ContainerNotFoundError();
+    if (!data.entryAmount) throw new TransferenceEntryAmountNotFoundError();
 
     return this.createEntryTransaction(data);
   }
@@ -216,17 +207,10 @@ export class TransactionsService implements TransactionsServiceInterface {
   async createTransferences(data: LojaTransferParams): Promise<any> {
     const product = data.product;
 
-    if (!product)
-      throw new HttpException(
-        'Produto não encontrado.',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!product) throw new ProductNotFoundError();
 
     if (product.galpaoQuantity < data.entryAmount)
-      throw new HttpException(
-        'Estoque não é o suficiente',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new ProductInsuficientStockError();
 
     return this.createTransferenceTransaction({
       entryExpected: data.entryAmount,
@@ -240,11 +224,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   async confirmTransference(data: ConfirmTransferenceParams) {
     const { id, entryAmount } = data;
 
-    if (!id)
-      throw new HttpException(
-        'Id da transação não encontrado',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!id) throw new TransactionIdNotFoundError();
 
     const transaction = await this.prismaService.transaction.findUnique({
       where: {
@@ -255,17 +235,12 @@ export class TransactionsService implements TransactionsServiceInterface {
       },
     });
 
-    if (!transaction)
-      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
+    if (!transaction) throw new TransactionNotFoundError();
 
-    if (transaction.confirmed)
-      throw new HttpException(
-        'Transação já está confirmada',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (transaction.confirmed) throw new TransactionAlreadyConfirmedError();
 
     if (transaction.product.galpaoQuantity < entryAmount)
-      throw new HttpException('Estoque insuficiente', HttpStatus.BAD_REQUEST);
+      throw new ProductInsuficientStockError();
 
     // create the transference of galpao
     await this.createTransferenceTransaction({
@@ -362,10 +337,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
   async deleteTransference(id: number) {
     if (!id) {
-      throw new HttpException(
-        'Id da transação não encontrado',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionIdNotFoundError();
     }
 
     const transference = await this.prismaService.transaction.findUnique({
@@ -378,7 +350,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!transference)
-      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
+      throw new TransactionNotFoundError();
 
     const { confirmed, entryAmount, productId, partnerId, exitAmount } =
       transference;
@@ -407,10 +379,7 @@ export class TransactionsService implements TransactionsServiceInterface {
       });
 
       if (!deletions || deletions.count === 0) {
-        throw new HttpException(
-          'Transação não encontrada',
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new TransactionNotFoundError();
       }
 
       if (confirmed) {
@@ -435,10 +404,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
   async deleteEntry(id: number) {
     if (!id)
-      throw new HttpException(
-        'Id da transação não encontrado',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionIdNotFoundError();
 
     const deleted = await this.prismaService.transaction.delete({
       where: {
@@ -447,7 +413,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!deleted)
-      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
+      throw new TransactionNotFoundError();
 
     const stock = deleted.toStock;
 
@@ -474,10 +440,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
   async deleteExit(id: number): Promise<Transaction> {
     if (!id)
-      throw new HttpException(
-        'Id da transação não encontrado',
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new TransactionIdNotFoundError();
 
     const deleted = await this.prismaService.transaction.delete({
       where: {
@@ -486,7 +449,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!deleted)
-      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
+      throw new TransactionNotFoundError();
 
     const stock = deleted.fromStock;
 
