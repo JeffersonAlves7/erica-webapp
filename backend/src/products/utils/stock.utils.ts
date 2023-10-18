@@ -9,5 +9,5 @@ export function getStockId(stock: string): Stock {
     case 'loja':
       return Stock.LOJA;
   }
-  throw new Error('Stock not found');
+  throw new Error('Estoque não encontrado');
 }

@@ -42,7 +42,6 @@ export class ContainerService {
         containerId: container.id
       },
     })
-
   }
 
   async findOrCreateContainer(container: string): Promise<Container> {

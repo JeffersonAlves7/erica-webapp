@@ -117,25 +117,25 @@ export class ProductsController {
 
     if (!transferences)
       throw new HttpException(
-        'No transferences to confirm',
+        'Sem transferences para confirmar',
         HttpStatus.BAD_REQUEST,
       );
 
     if (!Array.isArray(transferences))
       throw new HttpException(
-        'Transferences must be an array',
+        'Transferencias deve ser um array',
         HttpStatus.BAD_REQUEST,
       );
 
     const length = transferences.length;
     if (length === 0)
       throw new HttpException(
-        'No transferences to confirm',
+        'Sem transferencias para confirmar',
         HttpStatus.BAD_REQUEST,
       );
     if (length > 100)
       throw new HttpException(
-        'Max 100 transferences to confirm',
+        'Máximo de 100 transferencias por vez',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -144,7 +144,7 @@ export class ProductsController {
         (transference) => !transference.id || !transference.entryAmount,
       )
     )
-      throw new HttpException('Invalid products', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Produtos inválidos', HttpStatus.BAD_REQUEST);
 
     for (let product of transferences) {
       await this.productsService.confirmTransference({

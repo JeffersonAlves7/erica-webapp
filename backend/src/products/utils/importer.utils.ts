@@ -13,5 +13,5 @@ export function getImporterId(importer: string): Importer {
     case 'alpha_ynfinity':
       return Importer.ALPHA_YNFINITY;
   }
-  throw new Error('Importer not found');
+  throw new Error('Importadora não encontrada');
 }

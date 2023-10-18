@@ -150,18 +150,31 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async createExit(data: ExitParams) {
-    if (!data.product) throw new Error('Missing product');
-    if (!data.fromStock) throw new Error('Missing fromStock');
-    if (!data.exitAmount) throw new Error('Missing exitAmount');
-    if (!data.client) throw new Error('Missing client');
+    if (!data.product)
+      throw new HttpException('Produto não encontrado', HttpStatus.BAD_REQUEST);
+    if (!data.fromStock)
+      throw new HttpException(
+        'Estoque de origem não encontrado',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (!data.exitAmount)
+      throw new HttpException(
+        'Quantidade de saída não encontrada',
+        HttpStatus.BAD_REQUEST,
+      );
+    if (!data.client)
+      throw new HttpException('Cliente não encontrado', HttpStatus.BAD_REQUEST);
 
     return this.createExitTransaction(data);
   }
 
   async createGalpaoEntry(data: EntryGalpaoParams) {
-    if (!data.product) throw new Error('Missing product');
-    if (!data.container) throw new Error('Missing container');
-    if (!data.entryAmount) throw new Error('Missing entryAmount');
+    if (!data.product) 
+      throw new HttpException('Produto não encontrado', HttpStatus.BAD_REQUEST);
+    if (!data.container) 
+      throw new HttpException('Container não encontrado', HttpStatus.BAD_REQUEST);
+    if (!data.entryAmount) 
+      throw new HttpException('Quantidade de entrada não encontrada', HttpStatus.BAD_REQUEST);
 
     return this.createEntryTransaction(data);
   }
@@ -204,10 +217,16 @@ export class TransactionsService implements TransactionsServiceInterface {
     const product = data.product;
 
     if (!product)
-      throw new HttpException('Product not found.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Produto não encontrado.',
+        HttpStatus.BAD_REQUEST,
+      );
 
     if (product.galpaoQuantity < data.entryAmount)
-      throw new HttpException('Not enough stock.', HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        'Estoque não é o suficiente',
+        HttpStatus.BAD_REQUEST,
+      );
 
     return this.createTransferenceTransaction({
       entryExpected: data.entryAmount,
@@ -223,7 +242,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
     if (!id)
       throw new HttpException(
-        'Missing transaction id.',
+        'Id da transação não encontrado',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -237,16 +256,16 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!transaction)
-      throw new HttpException('Transaction not found.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
 
     if (transaction.confirmed)
       throw new HttpException(
-        'Transaction already confirmed.',
+        'Transação já está confirmada',
         HttpStatus.BAD_REQUEST,
       );
 
     if (transaction.product.galpaoQuantity < entryAmount)
-      throw new HttpException('Not enough stock.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Estoque insuficiente', HttpStatus.BAD_REQUEST);
 
     // create the transference of galpao
     await this.createTransferenceTransaction({
@@ -344,7 +363,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   async deleteTransference(id: number) {
     if (!id) {
       throw new HttpException(
-        'Missing transaction id.',
+        'Id da transação não encontrado',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -359,9 +378,10 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!transference)
-      throw new HttpException('Transaction not found.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
 
-    const { confirmed, entryAmount, productId, partnerId, exitAmount } = transference;
+    const { confirmed, entryAmount, productId, partnerId, exitAmount } =
+      transference;
 
     return this.prismaService.$transaction(async (prisma) => {
       const deletions = await prisma.transaction.deleteMany({
@@ -388,12 +408,12 @@ export class TransactionsService implements TransactionsServiceInterface {
 
       if (!deletions || deletions.count === 0) {
         throw new HttpException(
-          'Transaction not found.',
+          'Transação não encontrada',
           HttpStatus.BAD_REQUEST,
         );
       }
 
-      if (confirmed){
+      if (confirmed) {
         await prisma.product.update({
           where: {
             id: productId,
@@ -409,7 +429,6 @@ export class TransactionsService implements TransactionsServiceInterface {
         });
       }
 
-
       return deletions;
     });
   }
@@ -417,7 +436,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   async deleteEntry(id: number) {
     if (!id)
       throw new HttpException(
-        'Missing transaction id.',
+        'Id da transação não encontrado',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -428,7 +447,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!deleted)
-      throw new HttpException('Transaction not found.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
 
     const stock = deleted.toStock;
 
@@ -456,7 +475,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   async deleteExit(id: number): Promise<Transaction> {
     if (!id)
       throw new HttpException(
-        'Missing transaction id.',
+        'Id da transação não encontrado',
         HttpStatus.BAD_REQUEST,
       );
 
@@ -467,7 +486,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
 
     if (!deleted)
-      throw new HttpException('Transaction not found.', HttpStatus.BAD_REQUEST);
+      throw new HttpException('Transação não encontrada', HttpStatus.BAD_REQUEST);
 
     const stock = deleted.fromStock;
 

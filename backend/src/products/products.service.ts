@@ -121,16 +121,13 @@ export class ProductsService implements ProductServiceInterface {
 
     if (productFound) {
       if (productFound.importer === importer)
-        throw new HttpException(
-          `Product already exists with this importer`,
-          HttpStatus.BAD_REQUEST,
-        );
+        throw new HttpException(`Produto já existe`, HttpStatus.BAD_REQUEST);
       else if (productFound.importer !== importer)
         throw new HttpException(
-          `Product already exists with another importer`,
+          `Produto já existe em outro importador`,
           HttpStatus.BAD_REQUEST,
         );
-      throw new HttpException(`Product already exists`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Produto já existe`, HttpStatus.BAD_REQUEST);
     }
 
     const product = await this.prismaService.product.create({
@@ -307,22 +304,31 @@ export class ProductsService implements ProductServiceInterface {
 
   async entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer> {
     if (!productEntry.container) {
-      throw new HttpException(`Container is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Container é obrigatório`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (!productEntry.codeOrEan) {
       throw new HttpException(
-        `Code or EAN is required`,
+        `Código ou EAN é obrigatório`,
         HttpStatus.BAD_REQUEST,
       );
     }
 
     if (!productEntry.quantity) {
-      throw new HttpException(`Quantity is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Quantidade é obrigatória`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     if (!productEntry.importer) {
-      throw new HttpException(`Importer is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Importadora é obrigatória`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const importer = getImporterId(productEntry.importer);
@@ -345,7 +351,7 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     if (!product)
-      throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
 
     const container = await this.containerService.findOrCreateContainer(
       productEntry.container,
@@ -356,7 +362,7 @@ export class ProductsService implements ProductServiceInterface {
 
     if (productsOnContainerFound)
       throw new HttpException(
-        `Product already exists on container`,
+        `Produto ainda existe no container ${container.id}`,
         HttpStatus.BAD_REQUEST,
       );
 
@@ -393,32 +399,44 @@ export class ProductsService implements ProductServiceInterface {
   async exitProduct(productExit: ProductExit): Promise<Transaction> {
     if (!productExit.codeOrEan)
       throw new HttpException(
-        `Code or EAN is required`,
+        `Código ou EAN é obrigatório`,
         HttpStatus.BAD_REQUEST,
       );
 
     if (!productExit.from)
-      throw new HttpException(`From is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Estoque de Origem é obrigatório`,
+        HttpStatus.BAD_REQUEST,
+      );
 
     if (!productExit.quantity)
-      throw new HttpException(`Quantity is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Quantidade é obrigatória`,
+        HttpStatus.BAD_REQUEST,
+      );
 
     const product = await this.getProductByCodeOrEan(productExit.codeOrEan);
 
     if (!product)
-      throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
 
     const stockId = getStockId(productExit.from);
 
     if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
-      throw new HttpException(`Stock not found`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Estoque não encontrado`, HttpStatus.BAD_REQUEST);
     if (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) {
-      throw new HttpException(`Quantity not available`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Quantidade não é o suficiente`,
+        HttpStatus.BAD_REQUEST,
+      );
     } else if (
       stockId === Stock.GALPAO &&
       product.galpaoQuantity < productExit.quantity
     ) {
-      throw new HttpException(`Quantity not available`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(
+        `Quantidade não é o suficiente`,
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const transaction = await this.transactionsService.createExit({
@@ -464,17 +482,17 @@ export class ProductsService implements ProductServiceInterface {
       throw new HttpException(`Quantity is required`, HttpStatus.BAD_REQUEST);
 
     if (!productTransference.codeOrEan)
-      throw new HttpException(`Code is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Código ou EAN é obrigatório`, HttpStatus.BAD_REQUEST);
 
     if (!productTransference.operator)
-      throw new HttpException(`Operator is required`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Operador é obrigatório`, HttpStatus.BAD_REQUEST);
 
     const product = await this.getProductByCodeOrEan(
       productTransference.codeOrEan,
     );
 
     if (!product)
-      throw new HttpException(`Product not found`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
 
     const transference = await this.transactionsService.createTransferences({
       product,
@@ -496,13 +514,13 @@ export class ProductsService implements ProductServiceInterface {
 
     if (!id)
       throw new HttpException(
-        `Transaction id is required`,
+        `Id da transação é obrigatório`,
         HttpStatus.BAD_REQUEST,
       );
 
     if (!entryAmount)
       throw new HttpException(
-        `Entry amount is required`,
+        `Quantidade de entrada é obrigatória`,
         HttpStatus.BAD_REQUEST,
       );
 
@@ -523,7 +541,7 @@ export class ProductsService implements ProductServiceInterface {
 
     if (pageableParams.limit > 100)
       throw new HttpException(
-        `Maximum limit is ${100}`,
+        `O limite máximo é ${100}`,
         HttpStatus.BAD_REQUEST,
       );
 
@@ -543,54 +561,56 @@ export class ProductsService implements ProductServiceInterface {
 
     if (limit > 100) {
       throw new HttpException(
-        `Maximum limit is ${100}`,
+        `O limite máximo é ${100}`,
         HttpStatus.BAD_REQUEST,
       );
     }
+
+    const where = search
+      ? {
+          AND: [
+            {
+              OR: [
+                {
+                  product: {
+                    code: search,
+                  },
+                },
+                {
+                  product: {
+                    ean: search,
+                  },
+                },
+                {
+                  product: {
+                    description: search,
+                  },
+                },
+                {
+                  container: {
+                    id: search,
+                  },
+                },
+              ],
+            },
+            {
+              product: {
+                importer: importer ? getImporterId(importer) : undefined,
+              },
+            },
+          ],
+        }
+      : {
+          product: {
+            importer: importer ? getImporterId(importer) : undefined,
+          },
+        };
 
     const productsOnContainer =
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where: search
-          ? {
-              AND: [
-                {
-                  OR: [
-                    {
-                      product: {
-                        code: search,
-                      },
-                    },
-                    {
-                      product: {
-                        ean: search,
-                      },
-                    },
-                    {
-                      product: {
-                        description: search,
-                      },
-                    },
-                    {
-                      container: {
-                        id: search,
-                      },
-                    },
-                  ],
-                },
-                {
-                  product: {
-                    importer: importer ? getImporterId(importer) : undefined,
-                  },
-                },
-              ],
-            }
-          : {
-              product: {
-                importer: importer ? getImporterId(importer) : undefined,
-              },
-            },
+        where,
         orderBy: {
           createdAt: orderBy === 'asc' ? 'asc' : 'desc',
         },
@@ -601,45 +621,7 @@ export class ProductsService implements ProductServiceInterface {
       });
 
     const total = await this.prismaService.productsOnContainer.count({
-      where: search
-        ? {
-            AND: [
-              {
-                OR: [
-                  {
-                    product: {
-                      code: search,
-                    },
-                  },
-                  {
-                    product: {
-                      ean: search,
-                    },
-                  },
-                  {
-                    product: {
-                      description: search,
-                    },
-                  },
-                  {
-                    container: {
-                      id: search,
-                    },
-                  },
-                ],
-              },
-              {
-                product: {
-                  importer: importer ? getImporterId(importer) : undefined,
-                },
-              },
-            ],
-          }
-        : {
-            product: {
-              importer: importer ? getImporterId(importer) : undefined,
-            },
-          },
+      where,
     });
 
     return {
@@ -652,7 +634,7 @@ export class ProductsService implements ProductServiceInterface {
   async deleteTransaction(id: number): Promise<Transaction> {
     if (!id)
       throw new HttpException(
-        `Transaction id is required`,
+        `Id da transação é obrigatório`,
         HttpStatus.BAD_REQUEST,
       );
 
@@ -665,7 +647,7 @@ export class ProductsService implements ProductServiceInterface {
     );
 
     if (!transactionToDelete)
-      throw new HttpException(`Transaction not found`, HttpStatus.BAD_REQUEST);
+      throw new HttpException(`Transação não encontrada`, HttpStatus.BAD_REQUEST);
 
     const { type } = transactionToDelete;
     if (type === TransactionType.ENTRY)
