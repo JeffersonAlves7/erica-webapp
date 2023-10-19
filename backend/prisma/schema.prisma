@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -20,7 +20,7 @@ model Product {
   id                  Int                   @id @default(autoincrement())
   code                String
   ean                 String?
-  importer            Importer              
+  importer            String
   description         String?
   galpaoQuantity      Int                   @default(0) @map("galpao_quantity")
   lojaQuantity        Int                   @default(0) @map("loja_quantity")
@@ -33,13 +33,13 @@ model Product {
   @@map("products")
 }
 
-enum Importer {
-  ATTUS_BLOOM
-  ATTUS
-  ALPHA_YNFINITY
+// enum Importer {
+//   ATTUS_BLOOM
+//   ATTUS
+//   ALPHA_YNFINITY
   
-  @@map("importers")
-}
+//   @@map("importers")
+// }
 
 model Container {
   id                  String                @id @unique
@@ -57,8 +57,8 @@ model ProductsOnContainer {
   productId        Int       @map("product_id")
   quantityExpected Int      @map("quantity_expected")
   quantityReceived Int      @map("quantity_received")
-  container        Container @relation(fields: [containerId], references: [id], map: "ProductsOnContainer_container_id_fkey")
-  product          Product   @relation(fields: [productId], references: [id], map: "ProductsOnContainer_product_id_fkey")
+  container        Container @relation(fields: [containerId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
   observation      String?
   createdAt        DateTime  @default(now()) @map("created_at")
 
@@ -70,9 +70,9 @@ model ProductsOnContainer {
 model Transaction {
   id               Int       @id @default(autoincrement())
   productId        Int       @map("product_id")
-  type             TransactionType
-  fromStock        Stock?    @map("from_stock")
-  toStock          Stock?    @map("to_stock")
+  type             String 
+  fromStock        String?    @map("from_stock")
+  toStock          String?    @map("to_stock")
   client           String?
   operator         String?
   entryAmount      Int?      @default(0) @map("entry_amount")
@@ -83,8 +83,8 @@ model Transaction {
   location         String?
   confirmed        Boolean   @default(false) @map("checked")
   containerId      String?   @map("container_id")
-  container        Container? @relation(fields: [containerId], references: [id], map: "Transactions_container_id_fkey")
-  product          Product   @relation(fields: [productId], references: [id], map: "Transactions_product_id_fkey")
+  container        Container? @relation(fields: [containerId], references: [id])
+  product          Product   @relation(fields: [productId], references: [id])
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -92,19 +92,19 @@ model Transaction {
   @@map("transactions")
 }
 
-enum TransactionType {
-  ENTRY
-  EXIT
-  RESERVE
-  DEVOLUTION
-  TRANSFERENCE
+// enum TransactionType {
+//   ENTRY
+//   EXIT
+//   RESERVE
+//   DEVOLUTION
+//   TRANSFERENCE
 
-  @@map("transaction_types")
-}
+//   @@map("transaction_types")
+// }
 
-enum Stock {
-  GALPAO
-  LOJA
+// enum Stock {
+//   GALPAO
+//   LOJA
 
-  @@map("stocks")
-}
+//   @@map("stocks")
+// }

@@ -3,7 +3,7 @@ import { OperatorSelector } from "../selectors/operatorSelector";
 import { PropsWithRef, forwardRef } from "react";
 
 export const OperatorInput = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <FormControl>
         <FormLabel>Operador</FormLabel>

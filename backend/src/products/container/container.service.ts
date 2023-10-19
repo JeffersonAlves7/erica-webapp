@@ -7,7 +7,7 @@ export class ContainerService {
   constructor(private prismaService: PrismaService) {}
 
   async addProductToContainerOnEntry(
-    prouct: Product,
+    product: Product,
     container: Container,
     quantity: number,
     observation?: string,
@@ -18,7 +18,7 @@ export class ContainerService {
         quantityReceived: quantity,
         product: {
           connect: {
-            id: prouct.id,
+            id: product.id,
           },
         },
         container: {

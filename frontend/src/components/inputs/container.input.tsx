@@ -2,7 +2,7 @@ import { FormControl, FormLabel, Input } from "@chakra-ui/react";
 import { PropsWithRef, forwardRef } from "react";
 
 export const ContainerInput = forwardRef<HTMLInputElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <FormControl>
         <FormLabel>Lote Container</FormLabel>

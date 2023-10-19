@@ -1,7 +1,5 @@
-import { productService } from "@/services/product.service";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { handleError401 } from "@/services/api";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { StockInput } from "@/components/inputs/stock.input";
@@ -41,6 +39,15 @@ export function CriarDevolucao() {
       setStatus("idle");
       return;
     }
+
+    console.log({
+      codigo,
+      quantidade,
+      container,
+      operator,
+      stock,
+      observacao,
+    });
   }
 
   return (

@@ -10,7 +10,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ProdutorPorGiro {
   sku: string;
@@ -27,9 +27,11 @@ const exemploProdutoPorGiro: ProdutorPorGiro = {
 };
 
 export function SkusComGiroAbaixoDoEsperado() {
-  const [produtos, setProdutos] = useState<ProdutorPorGiro[]>([
-    exemploProdutoPorGiro
-  ]);
+  const [produtos, setProdutos] = useState<ProdutorPorGiro[]>([]);
+
+  useEffect(() => {
+    setProdutos([exemploProdutoPorGiro]);
+  }, []);
 
   return (
     <Card minW={"550px"} flex={1}>

@@ -2,15 +2,13 @@ import { Injectable } from '@nestjs/common';
 import {
   Product,
   ProductsOnContainer,
-  Stock,
   Transaction,
-  TransactionType,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   Pageable,
   PageableParams,
-} from 'src/types/pageable/pageable.interface';
+} from 'src/types/pageable.interface';
 import {
   EntriesFilterParams,
   ProductCreation,
@@ -44,6 +42,8 @@ import {
 import { PageMaxLimitError } from 'src/error/page.errors';
 import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
+import { TransactionType } from 'src/types/transaction-type.enum';
+import { Stock } from 'src/types/stock.enum';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -173,6 +173,9 @@ export class ProductsService implements ProductServiceInterface {
         importer = undefined;
       }
     }
+    else{
+      importer = undefined;
+    }
 
     if (pageableParams.stock) {
       try {
@@ -180,6 +183,9 @@ export class ProductsService implements ProductServiceInterface {
       } catch {
         stock = undefined;
       }
+    }
+    else{
+      stock = undefined;
     }
 
     const where: any = {
@@ -335,43 +341,69 @@ export class ProductsService implements ProductServiceInterface {
     if (!product || product.importer !== importer)
       throw new ProductNotFoundError();
 
-    const containerCreatedOrFinded =
+    const productsContainer =
       await this.containerService.findOrCreateContainer(container);
 
-    const productsOnContainerFound =
-      await this.containerService.getProductOnContainer(
-        product,
-        containerCreatedOrFinded,
-      );
-
+    const productsOnContainerFound = await this.containerService.getProductOnContainer(product, productsContainer);
     if (productsOnContainerFound)
       throw new ProductAlreadyInContainerError(container);
 
-    const productsOnContainer =
-      this.containerService.addProductToContainerOnEntry(
-        product,
-        containerCreatedOrFinded,
-        quantity,
-        observation,
-      );
-
-    await this.prismaService.product.update({
-      where: {
-        id: product.id,
-      },
-      data: {
-        galpaoQuantity: {
-          increment: quantity,
+    const productsOnContainer = await this.prismaService.$transaction(async (prisma) => {
+      const productsOnContainer = await prisma.productsOnContainer.create({
+        data: {
+          quantityExpected: quantity,
+          quantityReceived: quantity,
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+          container: {
+            connect: {
+              id: productsContainer.id,
+            },
+          },
+          observation,
         },
-      },
-    });
+        include: {
+          product: true,
+          container: true,
+        },
+      });
 
-    await this.transactionsService.createEntry({
-      product,
-      container: containerCreatedOrFinded,
-      entryAmount: quantity,
-      observation: observation,
-      operator: operator,
+      await prisma.product.update({
+        where: {
+          id: product.id,
+        },
+        data: {
+          galpaoQuantity: {
+            increment: quantity,
+          },
+        },
+      });
+
+      await prisma.transaction.create({
+        data: {
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+          container: {
+            connect: {
+              id: productsContainer.id,
+            },
+          },
+          operator: operator,
+          toStock: Stock.GALPAO,
+          entryAmount: quantity,
+          type: TransactionType.ENTRY,
+          observation: observation,
+          confirmed: true,
+        },
+      });
+
+      return productsOnContainer;
     });
 
     return productsOnContainer;

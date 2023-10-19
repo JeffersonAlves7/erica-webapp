@@ -1,8 +1,8 @@
 import { FormControl, FormLabel, Input } from "@chakra-ui/react";
-import { PropsWithRef, Ref, forwardRef } from "react";
+import { PropsWithRef, forwardRef } from "react";
 
 export const ObservacaoInput = forwardRef<HTMLInputElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <FormControl>
         <FormLabel>Observação</FormLabel>

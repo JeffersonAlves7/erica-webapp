@@ -1,0 +1,7 @@
+export enum TransactionType {
+  ENTRY = 'ENTRY',
+  EXIT = 'EXIT',
+  TRANSFERENCE = 'TRANSFERENCE',
+  DEVOLUTION = 'DEVOLUTION',
+  RESERVE = 'RESERVE',
+}

@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
+import { Stock } from 'src/types/stock.enum';
+import { TransactionType } from 'src/types/transaction-type.enum';
 import {
   Container,
   Product,
-  Stock,
   Transaction,
-  TransactionType,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   Pageable,
   PageableParams,
-} from 'src/types/pageable/pageable.interface';
+} from 'src/types/pageable.interface';
 import {
   TransactionFilterParams,
   TransferenceFilterParams,

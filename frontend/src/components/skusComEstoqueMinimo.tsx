@@ -10,7 +10,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ProdutoPorEstoqueMinimo {
   sku: string;
@@ -27,9 +27,11 @@ const exemploProdutoPorEstoqueMinimo: ProdutoPorEstoqueMinimo = {
 };
 
 export function SkusComEstoqueMinimo() {
-  const [produtos, setProdutos] = useState<ProdutoPorEstoqueMinimo[]>([
-    exemploProdutoPorEstoqueMinimo
-  ]);
+  const [produtos, setProdutos] = useState<ProdutoPorEstoqueMinimo[]>([]);
+
+  useEffect(() => {
+    setProdutos([exemploProdutoPorEstoqueMinimo])
+  }, [])
 
   return (
     <Card minW={"550px"} flex={1}>
