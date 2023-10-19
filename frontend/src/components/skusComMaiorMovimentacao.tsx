@@ -10,7 +10,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ProdutoPorMovimentacao {
   sku: string;
@@ -23,9 +23,11 @@ const exemploProdutoPorMovimentacao: ProdutoPorMovimentacao = {
 };
 
 export function SkusComMaiorMovimentacao() {
-  const [produtos, setProdutos] = useState<ProdutoPorMovimentacao[]>([
-    exemploProdutoPorMovimentacao
-  ]);
+  const [produtos, setProdutos] = useState<ProdutoPorMovimentacao[]>([]);
+
+  useEffect(() => {
+    setProdutos([exemploProdutoPorMovimentacao]);
+  }, []);
 
   return (
     <Card minW={"550px"} flex={1}>

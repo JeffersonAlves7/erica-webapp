@@ -12,7 +12,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface ProdutoPorSaida {
   sku: string;
@@ -29,9 +29,11 @@ const exampleProdutoPorSaida: ProdutoPorSaida = {
 };
 
 export function SaidasPorData() {
-  const [produtos, setProdutos] = useState<ProdutoPorSaida[]>([
-    exampleProdutoPorSaida
-  ]);
+  const [produtos, setProdutos] = useState<ProdutoPorSaida[]>([]);
+
+  useEffect(() => {
+    setProdutos([exampleProdutoPorSaida])
+  }, [])
 
   return (
     <Card minW={"550px"} flex={1}>

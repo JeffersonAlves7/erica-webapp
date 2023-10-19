@@ -3,7 +3,7 @@ import { Operator } from "@/types/operator.enum";
 import { PropsWithRef, forwardRef } from "react";
 
 export const OperatorSelector = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <Select ref={ref} required placeholder={"Selecione um operador"}>
         {Object.keys(Operator).map((key) => {

@@ -2,7 +2,7 @@ import { FormControl, FormLabel, Input } from "@chakra-ui/react";
 import { PropsWithRef, forwardRef } from "react";
 
 export const QuantityInput = forwardRef<HTMLInputElement, PropsWithRef<{}>>(
-  (props, ref) => {
+  (_, ref) => {
     return (
       <FormControl>
         <FormLabel>Quantidade</FormLabel>

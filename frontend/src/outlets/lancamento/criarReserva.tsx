@@ -1,7 +1,5 @@
-import { productService } from "@/services/product.service";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { handleError401 } from "@/services/api";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { ClientInput } from "@/components/inputs/client.input";
@@ -33,7 +31,6 @@ export function CriarReserva() {
     const codigoValue = codigoOuEanRef.current?.value;
     const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
     const containerValue = clienteRef.current?.value;
-    const observacaoValue = observacaoRef.current?.value;
     const operator = operatorRef.current?.value;
 
     if (

@@ -1,13 +1,10 @@
 import { ButtonSelector } from "@/components/selectors/buttonSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
-import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import {
   Box,
-  Button,
   Heading,
   Input,
-  Stack,
   Table,
   Tbody,
   Td,
