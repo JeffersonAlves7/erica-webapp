@@ -8,18 +8,18 @@ import { ProductsModule } from './products/products.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 
+const imports: any = [AuthModule, UsersModule, PrismaModule, ProductsModule];
+
+if (process.env.NODE_ENV == 'production') {
+  imports.push(
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'client'),
+    }),
+  );
+}
+
 @Module({
-  imports: [
-    process.env.NODE_ENV == 'production'
-      ? ServeStaticModule.forRoot({
-          rootPath: join(__dirname, '..', 'client'),
-        })
-      : null,
-    AuthModule,
-    UsersModule,
-    PrismaModule,
-    ProductsModule,
-  ],
+  imports,
   controllers: [AppController],
   providers: [AppService],
 })
