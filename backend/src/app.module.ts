@@ -10,9 +10,11 @@ import { join } from 'path';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'client'),
-    }),
+    process.env.NODE_ENV == 'production'
+      ? ServeStaticModule.forRoot({
+          rootPath: join(__dirname, '..', 'client'),
+        })
+      : null,
     AuthModule,
     UsersModule,
     PrismaModule,
