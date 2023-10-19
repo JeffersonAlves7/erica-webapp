@@ -6,6 +6,12 @@ export class TransactionNoTranserencesToConfirmError extends HttpException {
   }
 }
 
+export class TransactionIdNotFoundError extends HttpException {
+  constructor() {
+    super('Id da transação não encontrado', HttpStatus.BAD_REQUEST);
+  }
+}
+
 export class TransactionTransferencesMustBeAnArrayError extends HttpException {
   constructor() {
     super('Transferencias deve ser um array', HttpStatus.BAD_REQUEST);
@@ -36,9 +42,9 @@ export class TransactionClientNotFoundError extends HttpException {
   }
 }
 
-export class TransactionIdNotFoundError extends HttpException {
+export class TransactionIdIsRequiredError extends HttpException {
   constructor() {
-    super('Id da transação não encontrado', HttpStatus.BAD_REQUEST);
+    super('Id da transação é obrigatório', HttpStatus.BAD_REQUEST);
   }
 }
 

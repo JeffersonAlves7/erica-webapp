@@ -27,6 +27,21 @@ import {
   TransactionFilterParams,
   TransferenceFilterParams,
 } from './types/transaction.interface';
+import {
+  ProductAlreadyInContainerError,
+  ProductCodeOrEanIsRequiredError,
+  ProductContainerIsRequiredError,
+  ProductImporterIsRequiredError,
+  ProductNotFoundError,
+  ProductOperatorIsRequiredError,
+  ProductQuantityIsRequiredError,
+  ProductQuantityIsnotEnoughError,
+  ProductStockIsRequiredError,
+  ProductTransactionIdNotFoundError,
+} from 'src/error/products.errors';
+import { PageMaxLimitError } from 'src/error/page.errors';
+import { StockNotFoundError } from 'src/error/stock.errors';
+import { TransactionNotFoundError } from 'src/error/transaction.errors';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -120,14 +135,13 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     if (productFound) {
-      if (productFound.importer === importer)
-        throw new HttpException(`Produto já existe`, HttpStatus.BAD_REQUEST);
+      if (productFound.importer === importer) throw new ProductNotFoundError();
       else if (productFound.importer !== importer)
         throw new HttpException(
           `Produto já existe em outro importador`,
           HttpStatus.BAD_REQUEST,
         );
-      throw new HttpException(`Produto já existe`, HttpStatus.BAD_REQUEST);
+      throw new ProductNotFoundError();
     }
 
     const product = await this.prismaService.product.create({
@@ -145,24 +159,24 @@ export class ProductsService implements ProductServiceInterface {
   async getAllProductsAndStockByPage(
     pageableParams: PageableParams & ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {
-    if (!pageableParams.limit) pageableParams.limit = 10;
-    if (!pageableParams.page) pageableParams.page = 1;
-    if (pageableParams.limit > 100)
-      throw new HttpException(
-        `Maximum limit is ${100}`,
-        HttpStatus.BAD_REQUEST,
-      );
+    let { limit, page, code, importer, stock } = pageableParams;
+    const maxLimit = 100;
 
-    if (pageableParams.importer) {
+    if (!limit) limit = 10;
+    if (!page) page = 1;
+    if (limit > maxLimit) throw new PageMaxLimitError(maxLimit);
+
+    if (importer) {
       try {
-        var importer = getImporterId(pageableParams.importer);
+        importer = getImporterId(importer);
       } catch {
         importer = undefined;
       }
     }
+
     if (pageableParams.stock) {
       try {
-        var stock = getStockId(pageableParams.stock);
+        stock = getStockId(stock);
       } catch {
         stock = undefined;
       }
@@ -170,12 +184,12 @@ export class ProductsService implements ProductServiceInterface {
 
     const where = {
       importer: importer,
-      code: pageableParams.code ?? undefined,
+      code: code ?? undefined,
     };
 
     const products = await this.prismaService.product.findMany({
-      skip: (pageableParams.page - 1) * pageableParams.limit,
-      take: pageableParams.limit,
+      skip: (page - 1) * limit,
+      take: limit,
       where,
     });
 
@@ -270,7 +284,7 @@ export class ProductsService implements ProductServiceInterface {
     }
 
     return {
-      page: pageableParams.page,
+      page: page,
       total,
       data: productsToSend,
     };
@@ -281,12 +295,11 @@ export class ProductsService implements ProductServiceInterface {
   ): Promise<Pageable<Product>> {
     let { page, limit } = pageableParams;
 
-    if (limit > 100) {
-      throw new HttpException(
-        `Maximum limit is ${100}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    const maxLimit = 100;
+
+    if (!limit) limit = 10;
+    if (!page) page = 1;
+    if (limit > maxLimit) throw new PageMaxLimitError(maxLimit);
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
@@ -303,75 +316,38 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer> {
-    if (!productEntry.container) {
-      throw new HttpException(
-        `Container é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    let { codeOrEan, container, operator, quantity, observation } =
+      productEntry;
 
-    if (!productEntry.codeOrEan) {
-      throw new HttpException(
-        `Código ou EAN é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (!productEntry.quantity) {
-      throw new HttpException(
-        `Quantidade é obrigatória`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
-
-    if (!productEntry.importer) {
-      throw new HttpException(
-        `Importadora é obrigatória`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (!container) throw new ProductContainerIsRequiredError();
+    if (!codeOrEan) throw new ProductCodeOrEanIsRequiredError();
+    if (!quantity) throw new ProductQuantityIsRequiredError();
+    if (!productEntry.importer) throw new ProductImporterIsRequiredError();
 
     const importer = getImporterId(productEntry.importer);
+    const product = await this.getProductByCodeOrEan(codeOrEan);
 
-    const product = await this.prismaService.product.findFirst({
-      where: {
-        OR: [
-          {
-            code: productEntry.codeOrEan,
-          },
-          {
-            ean: productEntry.codeOrEan,
-          },
-        ],
-        importer,
-      },
-      include: {
-        productsOnContainer: true,
-      },
-    });
+    if (!product || product.importer !== importer)
+      throw new ProductNotFoundError();
 
-    if (!product)
-      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
-
-    const container = await this.containerService.findOrCreateContainer(
-      productEntry.container,
-    );
+    const containerCreatedOrFinded =
+      await this.containerService.findOrCreateContainer(container);
 
     const productsOnContainerFound =
-      await this.containerService.getProductOnContainer(product, container);
+      await this.containerService.getProductOnContainer(
+        product,
+        containerCreatedOrFinded,
+      );
 
     if (productsOnContainerFound)
-      throw new HttpException(
-        `Produto ainda existe no container ${container.id}`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new ProductAlreadyInContainerError(container);
 
     const productsOnContainer =
       this.containerService.addProductToContainerOnEntry(
         product,
-        container,
-        productEntry.quantity,
-        productEntry.observation,
+        containerCreatedOrFinded,
+        quantity,
+        observation,
       );
 
     await this.prismaService.product.update({
@@ -380,64 +356,45 @@ export class ProductsService implements ProductServiceInterface {
       },
       data: {
         galpaoQuantity: {
-          increment: productEntry.quantity,
+          increment: quantity,
         },
       },
     });
 
     await this.transactionsService.createGalpaoEntry({
       product,
-      container,
-      entryAmount: productEntry.quantity,
-      observation: productEntry.observation,
-      operator: productEntry.operator,
+      container: containerCreatedOrFinded,
+      entryAmount: quantity,
+      observation: observation,
+      operator: operator,
     });
 
     return productsOnContainer;
   }
 
   async exitProduct(productExit: ProductExit): Promise<Transaction> {
-    if (!productExit.codeOrEan)
-      throw new HttpException(
-        `Código ou EAN é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
-
-    if (!productExit.from)
-      throw new HttpException(
-        `Estoque de Origem é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
-
-    if (!productExit.quantity)
-      throw new HttpException(
-        `Quantidade é obrigatória`,
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!productExit.codeOrEan) throw new ProductCodeOrEanIsRequiredError();
+    if (!productExit.from) throw new ProductStockIsRequiredError('origem');
+    if (!productExit.quantity) throw new ProductQuantityIsRequiredError();
 
     const product = await this.getProductByCodeOrEan(productExit.codeOrEan);
 
-    if (!product)
-      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
+    if (!product) throw new ProductNotFoundError();
 
-    const stockId = getStockId(productExit.from);
+    try {
+      var stockId = getStockId(productExit.from);
+    } catch {
+      stockId = undefined;
+    }
 
     if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
-      throw new HttpException(`Estoque não encontrado`, HttpStatus.BAD_REQUEST);
-    if (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) {
-      throw new HttpException(
-        `Quantidade não é o suficiente`,
-        HttpStatus.BAD_REQUEST,
-      );
-    } else if (
-      stockId === Stock.GALPAO &&
-      product.galpaoQuantity < productExit.quantity
-    ) {
-      throw new HttpException(
-        `Quantidade não é o suficiente`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+      throw new StockNotFoundError();
+    if (
+      (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) ||
+      (stockId === Stock.GALPAO &&
+        product.galpaoQuantity < productExit.quantity)
+    )
+      throw new ProductQuantityIsnotEnoughError();
 
     const transaction = await this.transactionsService.createExit({
       product,
@@ -448,29 +405,16 @@ export class ProductsService implements ProductServiceInterface {
       client: productExit.client,
     });
 
-    if (stockId === Stock.LOJA) {
-      await this.prismaService.product.update({
-        where: {
-          id: product.id,
+    await this.prismaService.product.update({
+      where: {
+        id: product.id,
+      },
+      data: {
+        [stockId == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+          decrement: productExit.quantity,
         },
-        data: {
-          lojaQuantity: {
-            decrement: productExit.quantity,
-          },
-        },
-      });
-    } else if (stockId === Stock.GALPAO) {
-      await this.prismaService.product.update({
-        where: {
-          id: product.id,
-        },
-        data: {
-          galpaoQuantity: {
-            decrement: productExit.quantity,
-          },
-        },
-      });
-    }
+      },
+    });
 
     return transaction;
   }
@@ -478,28 +422,23 @@ export class ProductsService implements ProductServiceInterface {
   async transferProduct(
     productTransference: ProductTransference,
   ): Promise<Transaction> {
-    if (!productTransference.quantity)
-      throw new HttpException(`Quantity is required`, HttpStatus.BAD_REQUEST);
+    const { quantity, operator, codeOrEan, location, observation } =
+      productTransference;
 
-    if (!productTransference.codeOrEan)
-      throw new HttpException(`Código ou EAN é obrigatório`, HttpStatus.BAD_REQUEST);
+    if (!quantity) throw new ProductQuantityIsRequiredError();
+    if (!codeOrEan) throw new ProductCodeOrEanIsRequiredError();
+    if (!operator) throw new ProductOperatorIsRequiredError();
 
-    if (!productTransference.operator)
-      throw new HttpException(`Operador é obrigatório`, HttpStatus.BAD_REQUEST);
+    const product = await this.getProductByCodeOrEan(codeOrEan);
 
-    const product = await this.getProductByCodeOrEan(
-      productTransference.codeOrEan,
-    );
-
-    if (!product)
-      throw new HttpException(`Produto não encontrado`, HttpStatus.BAD_REQUEST);
+    if (!product) throw new ProductNotFoundError();
 
     const transference = await this.transactionsService.createTransferences({
       product,
-      entryAmount: productTransference.quantity,
-      observation: productTransference.observation,
-      operator: productTransference.operator,
-      location: productTransference.location,
+      entryAmount: quantity,
+      observation,
+      operator,
+      location,
     });
 
     return transference;
@@ -512,21 +451,13 @@ export class ProductsService implements ProductServiceInterface {
   }): Promise<Transaction> {
     const { id, entryAmount, location } = data;
 
-    if (!id)
-      throw new HttpException(
-        `Id da transação é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
-
+    if (!id) throw new ProductTransactionIdNotFoundError();
     if (!entryAmount)
-      throw new HttpException(
-        `Quantidade de entrada é obrigatória`,
-        HttpStatus.BAD_REQUEST,
-      );
+      throw new ProductQuantityIsRequiredError('Quantidade de entrada');
 
     const transference = await this.transactionsService.confirmTransference({
       id,
-      entryAmount,
+      entryAmount: entryAmount,
       location,
     });
 
@@ -536,17 +467,17 @@ export class ProductsService implements ProductServiceInterface {
   async getAllTransferencesByPage(
     pageableParams: TransferenceFilterParams,
   ): Promise<Pageable<any>> {
-    if (!pageableParams.limit) pageableParams.limit = 10;
-    if (!pageableParams.page) pageableParams.page = 1;
-
-    if (pageableParams.limit > 100)
-      throw new HttpException(
-        `O limite máximo é ${100}`,
-        HttpStatus.BAD_REQUEST,
-      );
+    let { limit, page } = pageableParams;
+    const pageLimit = 100;
+    if (!limit) limit = 10;
+    if (!page) page = 1;
+    if (limit > 100) throw new PageMaxLimitError(pageLimit);
 
     const transactions =
-      await this.transactionsService.getAllTransferencesByPage(pageableParams);
+      await this.transactionsService.getAllTransferencesByPage({
+        limit,
+        page,
+      });
 
     return transactions;
   }
@@ -556,15 +487,11 @@ export class ProductsService implements ProductServiceInterface {
   ): Promise<Pageable<any>> {
     let { page, limit, search, importer, orderBy } = pageableParams;
 
+    const pageLimit = 100;
     if (!limit) limit = 10;
     if (!page) page = 1;
 
-    if (limit > 100) {
-      throw new HttpException(
-        `O limite máximo é ${100}`,
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (limit > pageLimit) throw new PageMaxLimitError(pageLimit);
 
     const where = search
       ? {
@@ -632,11 +559,7 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async deleteTransaction(id: number): Promise<Transaction> {
-    if (!id)
-      throw new HttpException(
-        `Id da transação é obrigatório`,
-        HttpStatus.BAD_REQUEST,
-      );
+    if (!id) throw new ProductTransactionIdNotFoundError();
 
     const transactionToDelete = await this.prismaService.transaction.findUnique(
       {
@@ -646,8 +569,7 @@ export class ProductsService implements ProductServiceInterface {
       },
     );
 
-    if (!transactionToDelete)
-      throw new HttpException(`Transação não encontrada`, HttpStatus.BAD_REQUEST);
+    if (!transactionToDelete) throw new TransactionNotFoundError();
 
     const { type } = transactionToDelete;
     if (type === TransactionType.ENTRY)

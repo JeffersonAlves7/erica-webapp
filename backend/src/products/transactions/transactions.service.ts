@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   Container,
   Product,
@@ -15,9 +15,19 @@ import {
   TransactionFilterParams,
   TransferenceFilterParams,
 } from '../types/transaction.interface';
-import { ProductInsuficientStockError, ProductNotFoundError } from 'src/error/products.errors';
+import {
+  ProductInsuficientStockError,
+  ProductNotFoundError,
+} from 'src/error/products.errors';
 import { StockNotFoundError } from 'src/error/stock.errors';
-import { TransactionClientNotFoundError, TransactionIdNotFoundError, TransactionsExitAmountNotFoundError, TransferenceEntryAmountNotFoundError, TransactionNotFoundError, TransactionAlreadyConfirmedError } from 'src/error/transaction.errors';
+import {
+  TransactionClientNotFoundError,
+  TransactionIdNotFoundError,
+  TransactionsExitAmountNotFoundError,
+  TransferenceEntryAmountNotFoundError,
+  TransactionNotFoundError,
+  TransactionAlreadyConfirmedError,
+} from 'src/error/transaction.errors';
 import { ContainerNotFoundError } from 'src/error/container.errors';
 
 interface EntryGalpaoParams {
@@ -336,9 +346,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async deleteTransference(id: number) {
-    if (!id) {
-      throw new TransactionIdNotFoundError();
-    }
+    if (!id) throw new TransactionIdNotFoundError();
 
     const transference = await this.prismaService.transaction.findUnique({
       where: {
@@ -349,8 +357,7 @@ export class TransactionsService implements TransactionsServiceInterface {
       },
     });
 
-    if (!transference)
-      throw new TransactionNotFoundError();
+    if (!transference) throw new TransactionNotFoundError();
 
     const { confirmed, entryAmount, productId, partnerId, exitAmount } =
       transference;
@@ -378,9 +385,8 @@ export class TransactionsService implements TransactionsServiceInterface {
         },
       });
 
-      if (!deletions || deletions.count === 0) {
+      if (!deletions || deletions.count === 0)
         throw new TransactionNotFoundError();
-      }
 
       if (confirmed) {
         await prisma.product.update({
@@ -403,8 +409,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async deleteEntry(id: number) {
-    if (!id)
-      throw new TransactionIdNotFoundError();
+    if (!id) throw new TransactionIdNotFoundError();
 
     const deleted = await this.prismaService.transaction.delete({
       where: {
@@ -412,11 +417,10 @@ export class TransactionsService implements TransactionsServiceInterface {
       },
       include: {
         product: true,
-      }
+      },
     });
 
-    if (!deleted)
-      throw new TransactionNotFoundError();
+    if (!deleted) throw new TransactionNotFoundError();
 
     const stock = deleted.toStock;
 
@@ -442,8 +446,7 @@ export class TransactionsService implements TransactionsServiceInterface {
   }
 
   async deleteExit(id: number): Promise<Transaction> {
-    if (!id)
-      throw new TransactionIdNotFoundError();
+    if (!id) throw new TransactionIdNotFoundError();
 
     const deleted = await this.prismaService.transaction.delete({
       where: {
@@ -451,11 +454,10 @@ export class TransactionsService implements TransactionsServiceInterface {
       },
       include: {
         product: true,
-      }
+      },
     });
 
-    if (!deleted)
-      throw new TransactionNotFoundError();
+    if (!deleted) throw new TransactionNotFoundError();
 
     const stock = deleted.fromStock;
 

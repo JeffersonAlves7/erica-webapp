@@ -4,7 +4,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -14,7 +13,11 @@ import {
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { AuthGuard } from 'src/auth/auth.guard';
-import { TransactionNoTranserencesToConfirmError, TransactionMaxTransferencePerRequestError, TransactionTransferencesMustBeAnArrayError } from 'src/error/transaction.errors';
+import {
+  TransactionNoTranserencesToConfirmError,
+  TransactionMaxTransferencePerRequestError,
+  TransactionTransferencesMustBeAnArrayError,
+} from 'src/error/transaction.errors';
 import { ProductInvalidProductsError } from 'src/error/products.errors';
 
 @Controller('products')
@@ -117,18 +120,15 @@ export class ProductsController {
   async confirmTransferences(@Body() body: Record<string, any>) {
     const { transferences } = body;
 
-    if (!transferences)
-      throw new TransactionNoTranserencesToConfirmError();
+    if (!transferences) throw new TransactionNoTranserencesToConfirmError();
 
     if (!Array.isArray(transferences))
       throw new TransactionTransferencesMustBeAnArrayError();
 
     const length = transferences.length;
-    if (length === 0)
-      throw new TransactionNoTranserencesToConfirmError();
+    if (length === 0) throw new TransactionNoTranserencesToConfirmError();
 
-    if (length > 100)
-      throw new TransactionMaxTransferencePerRequestError();
+    if (length > 100) throw new TransactionMaxTransferencePerRequestError();
 
     if (
       transferences.some(
