@@ -8,12 +8,15 @@ import {
   FormLabel,
   Heading,
   Input,
-  Stack
+  Stack,
+  useToast
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export function Login() {
+  const toast = useToast();
+
   const [error, setError] = useState<string>("");
   const [isLogged, setIsLogged] = useState<boolean>(false);
   const emailRef = useRef<HTMLInputElement>(null);
@@ -33,7 +36,7 @@ export function Login() {
         setIsLogged(true);
       })
       .catch(() => {
-        return;
+        
       });
   }, []);
 
@@ -48,7 +51,19 @@ export function Login() {
       return;
     }
 
-    await authService.login(emailValue, passValue);
+    try{
+      await authService.login(emailValue, passValue);
+    }
+    catch(error: any){
+      toast({
+          title: "Erro ao logar",
+          description: error.response.data.message,
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        })
+      return;
+    }
 
     navigator("/estoques");
     return;

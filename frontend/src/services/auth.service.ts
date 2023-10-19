@@ -3,13 +3,15 @@ import { tokenService } from "./token.service";
 
 class AuthService {
   async login(email: string, password: string) {
-    return api.post("/auth/login", { email, password }).then((response) => {
-      if (response.data.access_token) {
-        tokenService.updateLocalAccessToken(response.data.access_token);
-        tokenService.updateLocalRefreshToken(response.data.refresh_token);
-      }
-      return response.data;
-    });
+    const response = await api.post("/auth/login", { email, password })
+    console.log(response)
+
+    if (response?.data.access_token) {
+      tokenService.updateLocalAccessToken(response.data.access_token);
+      tokenService.updateLocalRefreshToken(response.data.refresh_token);
+    }
+
+    return response.data;
   }
 
   async logout() {
