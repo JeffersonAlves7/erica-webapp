@@ -361,7 +361,7 @@ export class ProductsService implements ProductServiceInterface {
       },
     });
 
-    await this.transactionsService.createGalpaoEntry({
+    await this.transactionsService.createEntry({
       product,
       container: containerCreatedOrFinded,
       entryAmount: quantity,

@@ -63,7 +63,7 @@ interface ConfirmTransferenceParams {
 
 interface TransactionsServiceInterface {
   createExit(data: ExitParams): Promise<Transaction>;
-  createGalpaoEntry(data: EntryGalpaoParams): Promise<Transaction>;
+  createEntry(data: EntryGalpaoParams): Promise<Transaction>;
   createTransferences(data: LojaTransferParams): Promise<any>;
   confirmTransference(data: ConfirmTransferenceParams): Promise<Transaction>;
 
@@ -81,32 +81,6 @@ interface TransactionsServiceInterface {
 @Injectable()
 export class TransactionsService implements TransactionsServiceInterface {
   constructor(private prismaService: PrismaService) {}
-
-  private createExitTransaction(data: {
-    product: Product;
-    fromStock: Stock;
-    exitAmount: number;
-    observation?: string;
-    operator: string;
-    client: string;
-  }) {
-    return this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: data.product.id,
-          },
-        },
-        fromStock: data.fromStock,
-        exitAmount: data.exitAmount,
-        type: TransactionType.EXIT,
-        observation: data.observation,
-        operator: data.operator,
-        client: data.client,
-        confirmed: true,
-      },
-    });
-  }
 
   private async updateProductQuantities(
     productId: number,
@@ -134,50 +108,42 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
   }
 
-  private createEntryTransaction(data: {
-    product: Product;
-    container: Container;
-    entryAmount: number;
-    observation?: string;
-    operator?: string;
-  }): Promise<any> {
-    return this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: data.product.id,
-          },
+  async getAll(
+    pageableParams: TransactionFilterParams,
+  ): Promise<Pageable<Transaction>> {
+    const { limit, page, code, orderBy, stock, type } = pageableParams;
+    const where = {
+      type,
+      product: {
+        code: {
+          contains: code,
         },
-        container: {
-          connect: {
-            id: data.container.id,
-          },
-        },
-        operator: data.operator,
-        toStock: Stock.GALPAO,
-        entryAmount: data.entryAmount,
-        type: TransactionType.ENTRY,
-        observation: data.observation,
-        confirmed: true,
+      },
+      fromStock: stock,
+      confirmed: true,
+    };
+
+    const transactions = await this.prismaService.transaction.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where,
+      include: {
+        product: true,
+      },
+      orderBy: {
+        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
       },
     });
-  }
 
-  async createExit(data: ExitParams) {
-    if (!data.product) throw new ProductNotFoundError();
-    if (!data.fromStock) throw new StockNotFoundError();
-    if (!data.exitAmount) throw new TransactionsExitAmountNotFoundError();
-    if (!data.client) throw new TransactionClientNotFoundError();
+    const total = await this.prismaService.transaction.count({
+      where,
+    });
 
-    return this.createExitTransaction(data);
-  }
-
-  async createGalpaoEntry(data: EntryGalpaoParams) {
-    if (!data.product) throw new ProductNotFoundError();
-    if (!data.container) throw new ContainerNotFoundError();
-    if (!data.entryAmount) throw new TransferenceEntryAmountNotFoundError();
-
-    return this.createEntryTransaction(data);
+    return {
+      page,
+      total,
+      data: transactions,
+    };
   }
 
   // ***** TRANSFERENCES *****/
@@ -408,6 +374,7 @@ export class TransactionsService implements TransactionsServiceInterface {
     });
   }
 
+  // **** ENTRIES ****/
   async deleteEntry(id: number) {
     if (!id) throw new TransactionIdNotFoundError();
 
@@ -445,6 +412,44 @@ export class TransactionsService implements TransactionsServiceInterface {
     return deleted;
   }
 
+  async createEntry(data: EntryGalpaoParams) {
+    if (!data.product) throw new ProductNotFoundError();
+    if (!data.container) throw new ContainerNotFoundError();
+    if (!data.entryAmount) throw new TransferenceEntryAmountNotFoundError();
+
+    return this.createEntryTransaction(data);
+  }
+
+  private createEntryTransaction(data: {
+    product: Product;
+    container: Container;
+    entryAmount: number;
+    observation?: string;
+    operator?: string;
+  }): Promise<any> {
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
+          },
+        },
+        container: {
+          connect: {
+            id: data.container.id,
+          },
+        },
+        operator: data.operator,
+        toStock: Stock.GALPAO,
+        entryAmount: data.entryAmount,
+        type: TransactionType.ENTRY,
+        observation: data.observation,
+        confirmed: true,
+      },
+    });
+  }
+
+  // **** EXIT ****/
   async deleteExit(id: number): Promise<Transaction> {
     if (!id) throw new TransactionIdNotFoundError();
 
@@ -475,41 +480,38 @@ export class TransactionsService implements TransactionsServiceInterface {
     return deleted;
   }
 
-  async getAll(
-    pageableParams: TransactionFilterParams,
-  ): Promise<Pageable<Transaction>> {
-    const { limit, page, code, orderBy, stock, type } = pageableParams;
-    const where = {
-      type,
-      product: {
-        code: {
-          contains: code,
+  async createExit(data: ExitParams) {
+    if (!data.product) throw new ProductNotFoundError();
+    if (!data.fromStock) throw new StockNotFoundError();
+    if (!data.exitAmount) throw new TransactionsExitAmountNotFoundError();
+    if (!data.client) throw new TransactionClientNotFoundError();
+
+    return this.createExitTransaction(data);
+  }
+
+  private createExitTransaction(data: {
+    product: Product;
+    fromStock: Stock;
+    exitAmount: number;
+    observation?: string;
+    operator: string;
+    client: string;
+  }) {
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
+          },
         },
-      },
-      fromStock: stock,
-      confirmed: true,
-    };
-
-    const transactions = await this.prismaService.transaction.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-      where,
-      include: {
-        product: true,
-      },
-      orderBy: {
-        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
+        fromStock: data.fromStock,
+        exitAmount: data.exitAmount,
+        type: TransactionType.EXIT,
+        observation: data.observation,
+        operator: data.operator,
+        client: data.client,
+        confirmed: true,
       },
     });
-
-    const total = await this.prismaService.transaction.count({
-      where,
-    });
-
-    return {
-      page,
-      total,
-      data: transactions,
-    };
   }
 }
