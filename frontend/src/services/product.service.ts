@@ -4,6 +4,7 @@ import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
 import { ProductTransaction, ProductsWithStock } from "@/types/products.interface";
+import { TransferenceConfirmation } from "@/types/transaction.interface";
 
 interface ProductEntry {
   codeOrEan: string;
@@ -229,11 +230,26 @@ class ProductService {
 
   async getAllTransferences(
     pageableParams: GetTransferencesQueryParams
-  ): Promise<Pageable<any>> {
+  ): Promise<Pageable<TransferenceConfirmation>> {
     const response = await api.get(`/products/transferences`, {
       params: pageableParams
     });
-    return response.data;
+
+    const transferencias = response.data.data.map((transferencia: any) => {
+      return {
+        id: transferencia.id,
+        sku: transferencia.product.code,
+        quantidadeEsperada: transferencia.entryExpected,
+        quantidadeVerificada: undefined,
+        localizacao: transferencia.location
+      };
+    });
+
+    return {
+      data: transferencias,
+      page: response.data.page,
+      total: response.data.total
+    };
   }
 
   async deleteTransaction(id: number) {

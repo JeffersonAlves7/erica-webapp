@@ -79,3 +79,17 @@ export class ProductTransactionIdNotFoundError extends HttpException {
     super('Id da transação não encontrado', HttpStatus.BAD_REQUEST);
   }
 }
+export class ProductAlreadyExistsInOtherImporterError extends HttpException {
+  constructor() {
+    super(
+      'Produto já existe em outra importadora',
+      HttpStatus.BAD_REQUEST,
+    );
+  }
+}
+
+export class ProductAlreadyExistsWithOtherCodeError extends HttpException {
+  constructor() {
+    super('Produto já existe com esse EAN e outro código', HttpStatus.BAD_REQUEST);
+  }
+}

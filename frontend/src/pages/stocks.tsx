@@ -3,6 +3,7 @@ import { SearchButton } from "@/components/buttons/searchButton";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
+import { ModalDelete } from "@/components/modalDelete";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -19,7 +20,8 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
+  useDisclosure
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
@@ -33,6 +35,11 @@ export function Stocks() {
   const [stock, setStock] = useState<Stock | undefined>(undefined);
   const [code, setCode] = useState<string | undefined>(undefined);
   const [alertaPorcentagem, setAlertaPorcentagem] = useState(50);
+  const [productIdToDelete, setProductIdToDelete] = useState<
+    ProductsWithStock["id"] | undefined
+  >(undefined);
+
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const productsLimit = 10;
   const codigoRef = useRef<HTMLInputElement>(null);
@@ -70,8 +77,6 @@ export function Stocks() {
       })
       .then((data) => {
         setItems(data.data);
-        setTotalItems(data.total);
-        setPage(1);
       })
       .catch((error) => {
         handleError401(error);
@@ -80,7 +85,6 @@ export function Stocks() {
 
   function handleSearchPedidos() {
     const codigo = codigoRef.current?.value;
-    if (!codigo) return;
     setCode(codigo);
   }
 
@@ -95,15 +99,22 @@ export function Stocks() {
   }
 
   const qntDeCaixas = items.reduce<number | ProductsWithStock>(
-    (previous, current) => {
-      if (typeof previous !== "number") {
-        return previous.saldo + current.saldo;
-      } else {
-        return previous + current.saldo;
-      }
-    },
+    (previous, current) =>
+      typeof previous !== "number"
+        ? previous.saldo + current.saldo
+        : previous + current.saldo,
     0
   ) as number;
+
+  function handleConfirmDeleteProduct(){
+    console.log({productIdToDelete})
+    onClose()
+  }
+
+  function handleDeleteProduct(id: number){
+    setProductIdToDelete(id)
+    onOpen()
+  }
 
   return (
     <>
@@ -139,6 +150,7 @@ export function Stocks() {
                   item={item}
                   alertaPorcentagem={alertaPorcentagem}
                   stock={stock}
+                  handleDelete={handleDeleteProduct}
                 />
               ))}
             </Tbody>
@@ -163,35 +175,9 @@ export function Stocks() {
         </Box>
       </Stack>
 
-      {/* <AlertDialog
-            isOpen={isOpen}
-            onClose={onClose}
-            leastDestructiveRef={cancelRef}
-          >
-            <AlertDialogOverlay>
-              <AlertDialogContent>
-                <AlertDialogBody>
-                  <p className="text-2xl font-semibold">
-                    Você realmente deseja excluir esse item? Atenção! Essa ação
-                    não pode ser desfeita
-                  </p>
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <Button colorScheme="red" ref={cancelRef} onClick={onClose}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    colorScheme="green"
-                    backgroundColor={"erica.green"}
-                    onClick={handleDeleteItem}
-                    ml={3}
-                  >
-                    Confirmar
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialogOverlay>
-          </AlertDialog> */}
+      <ModalDelete isOpen={isOpen} onClose={onClose} handleConfirm={handleConfirmDeleteProduct}>
+        Tem certeza que deseja apagar o produto?
+      </ModalDelete>
     </>
   );
 }
@@ -239,11 +225,13 @@ function StockTableHead(props: { stock: Stock | undefined }) {
 function StockItem({
   item,
   alertaPorcentagem,
-  stock
+  stock,
+  handleDelete
 }: {
   item: ProductsWithStock;
   alertaPorcentagem: number;
   stock: Stock | undefined;
+  handleDelete: (id: number) => void;
 }) {
   const quantidadeParaAlerta =
     item.quantidadeEntrada * (alertaPorcentagem / 100);
@@ -278,10 +266,7 @@ function StockItem({
       <Td>{item.observacao}</Td>
       <Td>
         <CloseButton
-          onClick={() => {
-            // setItemIdToDelete(item.id);
-            // onOpen();
-          }}
+          onClick={() => handleDelete(item.id)}
         />
       </Td>
     </Tr>

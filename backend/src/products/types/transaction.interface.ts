@@ -12,7 +12,6 @@ export interface TransferenceFilterParams extends PageableParams {
   orderBy?: string; // createdAt_ASC or createdAt_DESC
   confirmed?: boolean;
   code?: string;
-  selectAll?: boolean;
 }
 
 export interface TransactionCreation {

@@ -253,27 +253,23 @@ export class TransactionsService implements TransactionsServiceInterface {
   async getAllTransferencesByPage(
     pageableParams: TransferenceFilterParams,
   ): Promise<Pageable<any>> {
-    const { limit, code, page, confirmed, orderBy, selectAll } = pageableParams;
+    const { limit, code, page, confirmed, orderBy } = pageableParams;
 
-    const search: any = {
-      skip: (page - 1) * limit,
-      take: limit,
-      where: {
-        type: TransactionType.TRANSFERENCE,
-        confirmed: confirmed,
-        product: {
-          code: {
-            contains: code,
-          },
+    const where = {
+      type: TransactionType.TRANSFERENCE,
+      confirmed: confirmed,
+      product: {
+        code: {
+          contains: code,
         },
-      },
-      orderBy: {
-        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
       },
     };
 
-    if (!selectAll) {
-      search.select = {
+    const transactions = await this.prismaService.transaction.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where,
+      select: {
         id: true,
         entryAmount: true,
         entryExpected: true,
@@ -288,21 +284,13 @@ export class TransactionsService implements TransactionsServiceInterface {
         },
         productId: true,
         createdAt: true,
-      };
-    } else {
-      search.include = {
-        product: true,
-      };
-    }
-
-    const transactions = await this.prismaService.transaction.findMany(search);
-
-    const total = await this.prismaService.transaction.count({
-      where: {
-        type: TransactionType.TRANSFERENCE,
-        confirmed: confirmed,
+      },
+      orderBy: {
+        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
       },
     });
+
+    const total = await this.prismaService.transaction.count({ where });
 
     return {
       page: page,

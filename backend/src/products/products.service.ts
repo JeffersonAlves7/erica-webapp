@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   Product,
   ProductsOnContainer,
@@ -28,6 +28,8 @@ import {
   TransferenceFilterParams,
 } from './types/transaction.interface';
 import {
+  ProductAlreadyExistsInOtherImporterError,
+  ProductAlreadyExistsWithOtherCodeError,
   ProductAlreadyInContainerError,
   ProductCodeOrEanIsRequiredError,
   ProductContainerIsRequiredError,
@@ -135,12 +137,10 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     if (productFound) {
-      if (productFound.importer === importer) throw new ProductNotFoundError();
-      else if (productFound.importer !== importer)
-        throw new HttpException(
-          `Produto já existe em outro importador`,
-          HttpStatus.BAD_REQUEST,
-        );
+      if (productFound.code !== productCreation.code)
+        throw new ProductAlreadyExistsWithOtherCodeError();
+      if (productFound.importer !== importer)
+        throw new ProductAlreadyExistsInOtherImporterError();
       throw new ProductNotFoundError();
     }
 
@@ -182,10 +182,15 @@ export class ProductsService implements ProductServiceInterface {
       }
     }
 
-    const where = {
+    const where: any = {
       importer: importer,
-      code: code ?? undefined,
     };
+
+    if (code) {
+      where.code = {
+        contains: code ?? '',
+      };
+    }
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
@@ -467,7 +472,7 @@ export class ProductsService implements ProductServiceInterface {
   async getAllTransferencesByPage(
     pageableParams: TransferenceFilterParams,
   ): Promise<Pageable<any>> {
-    let { limit, page } = pageableParams;
+    let { limit, page, confirmed, code, orderBy } = pageableParams;
     const pageLimit = 100;
     if (!limit) limit = 10;
     if (!page) page = 1;
@@ -477,6 +482,9 @@ export class ProductsService implements ProductServiceInterface {
       await this.transactionsService.getAllTransferencesByPage({
         limit,
         page,
+        confirmed,
+        code,
+        orderBy,
       });
 
     return transactions;

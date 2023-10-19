@@ -2,6 +2,7 @@ import { ModalDelete } from "@/components/modalDelete";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
+import { TransferenceConfirmation } from "@/types/transaction.interface";
 import {
   Button,
   Heading,
@@ -19,54 +20,40 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-interface Conferencia {
-  id: number;
-  sku: string;
-  quantidadeEsperada: number;
-  quantidadeVerificada?: number;
-  localizacao?: string;
-}
-
 export function Conferencias() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
-  const [conferencias, setConferencias] = useState<Conferencia[]>([]);
-  const [idsConferencias, setIdsConferencias] = useState<Conferencia["id"][]>(
+  const [conferencias, setConferencias] = useState<TransferenceConfirmation[]>([]);
+  const [idsConferencias, setIdsConferencias] = useState<TransferenceConfirmation["id"][]>(
     []
   );
 
   const conferenciasLimit = 20;
   const pageMax = Math.ceil(pageQuantity / conferenciasLimit);
 
-  useEffect(() => {
-    productService
-      .getAllTransferences({
+  async function getConferencias() {
+    try {
+      const response = await productService.getAllTransferences({
         page,
         confirmed: false,
         limit: 20,
         orderBy: "desc"
-      })
-      .then((res) => {
-        const transferencias = res.data.map((transferencia) => {
-          return {
-            id: transferencia.id,
-            sku: transferencia.product.code,
-            quantidadeEsperada: transferencia.entryExpected,
-            quantidadeVerificada: undefined,
-            localizacao: transferencia.location
-          };
-        });
-
-        setConferencias(transferencias);
-      })
-      .catch((err) => {
-        handleError401(err);
       });
+
+      setPageQuantity(response.total);
+      setConferencias(response.data);
+    } catch (err) {
+      handleError401(err);
+    }
+  }
+
+  useEffect(() => {
+    getConferencias();
   }, [page]);
 
   function handleChangeQuantidadeVerificada(
-    id: Conferencia["id"],
+    id: TransferenceConfirmation["id"],
     value?: number
   ) {
     const values = [...conferencias];
@@ -76,14 +63,14 @@ export function Conferencias() {
     setConferencias(values);
   }
 
-  function handleChangeLocalizacao(id: Conferencia["id"], value?: string) {
+  function handleChangeLocalizacao(id: TransferenceConfirmation["id"], value?: string) {
     const values = [...conferencias];
     const index = values.findIndex((v) => v.id === id);
     values[index].localizacao = value;
     setConferencias(values);
   }
 
-  function handleConfirmButton() {
+  async function handleConfirmButton() {
     const transfersToExecute = conferencias.filter((conferencia) =>
       idsConferencias.includes(conferencia.id)
     );
@@ -93,26 +80,7 @@ export function Conferencias() {
       return;
     }
 
-    productService
-      .confirmTransferences({
-        transferences: transfersToExecute.map((transfer) => ({
-          id: transfer.id,
-          entryAmount: transfer.quantidadeVerificada
-            ? transfer.quantidadeVerificada
-            : 0,
-          location: transfer.localizacao
-        }))
-      })
-      .then(() => {
-        setConferencias(
-          conferencias.filter(
-            (conferencia) => !idsConferencias.includes(conferencia.id)
-          )
-        );
-      })
-      .catch((err) => {
-        handleError401(err);
-      });
+    getConferencias(); 
     onClose();
   }
 
@@ -120,7 +88,7 @@ export function Conferencias() {
     <Stack maxW={1100}>
       <Heading>Conferir Conferências</Heading>
 
-      <Box overflow={'auto'}>
+      <Box overflow={"auto"}>
         <Table>
           <Thead>
             <Tr>

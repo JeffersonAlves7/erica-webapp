@@ -63,7 +63,7 @@ export function CriarTransferencia() {
       })
       .catch((err) => {
         setStatus("error");
-        setError(err.response.data.message);
+        setError(err?.response?.data?.message || err.message)
       });
   }
 

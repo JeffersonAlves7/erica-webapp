@@ -13,7 +13,7 @@ export function CancelButton(props: CanvelButtonProps) {
       backgroundColor={'red.500'}
       onClick={props.onClick ? props.onClick : () => {}}
     >
-      Confirmar
+      Cancelar
     </Button>
   );
 }

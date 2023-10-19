@@ -150,20 +150,15 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('transferences')
   getAllTransferences(@Query() query: Record<string, any>) {
-    if (query.confirmed) {
-      if (query.confirmed === 'false') query.confirmed = false;
-      if (query.confirmed === 'true') query.confirmed = true;
-    } else {
-      query.confirmed = false;
-    }
+    let { confirmed, page, limit, orderBy, code } = query;
+    confirmed = confirmed === 'true' ? true : false;
 
     return this.productsService.getAllTransferencesByPage({
-      limit: Number(query.limit),
-      page: Number(query.page),
-      confirmed: query.confirmed,
-      orderBy: query.orderBy,
-      code: query.code,
-      selectAll: query.selectAll,
+      limit: Number(limit),
+      page: Number(page),
+      confirmed: confirmed,
+      orderBy: orderBy,
+      code: code,
     });
   }
 

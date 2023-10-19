@@ -61,7 +61,7 @@ export function CriarSaida() {
         setStatus("success");
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err?.response?.data?.message || err.message);
         setStatus("error");
       });
   }

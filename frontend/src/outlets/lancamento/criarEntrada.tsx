@@ -63,14 +63,7 @@ export function CriarEntrada() {
       })
       .catch((err) => {
         handleError401(err);
-        switch (err.response.data.message) {
-          case "Product not found":
-            setError("Produto não encontrado");
-            break;
-          default:
-            setError("Erro ao criar entrada");
-            break;
-        }
+        setError(err?.response?.data?.message || err.message);
         setStatus("error");
       });
   }
