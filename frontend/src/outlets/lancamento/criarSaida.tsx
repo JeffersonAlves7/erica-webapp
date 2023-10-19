@@ -59,6 +59,12 @@ export function CriarSaida() {
       })
       .then(() => {
         setStatus("success");
+        codigoRef.current!.value = "";
+        quantidadeRef.current!.value = "";
+        clienteRef.current!.value = "";
+        observacaoRef.current!.value = "";
+        operadorRef.current!.value = "";
+        estoqueRef.current!.value = "";
       })
       .catch((err) => {
         setError(err?.response?.data?.message || err.message);

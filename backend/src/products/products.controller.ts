@@ -108,6 +108,20 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
+  @Post('devolution')
+  devolutionProduct(@Body() productDevolution: Record<string, any>) {
+    return this.productsService.devolutionProduct({
+      client: productDevolution.client,
+      codeOrEan: productDevolution.codeOrEan,
+      operator: productDevolution.operator,
+      quantity: productDevolution.quantity,
+      stock: productDevolution.stock,
+      observation: productDevolution.observation,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Post('transference')
   productTransference(@Body() productTransference: Record<string, any>) {
     return this.productsService.transferProduct({

@@ -7,6 +7,8 @@ import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { ClientInput } from "@/components/inputs/client.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
+import { productService } from "@/services/product.service";
+import { handleError401 } from "@/services/api";
 
 export function CriarDevolucao() {
   const [error, setError] = useState<string>("");
@@ -29,25 +31,40 @@ export function CriarDevolucao() {
 
     const codigo = codigoOuEanRef.current?.value;
     const quantidade = parseInt(quantidadeRef.current?.value || "0");
-    const container = clienteRef.current?.value;
+    const client = clienteRef.current?.value;
     const operator = operadorRef.current?.value;
     const stock = stockRef.current?.value;
     const observacao = observacaoRef.current?.value;
 
-    if (!codigo || !quantidade || !container || !stock || !operator) {
+    if (!codigo || !quantidade || !client || !stock || !operator) {
       setError("Preencha todos os campos");
       setStatus("idle");
       return;
     }
 
-    console.log({
-      codigo,
-      quantidade,
-      container,
-      operator,
-      stock,
-      observacao,
-    });
+    productService
+      .createDevolution({
+        codeOrEan: codigo,
+        quantity: quantidade,
+        client,
+        operator,
+        stock,
+        observation: observacao
+      })
+      .then(() => {
+        setStatus("success");
+        codigoOuEanRef.current!.value = "";
+        quantidadeRef.current!.value = "";
+        clienteRef.current!.value = "";
+        operadorRef.current!.value = "";
+        stockRef.current!.value = "";
+        observacaoRef.current!.value = "";
+      })
+      .catch((err) => {
+        handleError401(err);
+        setError(err.message);
+        setStatus("error");
+      });
   }
 
   return (

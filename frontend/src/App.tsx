@@ -51,17 +51,16 @@ function App() {
                 <IncluirLancamento />
               </ProtectedRoute>
             }
-            children={
-              <>
-                <Route path="" element={<CriarEntrada />} />
-                <Route path="entrada" element={<CriarEntrada />} />
-                <Route path="saida" element={<CriarSaida />} />
-                <Route path="transferencia" element={<CriarTransferencia />} />
-                <Route path="devolucao" element={<CriarDevolucao />} />
-                <Route path="reserva" element={<CriarReserva />} />
-              </>
-            }
-          />
+          >
+            <>
+              <Route path="" element={<CriarEntrada />} />
+              <Route path="entrada" element={<CriarEntrada />} />
+              <Route path="saida" element={<CriarSaida />} />
+              <Route path="transferencia" element={<CriarTransferencia />} />
+              <Route path="devolucao" element={<CriarDevolucao />} />
+              <Route path="reserva" element={<CriarReserva />} />
+            </>
+          </Route>
           <Route
             path="/incluir-lancamento/transferencia/conferencias"
             element={

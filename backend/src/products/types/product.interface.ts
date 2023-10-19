@@ -1,4 +1,5 @@
 import { Importer } from 'src/types/importer.enum';
+import { PageableParams } from 'src/types/pageable.interface';
 import { Stock } from 'src/types/stock.enum';
 
 export interface ProductEntry {
@@ -23,7 +24,7 @@ export interface EntriesFilterParams {
   orderBy?: string; // createdAt_ASC or createdAt_DESC
 }
 
-export interface ProductWithLastEntryParams {
+export interface ProductWithLastEntryParams extends PageableParams {
   importer?: Importer;
   code?: string;
   stock?: Stock;
@@ -44,4 +45,13 @@ export interface ProductTransference {
   operator: string;
   observation?: string;
   location?: string;
+}
+
+export interface ProductDevolution {
+  codeOrEan: string;
+  quantity: number;
+  client: string;
+  operator: string;
+  stock: Stock;
+  observation?: string;
 }
