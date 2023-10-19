@@ -1,4 +1,5 @@
-import { Importer, Stock, TransactionType } from '@prisma/client';
+import { Importer } from "src/types/importer.enum";
+import { Stock } from "src/types/stock.enum";
 
 export interface ProductEntry {
   codeOrEan: string;

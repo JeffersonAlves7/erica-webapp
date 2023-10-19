@@ -1,5 +1,6 @@
-import { Stock, TransactionType } from '@prisma/client';
-import { PageableParams } from 'src/types/pageable/pageable.interface';
+import { PageableParams } from 'src/types/pageable.interface';
+import { Stock } from 'src/types/stock.enum';
+import { TransactionType } from 'src/types/transaction-type.enum';
 
 export interface TransactionFilterParams extends PageableParams {
   type?: TransactionType;

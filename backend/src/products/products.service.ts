@@ -2,15 +2,13 @@ import { Injectable } from '@nestjs/common';
 import {
   Product,
   ProductsOnContainer,
-  Stock,
   Transaction,
-  TransactionType,
 } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import {
   Pageable,
   PageableParams,
-} from 'src/types/pageable/pageable.interface';
+} from 'src/types/pageable.interface';
 import {
   EntriesFilterParams,
   ProductCreation,
@@ -44,6 +42,8 @@ import {
 import { PageMaxLimitError } from 'src/error/page.errors';
 import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
+import { TransactionType } from 'src/types/transaction-type.enum';
+import { Stock } from 'src/types/stock.enum';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
