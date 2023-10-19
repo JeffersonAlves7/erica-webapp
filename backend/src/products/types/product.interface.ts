@@ -1,5 +1,5 @@
-import { Importer } from "src/types/importer.enum";
-import { Stock } from "src/types/stock.enum";
+import { Importer } from 'src/types/importer.enum';
+import { Stock } from 'src/types/stock.enum';
 
 export interface ProductEntry {
   codeOrEan: string;
@@ -34,7 +34,7 @@ export interface ProductExit {
   quantity: number;
   from: Stock;
   observation?: string;
-  operator?: string
+  operator?: string;
   client: string;
 }
 

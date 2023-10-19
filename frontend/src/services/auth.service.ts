@@ -3,8 +3,8 @@ import { tokenService } from "./token.service";
 
 class AuthService {
   async login(email: string, password: string) {
-    const response = await api.post("/auth/login", { email, password })
-    console.log(response)
+    const response = await api.post("/auth/login", { email, password });
+    console.log(response);
 
     if (response?.data.access_token) {
       tokenService.updateLocalAccessToken(response.data.access_token);

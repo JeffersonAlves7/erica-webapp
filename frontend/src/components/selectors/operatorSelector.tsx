@@ -2,7 +2,7 @@ import { Select } from "@chakra-ui/react";
 import { Operator } from "@/types/operator.enum";
 import { PropsWithRef, forwardRef } from "react";
 
-export const OperatorSelector = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
+export const OperatorSelector = forwardRef<HTMLSelectElement, PropsWithRef<any>>(
   (_, ref) => {
     return (
       <Select ref={ref} required placeholder={"Selecione um operador"}>

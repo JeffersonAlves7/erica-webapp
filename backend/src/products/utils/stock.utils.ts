@@ -1,4 +1,4 @@
-import { Stock } from "src/types/stock.enum";
+import { Stock } from 'src/types/stock.enum';
 
 export function getStockId(stock: string): Stock {
   switch (stock.toLowerCase().trim().replace(/\s/g, '')) {

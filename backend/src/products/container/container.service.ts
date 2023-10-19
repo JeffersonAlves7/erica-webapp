@@ -26,22 +26,22 @@ export class ContainerService {
             id: container.id,
           },
         },
-        observation
+        observation,
       },
       include: {
         product: true,
-        container: true
-      }
+        container: true,
+      },
     });
   }
 
-  async getProductOnContainer(product: Product, container: Container){
+  async getProductOnContainer(product: Product, container: Container) {
     return this.prismaService.productsOnContainer.findFirst({
       where: {
         productId: product.id,
-        containerId: container.id
+        containerId: container.id,
       },
-    })
+    });
   }
 
   async findOrCreateContainer(container: string): Promise<Container> {

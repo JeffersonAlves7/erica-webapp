@@ -236,7 +236,7 @@ function StockItem({
   const quantidadeParaAlerta =
     item.quantidadeEntrada * (alertaPorcentagem / 100);
 
-  let saldoColor = !stock
+  const saldoColor = !stock
     ? item.saldo > quantidadeParaAlerta
       ? "erica.green"
       : item.saldo < quantidadeParaAlerta

@@ -1,4 +1,4 @@
-import { Importer } from "src/types/importer.enum";
+import { Importer } from 'src/types/importer.enum';
 
 export function getImporterId(importer: string): Importer {
   switch (importer.toLowerCase().trim().replace(/\s/g, '')) {

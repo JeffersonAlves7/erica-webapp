@@ -59,7 +59,7 @@ export function ProductTransactions() {
       .catch((error) => {
         handleError401(error);
       });
-  }, [stock]);
+  }, [stock, code]);
 
   function handleChangePage(page: number) {
     setPage(page);

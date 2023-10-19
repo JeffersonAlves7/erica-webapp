@@ -8,6 +8,6 @@ import { ContainerService } from './container/container.service';
 @Module({
   imports: [PrismaModule],
   providers: [ProductsService, TransactionsService, ContainerService],
-  controllers: [ProductsController]
+  controllers: [ProductsController],
 })
 export class ProductsModule {}

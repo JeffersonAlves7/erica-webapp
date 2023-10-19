@@ -2,7 +2,7 @@ import { FormControl, FormLabel } from "@chakra-ui/react";
 import { OperatorSelector } from "../selectors/operatorSelector";
 import { PropsWithRef, forwardRef } from "react";
 
-export const OperatorInput = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
+export const OperatorInput = forwardRef<HTMLSelectElement, PropsWithRef<any>>(
   (_, ref) => {
     return (
       <FormControl>

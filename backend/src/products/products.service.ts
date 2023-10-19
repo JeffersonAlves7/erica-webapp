@@ -1,14 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Product,
-  ProductsOnContainer,
-  Transaction,
-} from '@prisma/client';
+import { Product, ProductsOnContainer, Transaction } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
-import {
-  Pageable,
-  PageableParams,
-} from 'src/types/pageable.interface';
+import { Pageable, PageableParams } from 'src/types/pageable.interface';
 import {
   EntriesFilterParams,
   ProductCreation,
@@ -159,7 +152,9 @@ export class ProductsService implements ProductServiceInterface {
   async getAllProductsAndStockByPage(
     pageableParams: PageableParams & ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {
-    let { limit, page, code, importer, stock } = pageableParams;
+    const { code } = pageableParams;
+    let { limit, page, importer, stock } = pageableParams;
+
     const maxLimit = 100;
 
     if (!limit) limit = 10;
@@ -172,8 +167,7 @@ export class ProductsService implements ProductServiceInterface {
       } catch {
         importer = undefined;
       }
-    }
-    else{
+    } else {
       importer = undefined;
     }
 
@@ -183,8 +177,7 @@ export class ProductsService implements ProductServiceInterface {
       } catch {
         stock = undefined;
       }
-    }
-    else{
+    } else {
       stock = undefined;
     }
 
@@ -327,7 +320,7 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer> {
-    let { codeOrEan, container, operator, quantity, observation } =
+    const { codeOrEan, container, operator, quantity, observation } =
       productEntry;
 
     if (!container) throw new ProductContainerIsRequiredError();
@@ -344,67 +337,73 @@ export class ProductsService implements ProductServiceInterface {
     const productsContainer =
       await this.containerService.findOrCreateContainer(container);
 
-    const productsOnContainerFound = await this.containerService.getProductOnContainer(product, productsContainer);
+    const productsOnContainerFound =
+      await this.containerService.getProductOnContainer(
+        product,
+        productsContainer,
+      );
     if (productsOnContainerFound)
       throw new ProductAlreadyInContainerError(container);
 
-    const productsOnContainer = await this.prismaService.$transaction(async (prisma) => {
-      const productsOnContainer = await prisma.productsOnContainer.create({
-        data: {
-          quantityExpected: quantity,
-          quantityReceived: quantity,
-          product: {
-            connect: {
-              id: product.id,
+    const productsOnContainer = await this.prismaService.$transaction(
+      async (prisma) => {
+        const productsOnContainer = await prisma.productsOnContainer.create({
+          data: {
+            quantityExpected: quantity,
+            quantityReceived: quantity,
+            product: {
+              connect: {
+                id: product.id,
+              },
             },
-          },
-          container: {
-            connect: {
-              id: productsContainer.id,
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
             },
+            observation,
           },
-          observation,
-        },
-        include: {
-          product: true,
-          container: true,
-        },
-      });
+          include: {
+            product: true,
+            container: true,
+          },
+        });
 
-      await prisma.product.update({
-        where: {
-          id: product.id,
-        },
-        data: {
-          galpaoQuantity: {
-            increment: quantity,
+        await prisma.product.update({
+          where: {
+            id: product.id,
           },
-        },
-      });
-
-      await prisma.transaction.create({
-        data: {
-          product: {
-            connect: {
-              id: product.id,
+          data: {
+            galpaoQuantity: {
+              increment: quantity,
             },
           },
-          container: {
-            connect: {
-              id: productsContainer.id,
-            },
-          },
-          operator: operator,
-          toStock: Stock.GALPAO,
-          entryAmount: quantity,
-          type: TransactionType.ENTRY,
-          observation: observation,
-          confirmed: true,
-        },
-      });
+        });
 
-      return productsOnContainer;
-    });
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            operator: operator,
+            toStock: Stock.GALPAO,
+            entryAmount: quantity,
+            type: TransactionType.ENTRY,
+            observation: observation,
+            confirmed: true,
+          },
+        });
+
+        return productsOnContainer;
+      },
+    );
 
     return productsOnContainer;
   }
@@ -418,8 +417,9 @@ export class ProductsService implements ProductServiceInterface {
 
     if (!product) throw new ProductNotFoundError();
 
+    let stockId: any;
     try {
-      var stockId = getStockId(productExit.from);
+      stockId = getStockId(productExit.from);
     } catch {
       stockId = undefined;
     }
@@ -504,7 +504,9 @@ export class ProductsService implements ProductServiceInterface {
   async getAllTransferencesByPage(
     pageableParams: TransferenceFilterParams,
   ): Promise<Pageable<any>> {
-    let { limit, page, confirmed, code, orderBy } = pageableParams;
+    const { confirmed, code, orderBy } = pageableParams;
+    let { limit, page } = pageableParams;
+
     const pageLimit = 100;
     if (!limit) limit = 10;
     if (!page) page = 1;
@@ -525,7 +527,8 @@ export class ProductsService implements ProductServiceInterface {
   async getAllEntriesByPage(
     pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<any>> {
-    let { page, limit, search, importer, orderBy } = pageableParams;
+    const { search, importer, orderBy } = pageableParams;
+    let { page, limit } = pageableParams;
 
     const pageLimit = 100;
     if (!limit) limit = 10;
