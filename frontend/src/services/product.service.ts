@@ -3,7 +3,10 @@ import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
-import { ProductTransaction, ProductsWithStock } from "@/types/products.interface";
+import {
+  ProductTransaction,
+  ProductsWithStock
+} from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
 interface ProductEntry {

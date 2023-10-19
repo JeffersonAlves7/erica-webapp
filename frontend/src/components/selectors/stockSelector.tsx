@@ -3,7 +3,7 @@ import { Select, Stack } from "@chakra-ui/react";
 import { PropsWithRef, forwardRef } from "react";
 import { ButtonSelector } from "./buttonSelector";
 
-export const StockSelector = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
+export const StockSelector = forwardRef<HTMLSelectElement, PropsWithRef<any>>(
   (_, ref) => {
     return (
       <Select required ref={ref} placeholder={"Selecione um estoque"}>

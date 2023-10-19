@@ -3,7 +3,7 @@ import { PropsWithRef, forwardRef } from "react";
 import { ImporterSelector } from "../selectors/importerSelector";
 import { Importer } from "@/types/importer.enum";
 
-export const ImporterInput = forwardRef<HTMLSelectElement, PropsWithRef<{}>>(
+export const ImporterInput = forwardRef<HTMLSelectElement, PropsWithRef<any>>(
   (_, ref) => {
     return (
       <FormControl>

@@ -26,18 +26,16 @@ export function Login() {
   useEffect(() => {
     const token = localStorage.getItem("access_token");
 
-    if(!token) {
+    if (!token) {
       return;
-    };
+    }
 
     authService
       .profile()
       .then(() => {
         setIsLogged(true);
       })
-      .catch(() => {
-        
-      });
+      .catch(() => {});
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -51,17 +49,16 @@ export function Login() {
       return;
     }
 
-    try{
+    try {
       await authService.login(emailValue, passValue);
-    }
-    catch(error: any){
+    } catch (error: any) {
       toast({
-          title: "Erro ao logar",
-          description: error.response.data.message,
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        })
+        title: "Erro ao logar",
+        description: error.response.data.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true
+      });
       return;
     }
 

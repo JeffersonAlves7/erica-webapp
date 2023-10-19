@@ -29,7 +29,7 @@ export function Template(props: PropsWithChildren) {
   useEffect(() => {
     if (location.pathname !== "/" && !isAuthorized) setIsAuthorized(true);
     else if (location.pathname === "/") setIsAuthorized(false);
-  }, [location]);
+  }, [isAuthorized, location]);
 
   if (!isAuthorized) return <>{props.children}</>;
 

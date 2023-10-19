@@ -12,7 +12,7 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
-import { useEffect, useReducer } from "react";
+import { useCallback, useEffect, useReducer } from "react";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 
 interface Product {
@@ -108,7 +108,7 @@ export function Produtos() {
   const { page, products, importer, search } = state;
   const importers = ["Geral", "Attus Bloom", "Attus", "Alpha Ynfinity"];
 
-  function searchProducts() {
+  const searchProducts = useCallback(() => {
     productService
       .getEntries({
         page: state.page,
@@ -136,11 +136,12 @@ export function Produtos() {
       .catch((error) => {
         handleError401(error);
       });
-  }
+  }, [importer, search, state.page]);
+
 
   useEffect(() => {
     searchProducts();
-  }, [state.importer, state.page]);
+  }, [searchProducts, state.importer, state.page]);
 
   function handleSearch() {
     dispatch({ type: "reset_page", payload: null });

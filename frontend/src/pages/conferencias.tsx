@@ -18,7 +18,7 @@ import {
   Checkbox,
   Box
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export function Conferencias() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -32,7 +32,7 @@ export function Conferencias() {
   const conferenciasLimit = 20;
   const pageMax = Math.ceil(pageQuantity / conferenciasLimit);
 
-  async function getConferencias() {
+  const getConferencias = useCallback(async () => {
     try {
       const response = await productService.getAllTransferences({
         page,
@@ -46,11 +46,11 @@ export function Conferencias() {
     } catch (err) {
       handleError401(err);
     }
-  }
+  }, [page]);
 
   useEffect(() => {
     getConferencias();
-  }, [page]);
+  }, [page, getConferencias]);
 
   function handleChangeQuantidadeVerificada(
     id: TransferenceConfirmation["id"],

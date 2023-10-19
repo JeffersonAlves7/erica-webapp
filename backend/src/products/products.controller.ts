@@ -19,6 +19,7 @@ import {
   TransactionTransferencesMustBeAnArrayError,
 } from 'src/error/transaction.errors';
 import { ProductInvalidProductsError } from 'src/error/products.errors';
+import { PageMaxLimitError } from 'src/error/page.errors';
 
 @Controller('products')
 export class ProductsController {
@@ -141,7 +142,7 @@ export class ProductsController {
     )
       throw new ProductInvalidProductsError();
 
-    for (let product of transferences) {
+    for (const product of transferences) {
       await this.productsService.confirmTransference({
         id: parseInt(product.id),
         entryAmount: parseInt(product.entryAmount),
@@ -154,8 +155,15 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('transferences')
   getAllTransferences(@Query() query: Record<string, any>) {
-    let { confirmed, page, limit, orderBy, code } = query;
+    const { orderBy, code } = query;
+    let { confirmed, page, limit } = query;
+
+    const maxLimit = 100;
     confirmed = confirmed === 'true' ? true : false;
+
+    if (!page) page = 1;
+    if (!limit) limit = 10;
+    if (limit > maxLimit) throw new PageMaxLimitError(maxLimit);
 
     return this.productsService.getAllTransferencesByPage({
       limit: Number(limit),

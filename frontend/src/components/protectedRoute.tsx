@@ -3,7 +3,7 @@ import { tokenService } from "@/services/token.service";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export function ProtectedRoute(props: PropsWithChildren<{}>) {
+export function ProtectedRoute(props: PropsWithChildren<any>) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const navigation = useNavigate();
 
@@ -27,7 +27,7 @@ export function ProtectedRoute(props: PropsWithChildren<{}>) {
           navigation("/");
         }
       });
-  }, []);
+  }, [navigation]);
 
   if (!isAuthenticated) {
     return <></>;
