@@ -9,6 +9,7 @@ import {
   ProductExit,
   ProductTransference,
   ProductWithLastEntryParams,
+  ProductDevolution,
 } from './types/product.interface';
 import { TransactionsService } from './transactions/transactions.service';
 import { ContainerService } from './container/container.service';
@@ -22,6 +23,7 @@ import {
   ProductAlreadyExistsInOtherImporterError,
   ProductAlreadyExistsWithOtherCodeError,
   ProductAlreadyInContainerError,
+  ProductClientIsRequiredError,
   ProductCodeOrEanIsRequiredError,
   ProductContainerIsRequiredError,
   ProductImporterIsRequiredError,
@@ -41,7 +43,7 @@ import { Stock } from 'src/types/stock.enum';
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
   getAllProductsAndStockByPage(
-    pageableParams: PageableParams & ProductWithLastEntryParams,
+    pageableParams: ProductWithLastEntryParams,
   ): Promise<Pageable<Product>>;
   getAllProductsByPage(
     pageableParams: PageableParams,
@@ -150,7 +152,7 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async getAllProductsAndStockByPage(
-    pageableParams: PageableParams & ProductWithLastEntryParams,
+    pageableParams: ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {
     const { code } = pageableParams;
     let { limit, page, importer, stock } = pageableParams;
@@ -195,6 +197,9 @@ export class ProductsService implements ProductServiceInterface {
       skip: (page - 1) * limit,
       take: limit,
       where,
+      orderBy: {
+        updatedAt: 'desc',
+      }
     });
 
     const total = await this.prismaService.product.count({
@@ -449,6 +454,50 @@ export class ProductsService implements ProductServiceInterface {
       data: {
         [stockId == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
           decrement: productExit.quantity,
+        },
+      },
+    });
+
+    return transaction;
+  }
+
+  async devolutionProduct(productDevolution: ProductDevolution): Promise<Transaction> {
+    if(!productDevolution.codeOrEan) throw new ProductCodeOrEanIsRequiredError();
+    if(!productDevolution.client) throw new ProductClientIsRequiredError();
+    if(!productDevolution.quantity) throw new ProductQuantityIsRequiredError();
+    if(!productDevolution.operator) throw new ProductOperatorIsRequiredError();
+    if(!productDevolution.stock) throw new ProductStockIsRequiredError('origem');
+
+    const product = await this.getProductByCodeOrEan(productDevolution.codeOrEan);
+
+    if(!product) throw new ProductNotFoundError();
+
+    let stockId: Stock;
+    try {
+      stockId = getStockId(productDevolution.stock);
+    } catch {
+      stockId = undefined;
+    }
+
+    if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
+      throw new StockNotFoundError();
+
+    const transaction = await this.transactionsService.createDevolution({
+      product,
+      toStock: stockId,
+      entryAmount: productDevolution.quantity,
+      observation: productDevolution.observation,
+      operator: productDevolution.operator,
+      client: productDevolution.client,
+    });
+
+    await this.prismaService.product.update({
+      where: {
+        id: product.id,
+      },
+      data: {
+        [stockId == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+          increment: productDevolution.quantity,
         },
       },
     });

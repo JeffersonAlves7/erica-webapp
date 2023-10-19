@@ -54,6 +54,15 @@ interface ConfirmTransferenceParams {
   location?: string;
 }
 
+interface DevolutionParams {
+  product: Product;
+  entryAmount: number;
+  client: string;
+  operator: string;
+  stock: Stock;
+  observation?: string;
+}
+
 interface TransactionsServiceInterface {
   createExit(data: ExitParams): Promise<Transaction>;
   createEntry(data: EntryGalpaoParams): Promise<Transaction>;
@@ -488,6 +497,33 @@ export class TransactionsService implements TransactionsServiceInterface {
         fromStock: data.fromStock,
         exitAmount: data.exitAmount,
         type: TransactionType.EXIT,
+        observation: data.observation,
+        operator: data.operator,
+        client: data.client,
+        confirmed: true,
+      },
+    });
+  }
+
+  // **** DEVOLUTION ****/
+  async createDevolution(data: {
+    product: Product;
+    entryAmount: number;
+    observation?: string;
+    client: string;
+    toStock: Stock;
+    operator: string;
+  }): Promise<any> {
+    return this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: data.product.id,
+          },
+        },
+        toStock: data.toStock,
+        entryAmount: data.entryAmount,
+        type: TransactionType.DEVOLUTION,
         observation: data.observation,
         operator: data.operator,
         client: data.client,

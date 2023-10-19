@@ -60,6 +60,12 @@ export function CriarEntrada() {
       })
       .then(() => {
         setStatus("success");
+        codigoRef.current!.value = "";
+        quantidadeRef.current!.value = "";
+        containerRef.current!.value = "";
+        observacaoRef.current!.value = "";
+        operatorRef.current!.value = "";
+        importerRef.current!.value = "";
       })
       .catch((err) => {
         handleError401(err);

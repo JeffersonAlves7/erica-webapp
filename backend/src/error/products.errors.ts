@@ -93,3 +93,9 @@ export class ProductAlreadyExistsWithOtherCodeError extends HttpException {
     );
   }
 }
+
+export class ProductClientIsRequiredError extends HttpException {
+  constructor() {
+    super('Cliente é obrigatório', HttpStatus.BAD_REQUEST);
+  }
+}

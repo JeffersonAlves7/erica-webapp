@@ -88,6 +88,15 @@ interface ProductExit {
   client: string;
 }
 
+interface ProductDevolution {
+  codeOrEan: string;
+  quantity: number;
+  client: string;
+  operator: string;
+  stock: Stock | string;
+  observation?: string;
+}
+
 class ProductService {
   async getProducts(pageableParams: PageableParams): Promise<Pageable<any>> {
     const response = await api.get("/products", {
@@ -257,6 +266,11 @@ class ProductService {
 
   async deleteTransaction(id: number) {
     const response = await api.delete(`/products/transaction/${id}`);
+    return response.data;
+  }
+
+  async createDevolution(body: ProductDevolution){ 
+    const response = await api.post(`/products/devolution`, body);
     return response.data;
   }
 }
