@@ -410,6 +410,9 @@ export class TransactionsService implements TransactionsServiceInterface {
       where: {
         id,
       },
+      include: {
+        product: true,
+      }
     });
 
     if (!deleted)
@@ -417,7 +420,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
     const stock = deleted.toStock;
 
-    this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         id: deleted.productId,
       },
@@ -428,7 +431,7 @@ export class TransactionsService implements TransactionsServiceInterface {
       },
     });
 
-    this.prismaService.productsOnContainer.deleteMany({
+    await this.prismaService.productsOnContainer.deleteMany({
       where: {
         productId: deleted.productId,
         containerId: deleted.containerId,
@@ -446,6 +449,9 @@ export class TransactionsService implements TransactionsServiceInterface {
       where: {
         id,
       },
+      include: {
+        product: true,
+      }
     });
 
     if (!deleted)
@@ -453,7 +459,7 @@ export class TransactionsService implements TransactionsServiceInterface {
 
     const stock = deleted.fromStock;
 
-    this.prismaService.product.update({
+    await this.prismaService.product.update({
       where: {
         id: deleted.productId,
       },
