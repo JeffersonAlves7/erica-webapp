@@ -18,6 +18,10 @@ const NavLinks = [
   {
     title: "Produtos",
     to: "/produtos"
+  },
+  {
+    title: "Reservas",
+    to: "/reservas"
   }
 ];
 

@@ -13,6 +13,7 @@ import { CriarTransferencia } from "./outlets/lancamento/criarTransferencia";
 import { CriarDevolucao } from "./outlets/lancamento/criarDevolucao";
 import { CriarReserva } from "./outlets/lancamento/criarReserva";
 import { ProductTransactions } from "./pages/productTransactions";
+import { Reservas } from "./pages/reservas";
 
 function App() {
   return (
@@ -33,6 +34,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <ProductTransactions />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reservas"
+            element={
+              <ProtectedRoute>
+                <Reservas />
               </ProtectedRoute>
             }
           />

@@ -22,8 +22,12 @@ model Product {
   ean                 String?
   importer            String
   description         String?
+
   galpaoQuantity      Int                   @default(0) @map("galpao_quantity")
+  galpaoQuantityReserve Int                @default(0) @map("galpao_quantity_reserve")
   lojaQuantity        Int                   @default(0) @map("loja_quantity")
+  lojaQuantityReserve Int                   @default(0) @map("loja_quantity_reserve")
+
   lojaLocation        String?               @map("loja_location")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
@@ -75,9 +79,11 @@ model Transaction {
   toStock          String?    @map("to_stock")
   client           String?
   operator         String?
+
   entryAmount      Int?      @default(0) @map("entry_amount")
   entryExpected    Int?      @default(0) @map("entry_expected")
   exitAmount       Int?      @default(0) @map("exit_amount")
+
   observation      String?
   partnerId        Int?   @map("partner_id")
   location         String?

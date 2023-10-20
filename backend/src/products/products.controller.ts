@@ -213,4 +213,37 @@ export class ProductsController {
       stock,
     });
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Get('reserves')
+  getAllReserves(@Query() query: Record<string, any>) {
+    return this.productsService.getReservesByPage({
+      limit: Number(query.limit),
+      page: Number(query.page),
+      stock: query.stock,
+      confirmed: query.confirmed,
+      search: query.search,
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('reserve')
+  createReserve(@Body() body: Record<string, any>) {
+    const { codeOrEan, quantity, stock, observation, client, operator } = body;
+
+    return this.productsService.createReserve({
+      codeOrEan,
+      quantity,
+      stock,
+      observation,
+      client,
+      operator,
+    });
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Patch('reserve/:id')
+  confirmReserve(@Param('id') id: string) {
+    return this.productsService.confirmReserve(parseInt(id));
+  }
 }

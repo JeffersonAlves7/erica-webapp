@@ -5,11 +5,11 @@ import { Pageable, PageableParams } from 'src/types/pageable.interface';
 import {
   EntriesFilterParams,
   ProductCreation,
+  ProductDevolution,
   ProductEntry,
   ProductExit,
   ProductTransference,
   ProductWithLastEntryParams,
-  ProductDevolution,
 } from './types/product.interface';
 import { TransactionsService } from './transactions/transactions.service';
 import { ContainerService } from './container/container.service';
@@ -39,6 +39,11 @@ import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
+import {
+  ConfirmReserveParams,
+  CreateReserveParmas,
+  GetReservesParams,
+} from './types/reserves.interface';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -717,5 +722,163 @@ export class ProductsService implements ProductServiceInterface {
   ): Promise<Pageable<Transaction>> {
     const transactions = await this.transactionsService.getAll(pageableParams);
     return transactions;
+  }
+
+  async createReserve(params: CreateReserveParmas) {
+    const { codeOrEan, client, observation, operator, quantity } = params;
+
+    let stock = params.stock;
+
+    if (!codeOrEan) throw new ProductCodeOrEanIsRequiredError();
+    if (!client) throw new ProductClientIsRequiredError();
+    if (!quantity) throw new ProductQuantityIsRequiredError('Quantidade');
+    if (!operator) throw new ProductOperatorIsRequiredError();
+    if (!stock) throw new ProductStockIsRequiredError('saída');
+
+    try {
+      stock = getStockId(stock);
+    } catch {
+      throw new StockNotFoundError();
+    }
+
+    const product = await this.getProductByCodeOrEan(codeOrEan);
+
+    if (!product) throw new ProductNotFoundError();
+
+    const transaction = await this.prismaService.transaction.create({
+      data: {
+        product: {
+          connect: {
+            id: product.id,
+          },
+        },
+        type: TransactionType.RESERVE,
+        client: client,
+        operator: operator,
+        confirmed: false,
+        entryAmount: quantity,
+        observation: observation,
+        fromStock: stock,
+      },
+    });
+
+    return transaction;
+  }
+
+  async getReservesByPage(params: GetReservesParams) {
+    const { search } = params;
+    let { confirmed, stock, limit, page } = params;
+
+    const maxLimit = 100;
+
+    if(!limit) limit = 10;
+    if(!page) page = 1;
+    if(limit > maxLimit) throw new PageMaxLimitError(maxLimit);
+
+    if (!confirmed) confirmed = false;
+
+    if (stock) {
+      try {
+        stock = getStockId(stock);
+      } catch {
+        throw new StockNotFoundError();
+      }
+    }
+
+    let where: any = {
+      type: TransactionType.RESERVE,
+      confirmed,
+    };
+
+    if (search) {
+      where.OR = [
+        {
+          client: {
+            contains: search,
+          },
+        },
+        {
+          product: {
+            code: {
+              contains: search,
+            },
+          },
+        },
+        {
+          product: {
+            ean: {
+              contains: search,
+            },
+          },
+        },
+      ];
+    }
+
+    const reserves = await this.prismaService.transaction.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where,
+      include: {
+        product: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+
+    return reserves;
+  }
+
+  async confirmReserve(id: number) {
+    if(!id) throw new ProductTransactionIdNotFoundError();
+    if(isNaN(id)) throw new ProductTransactionIdNotFoundError();
+
+    const transaction = await this.prismaService.transaction.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if(!transaction) throw new TransactionNotFoundError();
+
+    if(transaction.type !== TransactionType.RESERVE) throw new TransactionNotFoundError();
+
+    const product = await this.prismaService.product.findUnique({
+      where: {
+        id: transaction.productId,
+      },
+    });
+
+    if(!product) throw new ProductNotFoundError();
+
+    const { entryAmount, fromStock } = transaction;
+
+    if(fromStock === Stock.LOJA) {
+      if(product.lojaQuantity < entryAmount) throw new ProductQuantityIsnotEnoughError();
+    } else if(fromStock === Stock.GALPAO) {
+      if(product.galpaoQuantity < entryAmount) throw new ProductQuantityIsnotEnoughError();
+    }
+
+    return this.prismaService.$transaction(async (prisma) => {
+      await prisma.product.update({
+        where: {
+          id: product.id,
+        },
+        data: {
+          [fromStock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+            decrement: entryAmount,
+          },
+        },
+      });
+
+      await prisma.transaction.update({
+        where: {
+          id,
+        },
+        data: {
+          confirmed: true,
+        },
+      });
+    });
   }
 }
