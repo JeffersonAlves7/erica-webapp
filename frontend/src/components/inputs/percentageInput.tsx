@@ -1,4 +1,4 @@
-import { FormControl, FormLabel, Input } from "@chakra-ui/react";
+import { FormControl, FormLabel, Input, useToast } from "@chakra-ui/react";
 import React, { useState } from "react";
 
 interface PropsPercentageInput {
@@ -11,19 +11,36 @@ interface PropsPercentageInput {
 export function PercentageInput({
   label,
   value,
-  onChange,
+  onChange
 }: PropsPercentageInput) {
-  const [isValid, setIsValid] = useState(true);
+  const [inputValue, setInputValue] = useState(value.toString());
+  const [isEditing, setIsEditing] = useState(false);
+  const toast = useToast();
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const inputValue = event.target.value;
-    const numericValue = parseFloat(inputValue);
+    setInputValue(event.target.value);
+    setIsEditing(true);
+  };
 
-    if (isNaN(numericValue) || numericValue < 0 || numericValue > 100) {
-      setIsValid(false);
-    } else {
-      setIsValid(true);
-      onChange(numericValue);
+  const handleBlur = () => {
+    if (isEditing) {
+      const numericValue = parseFloat(inputValue);
+
+      if (!isNaN(numericValue) && numericValue >= 0 && numericValue <= 100) {
+        onChange(numericValue);
+        setInputValue(numericValue.toString());
+      } else {
+        setInputValue(value.toString());
+        toast({
+          title: "Valor inválido",
+          description: "O valor deve ser entre 0 e 100",
+          status: "error",
+          duration: 3000,
+          isClosable: true
+        });
+      }
+
+      setIsEditing(false);
     }
   };
 
@@ -34,16 +51,10 @@ export function PercentageInput({
       </FormLabel>
       <Input
         type="text"
-        value={isValid ? value + "%" : value}
+        value={isEditing ? inputValue : value + "%"}
         onChange={handleInputChange}
-        className={isValid ? "valid" : "invalid"}
+        onBlur={handleBlur}
       />
-      {!isValid && (
-        <p className="error-text">
-          Valor inválido. Insira uma porcentagem válida entre 0 e 100.
-        </p>
-      )}
     </FormControl>
   );
 }
-

@@ -47,14 +47,20 @@ export function CriarReserva() {
   }
 
   return (
-    <Card w={"550px"}>
+    <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <Heading size={"md"}>Reserva</Heading>
         </CardHeader>
 
         <CardBody>
-          <Grid templateColumns={"1fr 1fr"} gap={6}>
+          <Grid
+            templateColumns={{
+              base: "1fr",
+              md: "1fr 1fr"
+            }}
+            gap={6}
+          >
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
             <ClientInput ref={clienteRef} />

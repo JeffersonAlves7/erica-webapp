@@ -136,12 +136,12 @@ export function Produtos() {
       .catch((error) => {
         handleError401(error);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [importer, search, state.page]);
-
 
   useEffect(() => {
     searchProducts();
-  }, [searchProducts, state.importer, state.page]);
+  }, [state.importer, state.page]);
 
   function handleSearch() {
     dispatch({ type: "reset_page", payload: null });
@@ -193,7 +193,11 @@ export function Produtos() {
                 <Td>{product.containerNumber}</Td>
                 <Td>{product.importadora}</Td>
                 <Td>{product.codigo}</Td>
-                <Td>{product.descricao}</Td>
+                <Td>
+                  <Box overflow={"auto"} maxH={"70px"}>
+                    {product.descricao}
+                  </Box>
+                </Td>
               </Tr>
             ))}
           </Tbody>

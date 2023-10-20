@@ -55,7 +55,8 @@ export function Conferencias() {
 
   useEffect(() => {
     getConferencias();
-  }, [page, getConferencias]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   function handleChangeQuantidadeVerificada(
     id: TransferenceConfirmation["id"],
