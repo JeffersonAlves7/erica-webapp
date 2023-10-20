@@ -41,10 +41,6 @@ export class ProductsController {
   @HttpCode(HttpStatus.OK)
   @Get('stock')
   getAllProductsAndStock(@Query() query: Record<string, any>) {
-    // if(!query.importer) query.importer = undefined;
-    // if(!query.code) query.code = undefined;
-    // if(!query.stock) query.stock = undefined;
-
     return this.productsService.getAllProductsAndStockByPage({
       page: Number(query.page),
       limit: Number(query.limit),
