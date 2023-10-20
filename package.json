@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./build.bash",
+    "database": "./initdb.bash"
   },
   "repository": {
     "type": "git",
@@ -17,7 +19,7 @@
     "url": "https://github.com/JeffersonAlves7/erica-webapp/issues"
   },
   "homepage": "https://github.com/JeffersonAlves7/erica-webapp#readme",
-  "dependencies": {
+  "devDependencies": {
     "@nestjs/cli": "^10.1.18"
   }
 }
