@@ -82,6 +82,6 @@ export class AuthService {
   }
 
   private generateRefreshToken(payload: Payload) {
-    return this.jwtService.signAsync(payload, { expiresIn: '1h' });
+    return this.jwtService.signAsync(payload, { expiresIn: '7d' });
   }
 }
