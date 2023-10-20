@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -20,10 +22,17 @@ import {
 } from 'src/error/transaction.errors';
 import { ProductInvalidProductsError } from 'src/error/products.errors';
 import { PageMaxLimitError } from 'src/error/page.errors';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
+
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadExcelFile(@UploadedFile() file: any) {
+    return this.productsService.uploadExcelFile(file);
+  }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)

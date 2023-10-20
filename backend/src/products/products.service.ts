@@ -39,6 +39,7 @@ import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
+import { ExcelService } from './excel/excel.service';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -79,7 +80,13 @@ export class ProductsService implements ProductServiceInterface {
     private prismaService: PrismaService,
     private transactionsService: TransactionsService,
     private containerService: ContainerService,
+    private excelService: ExcelService,
   ) {}
+
+  async uploadExcelFile(file: any){
+    const fileReaded = await this.excelService.readExcelFile(file);
+    return fileReaded;
+  }
 
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
     return this.prismaService.product.findFirst({

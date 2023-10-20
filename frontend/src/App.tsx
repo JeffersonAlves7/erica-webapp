@@ -13,13 +13,16 @@ import { CriarTransferencia } from "./outlets/lancamento/criarTransferencia";
 import { CriarDevolucao } from "./outlets/lancamento/criarDevolucao";
 import { CriarReserva } from "./outlets/lancamento/criarReserva";
 import { ProductTransactions } from "./pages/productTransactions";
+import { Test } from "./pages/test";
 
 function App() {
   return (
     <BrowserRouter>
       <Template>
         <Routes>
+          <Route path="/login" element={<Login />} />
           <Route path="/" element={<Login />} />
+          <Route path="/test" element={<Test />} />
           <Route
             path="/estoques"
             element={
