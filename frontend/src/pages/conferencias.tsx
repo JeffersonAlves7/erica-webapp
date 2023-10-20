@@ -16,7 +16,8 @@ import {
   Tr,
   useDisclosure,
   Checkbox,
-  Box
+  Box,
+  useToast
 } from "@chakra-ui/react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -31,6 +32,8 @@ export function Conferencias() {
 
   const conferenciasLimit = 20;
   const pageMax = Math.ceil(pageQuantity / conferenciasLimit);
+
+  const toast = useToast();
 
   const getConferencias = useCallback(async () => {
     try {
@@ -75,10 +78,27 @@ export function Conferencias() {
       idsConferencias.includes(conferencia.id)
     );
 
+
     if (transfersToExecute.some((transfer) => !transfer.quantidadeVerificada)) {
+      toast({
+        title: "Erro ao confirmar conferência",
+        description: "Quantidade verificada não pode ser nula",
+        status: "error",
+        duration: 3000,
+        isClosable: true
+      });
+
       onClose();
       return;
     }
+
+    await productService.confirmTransferences({
+      transferences: transfersToExecute.map((transfer) => ({
+        id: transfer.id,
+        entryAmount: transfer.quantidadeVerificada as number,
+        location: transfer.localizacao
+      }))
+    });
 
     getConferencias(); 
     onClose();
