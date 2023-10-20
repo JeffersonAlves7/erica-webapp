@@ -21,7 +21,8 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure
+  useDisclosure,
+  useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
@@ -39,6 +40,7 @@ export function Stocks() {
     ProductsWithStock["id"] | undefined
   >(undefined);
 
+  const toast = useToast();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   const productsLimit = 10;
@@ -106,9 +108,27 @@ export function Stocks() {
     0
   ) as number;
 
-  function handleConfirmDeleteProduct(){
-    console.log({productIdToDelete})
-    onClose()
+  function handleConfirmDeleteProduct() {
+    console.log({ productIdToDelete });
+    productService
+      .deleteProduct(productIdToDelete!)
+      .then(() => {
+        toast({
+          title: "Produto apagado com sucesso",
+          status: "success",
+          duration: 3000,
+          isClosable: true
+        });
+      })
+      .catch((_) => {
+        toast({
+          title: "Erro ao apagar produto",
+          status: "error",
+          duration: 3000,
+          isClosable: true
+        });
+      });
+    onClose();
   }
 
   function handleDeleteProduct(id: number){

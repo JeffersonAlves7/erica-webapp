@@ -151,6 +151,30 @@ export class ProductsService implements ProductServiceInterface {
     return product;
   }
 
+  async deleteProduct(id: number): Promise<Product> {
+    return this.prismaService.$transaction(async (prisma) => {
+      await prisma.transaction.deleteMany({
+        where: {
+          productId: id,
+        },
+      })
+
+      await prisma.productsOnContainer.deleteMany({
+        where: {
+          productId: id,
+        },
+      })
+
+      const product = await prisma.product.delete({
+        where: {
+          id,
+        },
+      });
+
+      return product;
+    })
+  }
+
   async getAllProductsAndStockByPage(
     pageableParams: ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {

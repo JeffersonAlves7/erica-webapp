@@ -25,10 +25,12 @@ export function Conferencias() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
-  const [conferencias, setConferencias] = useState<TransferenceConfirmation[]>([]);
-  const [idsConferencias, setIdsConferencias] = useState<TransferenceConfirmation["id"][]>(
+  const [conferencias, setConferencias] = useState<TransferenceConfirmation[]>(
     []
   );
+  const [idsConferencias, setIdsConferencias] = useState<
+    TransferenceConfirmation["id"][]
+  >([]);
 
   const conferenciasLimit = 20;
   const pageMax = Math.ceil(pageQuantity / conferenciasLimit);
@@ -66,7 +68,10 @@ export function Conferencias() {
     setConferencias(values);
   }
 
-  function handleChangeLocalizacao(id: TransferenceConfirmation["id"], value?: string) {
+  function handleChangeLocalizacao(
+    id: TransferenceConfirmation["id"],
+    value?: string
+  ) {
     const values = [...conferencias];
     const index = values.findIndex((v) => v.id === id);
     values[index].localizacao = value;
@@ -77,7 +82,6 @@ export function Conferencias() {
     const transfersToExecute = conferencias.filter((conferencia) =>
       idsConferencias.includes(conferencia.id)
     );
-
 
     if (transfersToExecute.some((transfer) => !transfer.quantidadeVerificada)) {
       toast({
@@ -92,15 +96,30 @@ export function Conferencias() {
       return;
     }
 
-    await productService.confirmTransferences({
-      transferences: transfersToExecute.map((transfer) => ({
-        id: transfer.id,
-        entryAmount: transfer.quantidadeVerificada as number,
-        location: transfer.localizacao
-      }))
-    });
+    try {
+      await productService.confirmTransferences({
+        transferences: transfersToExecute.map((transfer) => ({
+          id: transfer.id,
+          entryAmount: transfer.quantidadeVerificada as number,
+          location: transfer.localizacao
+        }))
+      });
 
-    getConferencias(); 
+      toast({
+        title: "Conferência confirmada com sucesso",
+        status: "success",
+        duration: 3000,
+        isClosable: true
+      });
+    } catch {
+      toast({
+        title: "Erro ao confirmar conferência",
+        status: "error",
+        duration: 3000,
+        isClosable: true
+      });
+    }
+    getConferencias();
     onClose();
   }
 

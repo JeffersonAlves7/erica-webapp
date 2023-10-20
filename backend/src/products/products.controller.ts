@@ -39,6 +39,13 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
+  @Delete(':id')
+  deleteProduct(@Param('id') id: string) {
+    return this.productsService.deleteProduct(parseInt(id));
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Get('stock')
   getAllProductsAndStock(@Query() query: Record<string, any>) {
     return this.productsService.getAllProductsAndStockByPage({

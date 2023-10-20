@@ -106,6 +106,11 @@ class ProductService {
     return response.data as Pageable<any>;
   }
 
+  async deleteProduct(id: number) {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  }
+
   async getEntries(
     pageableParams: PageableParams & EntriesFilterParams
   ): Promise<Pageable<EntryResponse>> {
