@@ -73,14 +73,20 @@ export function CriarSaida() {
   }
 
   return (
-    <Card w={"550px"}>
+    <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleConfirm}>
         <CardHeader>
           <Heading size={"md"}>Saída</Heading>
         </CardHeader>
 
         <CardBody>
-          <Grid templateColumns={"1fr 1fr"} gap={6}>
+          <Grid
+            templateColumns={{
+              base: "1fr",
+              md: "1fr 1fr"
+            }}
+            gap={6}
+          >
             <CodeOrEanInput ref={codigoRef} />
             <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={estoqueRef} />

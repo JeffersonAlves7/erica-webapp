@@ -6,13 +6,7 @@ import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Grid,
-  Heading,
-} from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 
 export function CriarTransferencia() {
@@ -63,19 +57,25 @@ export function CriarTransferencia() {
       })
       .catch((err) => {
         setStatus("error");
-        setError(err?.response?.data?.message || err.message)
+        setError(err?.response?.data?.message || err.message);
       });
   }
 
   return (
-    <Card w={"550px"}>
+    <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleConfirm}>
         <CardHeader>
           <Heading size={"md"}>Criar Transferência</Heading>
         </CardHeader>
 
         <CardBody>
-          <Grid templateColumns={"1fr 1fr"} gap={6}>
+          <Grid
+            templateColumns={{
+              base: "1fr",
+              md: "1fr 1fr"
+            }}
+            gap={6}
+          >
             <CodeOrEanInput ref={codigoRef} />
             <QuantityInput ref={quantidadeRef} />
             <OperatorInput ref={operatorRef} />

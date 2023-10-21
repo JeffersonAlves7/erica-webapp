@@ -6,6 +6,7 @@ import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import { ProductTransaction } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
+import { TransactionType } from "@/types/transaction-type.enum";
 import {
   Box,
   Grid,
@@ -38,7 +39,7 @@ export function ProductTransactions() {
 
   const { codigo: code } = useParams<{ codigo: string }>();
 
-  const transactionsLimit = 20;
+  const transactionsLimit = 10;
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
 
   useEffect(() => {
@@ -117,8 +118,8 @@ export function ProductTransactions() {
   }
 
   return (
-    <Stack>
-      <Heading>Rotação - {code}</Heading>
+    <Stack h={'full'} gap={5}>
+      <Heading >Rotação - {code}</Heading>
       <StockButtonSelector onClick={handleChangeStock} />
 
       <ProductInfo
@@ -127,7 +128,7 @@ export function ProductTransactions() {
         reservado={0}
       />
 
-      <Box overflow={"auto"} minH={300}>
+      <Box overflow={"auto"} minH={200}>
         <Table>
           <ProductTableHead />
           <Tbody>
@@ -231,13 +232,13 @@ function ProductTableItem({
   const date = transaction.createdAt
     ? format(new Date(transaction.createdAt), "dd/MM/yyyy")
     : "";
-
+  
   return (
     <Tr>
       <Td>{transaction.code}</Td>
       <Td>{transaction.entryAmount}</Td>
       <Td>{transaction.exitAmount}</Td>
-      <Td>{transaction.type}</Td>
+      <Td>{TransactionType[transaction.type as keyof typeof TransactionType]}</Td>
       <Td>{transaction.from}</Td>
       <Td>{transaction.to}</Td>
       <Td>{transaction.client}</Td>

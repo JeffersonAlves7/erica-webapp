@@ -151,6 +151,30 @@ export class ProductsService implements ProductServiceInterface {
     return product;
   }
 
+  async deleteProduct(id: number): Promise<Product> {
+    return this.prismaService.$transaction(async (prisma) => {
+      await prisma.transaction.deleteMany({
+        where: {
+          productId: id,
+        },
+      });
+
+      await prisma.productsOnContainer.deleteMany({
+        where: {
+          productId: id,
+        },
+      });
+
+      const product = await prisma.product.delete({
+        where: {
+          id,
+        },
+      });
+
+      return product;
+    });
+  }
+
   async getAllProductsAndStockByPage(
     pageableParams: ProductWithLastEntryParams,
   ): Promise<Pageable<Product>> {
@@ -199,7 +223,7 @@ export class ProductsService implements ProductServiceInterface {
       where,
       orderBy: {
         updatedAt: 'desc',
-      }
+      },
     });
 
     const total = await this.prismaService.product.count({
@@ -461,16 +485,22 @@ export class ProductsService implements ProductServiceInterface {
     return transaction;
   }
 
-  async devolutionProduct(productDevolution: ProductDevolution): Promise<Transaction> {
-    if(!productDevolution.codeOrEan) throw new ProductCodeOrEanIsRequiredError();
-    if(!productDevolution.client) throw new ProductClientIsRequiredError();
-    if(!productDevolution.quantity) throw new ProductQuantityIsRequiredError();
-    if(!productDevolution.operator) throw new ProductOperatorIsRequiredError();
-    if(!productDevolution.stock) throw new ProductStockIsRequiredError('origem');
+  async devolutionProduct(
+    productDevolution: ProductDevolution,
+  ): Promise<Transaction> {
+    if (!productDevolution.codeOrEan)
+      throw new ProductCodeOrEanIsRequiredError();
+    if (!productDevolution.client) throw new ProductClientIsRequiredError();
+    if (!productDevolution.quantity) throw new ProductQuantityIsRequiredError();
+    if (!productDevolution.operator) throw new ProductOperatorIsRequiredError();
+    if (!productDevolution.stock)
+      throw new ProductStockIsRequiredError('origem');
 
-    const product = await this.getProductByCodeOrEan(productDevolution.codeOrEan);
+    const product = await this.getProductByCodeOrEan(
+      productDevolution.codeOrEan,
+    );
 
-    if(!product) throw new ProductNotFoundError();
+    if (!product) throw new ProductNotFoundError();
 
     let stockId: Stock;
     try {
@@ -592,22 +622,30 @@ export class ProductsService implements ProductServiceInterface {
               OR: [
                 {
                   product: {
-                    code: search,
+                    code: {
+                      contains: search,
+                    },
                   },
                 },
                 {
                   product: {
-                    ean: search,
+                    ean: {
+                      contains: search,
+                    },
                   },
                 },
                 {
                   product: {
-                    description: search,
+                    description: {
+                      contains: search,
+                    },
                   },
                 },
                 {
                   container: {
-                    id: search,
+                    id: {
+                      contains: search,
+                    },
                   },
                 },
               ],

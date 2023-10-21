@@ -106,6 +106,11 @@ class ProductService {
     return response.data as Pageable<any>;
   }
 
+  async deleteProduct(id: number) {
+    const response = await api.delete(`/products/${id}`);
+    return response.data;
+  }
+
   async getEntries(
     pageableParams: PageableParams & EntriesFilterParams
   ): Promise<Pageable<EntryResponse>> {
@@ -213,8 +218,8 @@ class ProductService {
       const giro =
         pageableParams.stock != Stock.LOJA
           ? diasEmEstoque > 0
-            ? item.sales / diasEmEstoque
-            : item.sales / 1
+            ? (entradaSum - saldo) / diasEmEstoque
+            : (entradaSum - saldo) / 1
           : 0;
 
       const observacao = entriesLength > 0 ? item.entries[0].observation : "";
@@ -269,7 +274,7 @@ class ProductService {
     return response.data;
   }
 
-  async createDevolution(body: ProductDevolution){ 
+  async createDevolution(body: ProductDevolution) {
     const response = await api.post(`/products/devolution`, body);
     return response.data;
   }
