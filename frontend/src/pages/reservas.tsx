@@ -1,7 +1,11 @@
 import { ColorButton } from "@/components/buttons/colorButton";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
+import { handleError401 } from "@/services/api";
+import { reservesService } from "@/services/reserves.service";
+import { Reserve, ReserveSummary } from "@/types/reserves.interface";
 import { Stock } from "@/types/stock.enum";
+import { format } from "date-fns";
 import {
   Box,
   Checkbox,
@@ -17,62 +21,38 @@ import {
   Text,
   Th,
   Thead,
-  Tr,
+  Tr
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
-interface Reserve {
-  id: number;
-  quantity: number;
-  code: string;
-  stock: Stock;
-  client: string;
-  date: Date;
-  operator: string;
-  observation: string;
-}
-
-interface ReserveSummary {
-  products: number;
-  galpao: number;
-  loja: number;
-}
-
 export function Reservas() {
   const [stock, setStock] = useState<Stock | undefined>(undefined);
-  const [reserveSummary, setReserveSummary] = useState<ReserveSummary | undefined>();
+  const [reserveSummary, setReserveSummary] = useState<
+    ReserveSummary | undefined
+  >();
   const [reserves, setReserves] = useState<Reserve[]>([]);
   const [selecteds, setSelecteds] = useState<Reserve["id"][]>([]);
   const [allSelected, setAllSelected] = useState(false);
   const [page, setPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(0);
 
-  const reserversPerPage = 30;
+  const reserversPerPage = 20;
   const pageQuantity = Math.ceil(pageLimit / reserversPerPage);
 
   useEffect(() => {
-    setReserves([
-      {
-        client: "Cliente 1",
-        code: "123456",
-        date: new Date(),
-        id: 1,
-        observation: "Observação",
-        operator: "Operador",
-        quantity: 10,
-        stock: Stock.GALPAO
-      },
-      {
-        client: "Cliente 2",
-        code: "123456",
-        date: new Date(),
-        id: 2,
-        observation: "Observação",
-        operator: "Operador",
-        quantity: 10,
-        stock: Stock.LOJA
-      }
-    ]);
+    reservesService
+      .getReserves({
+        page: page,
+        limit: reserversPerPage
+      })
+      .then((reserves) => {
+        setReserves(reserves.data);
+        setPageLimit(reserves.total);
+      })
+      .catch((error) => {
+        handleError401(error);
+        console.log(error);
+      });
 
     setReserveSummary({
       galpao: 10,
@@ -243,7 +223,7 @@ function TableItem(props: {
       <Td>{reserve.quantity}</Td>
       <Td>{reserve.stock}</Td>
       <Td>{reserve.client}</Td>
-      <Td>{reserve.date.toLocaleDateString()}</Td>
+      <Td>{format(new Date(reserve.date), "dd/MM/yyyy")}</Td>
       <Td>{reserve.operator}</Td>
       <Td>{reserve.observation}</Td>
     </Tr>

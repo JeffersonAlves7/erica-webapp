@@ -713,6 +713,9 @@ export class ProductsService implements ProductServiceInterface {
       await this.transactionsService.deleteExit(id);
     else if (type === TransactionType.TRANSFERENCE)
       await this.transactionsService.deleteTransference(id);
+    else if (type == TransactionType.RESERVE)
+      await this.transactionsService.deleteReserve(id);
+    else throw new TransactionNotFoundError();
 
     return transactionToDelete;
   }
@@ -745,35 +748,56 @@ export class ProductsService implements ProductServiceInterface {
 
     if (!product) throw new ProductNotFoundError();
 
-    const transaction = await this.prismaService.transaction.create({
-      data: {
-        product: {
-          connect: {
-            id: product.id,
+    return await this.prismaService.$transaction(async (prisma) => {
+      await prisma.product.update({
+        data: {
+          [stock === Stock.LOJA
+            ? 'lojaQuantityReserve'
+            : 'galpaoQuantityReserve']: {
+            increment: quantity,
+          },
+          [stock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+            decrement: quantity,
           },
         },
-        type: TransactionType.RESERVE,
-        client: client,
-        operator: operator,
-        confirmed: false,
-        entryAmount: quantity,
-        observation: observation,
-        fromStock: stock,
-      },
-    });
+        where: {
+          id: product.id,
+        },
+      });
 
-    return transaction;
+      const transaction = await prisma.transaction.create({
+        data: {
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+          type: TransactionType.RESERVE,
+          client: client,
+          operator: operator,
+          confirmed: false,
+          entryAmount: quantity,
+          observation: observation,
+          fromStock: stock,
+        },
+        include: {
+          product: true,
+        },
+      });
+
+      return transaction;
+    });
   }
 
-  async getReservesByPage(params: GetReservesParams) {
+  async getReservesByPage(params: GetReservesParams): Promise<Pageable<any>> {
     const { search } = params;
     let { confirmed, stock, limit, page } = params;
 
     const maxLimit = 100;
 
-    if(!limit) limit = 10;
-    if(!page) page = 1;
-    if(limit > maxLimit) throw new PageMaxLimitError(maxLimit);
+    if (!limit) limit = 10;
+    if (!page) page = 1;
+    if (limit > maxLimit) throw new PageMaxLimitError(maxLimit);
 
     if (!confirmed) confirmed = false;
 
@@ -818,20 +842,44 @@ export class ProductsService implements ProductServiceInterface {
       skip: (page - 1) * limit,
       take: limit,
       where,
-      include: {
-        product: true,
+      select: {
+        id: true,
+        entryAmount: true,
+        operator: true,
+        client: true,
+        observation: true,
+        fromStock: true,
+        createdAt: true,
+        updatedAt: true,
+        product: {
+          select: {
+            code: true,
+            lojaQuantity: true,
+            lojaQuantityReserve: true,
+            galpaoQuantity: true,
+            galpaoQuantityReserve: true,
+          },
+        },
       },
       orderBy: {
         updatedAt: 'desc',
       },
     });
 
-    return reserves;
+    const total = await this.prismaService.transaction.count({
+      where,
+    });
+
+    return {
+      page,
+      total,
+      data: reserves,
+    };
   }
 
   async confirmReserve(id: number) {
-    if(!id) throw new ProductTransactionIdNotFoundError();
-    if(isNaN(id)) throw new ProductTransactionIdNotFoundError();
+    if (!id) throw new ProductTransactionIdNotFoundError();
+    if (isNaN(id)) throw new ProductTransactionIdNotFoundError();
 
     const transaction = await this.prismaService.transaction.findUnique({
       where: {
@@ -839,9 +887,10 @@ export class ProductsService implements ProductServiceInterface {
       },
     });
 
-    if(!transaction) throw new TransactionNotFoundError();
+    if (!transaction) throw new TransactionNotFoundError();
 
-    if(transaction.type !== TransactionType.RESERVE) throw new TransactionNotFoundError();
+    if (transaction.type !== TransactionType.RESERVE)
+      throw new TransactionNotFoundError();
 
     const product = await this.prismaService.product.findUnique({
       where: {
@@ -849,15 +898,9 @@ export class ProductsService implements ProductServiceInterface {
       },
     });
 
-    if(!product) throw new ProductNotFoundError();
+    if (!product) throw new ProductNotFoundError();
 
     const { entryAmount, fromStock } = transaction;
-
-    if(fromStock === Stock.LOJA) {
-      if(product.lojaQuantity < entryAmount) throw new ProductQuantityIsnotEnoughError();
-    } else if(fromStock === Stock.GALPAO) {
-      if(product.galpaoQuantity < entryAmount) throw new ProductQuantityIsnotEnoughError();
-    }
 
     return this.prismaService.$transaction(async (prisma) => {
       await prisma.product.update({
@@ -865,13 +908,15 @@ export class ProductsService implements ProductServiceInterface {
           id: product.id,
         },
         data: {
-          [fromStock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+          [fromStock === Stock.LOJA
+            ? 'lojaQuantityReserve'
+            : 'galpaoQuantityReserve']: {
             decrement: entryAmount,
           },
         },
       });
 
-      await prisma.transaction.update({
+      const transaction = await prisma.transaction.update({
         where: {
           id,
         },
@@ -879,6 +924,25 @@ export class ProductsService implements ProductServiceInterface {
           confirmed: true,
         },
       });
+
+      await prisma.transaction.create({
+        data: {
+          product: {
+            connect: {
+              id: product.id,
+            },
+          },
+          fromStock: fromStock,
+          exitAmount: entryAmount,
+          type: TransactionType.EXIT,
+          observation: transaction.observation,
+          operator: transaction.operator,
+          client: transaction.client,
+          confirmed: true,
+        },
+      });
+
+      return transaction;
     });
   }
 }

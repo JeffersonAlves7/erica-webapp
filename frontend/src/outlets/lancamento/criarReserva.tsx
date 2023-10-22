@@ -7,6 +7,7 @@ import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
+import { reservesService } from "@/services/reserves.service";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");
@@ -28,22 +29,40 @@ export function CriarReserva() {
     setStatus("loading");
 
     const stock = stockRef.current?.value;
-    const codigoValue = codigoOuEanRef.current?.value;
-    const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
-    const containerValue = clienteRef.current?.value;
+    const codeOrEan = codigoOuEanRef.current?.value;
+    const quantity = parseInt(quantidadeRef.current?.value || "0");
+    const client = clienteRef.current?.value;
     const operator = operatorRef.current?.value;
+    const observation = observacaoRef.current?.value;
 
-    if (
-      !codigoValue ||
-      !quantidadeValue ||
-      !containerValue ||
-      !stock ||
-      !operator
-    ) {
+    if (!codeOrEan || !quantity || !client || !stock || !operator) {
       setError("Preencha todos os campos");
       setStatus("idle");
       return;
     }
+
+    reservesService
+      .createReserve({
+        codeOrEan,
+        quantity,
+        client,
+        stock,
+        operator,
+        observation
+      })
+      .then(() => {
+        setStatus("success");
+        clienteRef.current!.value = "";
+        codigoOuEanRef.current!.value = "";
+        quantidadeRef.current!.value = "";
+        observacaoRef.current!.value = "";
+        stockRef.current!.value = "";
+        operatorRef.current!.value = "";
+      })
+      .catch((err) => {
+        setError(err.message);
+        setStatus("error");
+      });
   }
 
   return (
@@ -63,8 +82,8 @@ export function CriarReserva() {
           >
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
+            <StockInput label="Origem" ref={stockRef} />
             <ClientInput ref={clienteRef} />
-            <StockInput label="Destino" ref={stockRef} />
             <OperatorInput ref={operatorRef} />
             <ObservacaoInput ref={observacaoRef} />
           </Grid>

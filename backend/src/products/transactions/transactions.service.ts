@@ -122,7 +122,14 @@ export class TransactionsService implements TransactionsServiceInterface {
         },
       },
       fromStock: stock,
-      confirmed: true,
+      OR: [
+        {
+          confirmed: true,
+        },
+        {
+          type: TransactionType.RESERVE,
+        },
+      ],
     };
 
     const transactions = await this.prismaService.transaction.findMany({
@@ -146,6 +153,45 @@ export class TransactionsService implements TransactionsServiceInterface {
       total,
       data: transactions,
     };
+  }
+
+  /**** RESERVES ****/
+  async deleteReserve(id: number) {
+    const transactionFound = await this.prismaService.transaction.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!transactionFound) throw new TransactionNotFoundError();
+
+    const { productId, fromStock, entryAmount } = transactionFound;
+
+    return this.prismaService.$transaction(async (prisma) => {
+      await prisma.product.update({
+        where: {
+          id: productId,
+        },
+        data: {
+          [fromStock == Stock.LOJA
+            ? 'lojaQuantityReserve'
+            : 'galpaoQuantityReserve']: {
+            decrement: entryAmount,
+          },
+          [fromStock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+            increment: entryAmount,
+          },
+        },
+      });
+
+      const transaction = await prisma.transaction.delete({
+        where: {
+          id,
+        },
+      });
+
+      return transaction;
+    });
   }
 
   // ***** TRANSFERENCES *****/
