@@ -113,6 +113,23 @@ export function Stocks() {
     productService
       .deleteProduct(productIdToDelete!)
       .then(() => {
+        productService
+          .getAllProductsStock({
+            page,
+            limit: productsLimit,
+            stock,
+            importer,
+            code
+          })
+          .then((data) => {
+            setItems(data.data);
+            setTotalItems(data.total);
+            setPage(1);
+          })
+          .catch((error) => {
+            handleError401(error);
+          });
+
         toast({
           title: "Produto apagado com sucesso",
           status: "success",
@@ -131,14 +148,14 @@ export function Stocks() {
     onClose();
   }
 
-  function handleDeleteProduct(id: number){
-    setProductIdToDelete(id)
-    onOpen()
+  function handleDeleteProduct(id: number) {
+    setProductIdToDelete(id);
+    onOpen();
   }
 
   return (
     <>
-      <Stack gap={10} overflowY={'auto'}>
+      <Stack gap={10} overflowY={"auto"}>
         <Heading>Estoques</Heading>
 
         <StockButtonSelector onClick={handleChangeStock} />
@@ -195,7 +212,11 @@ export function Stocks() {
         </Box>
       </Stack>
 
-      <ModalDelete isOpen={isOpen} onClose={onClose} handleConfirm={handleConfirmDeleteProduct}>
+      <ModalDelete
+        isOpen={isOpen}
+        onClose={onClose}
+        handleConfirm={handleConfirmDeleteProduct}
+      >
         Tem certeza que deseja apagar o produto?
       </ModalDelete>
     </>
@@ -285,9 +306,7 @@ function StockItem({
       {!stock && <Td>{quantidadeParaAlerta}</Td>}
       <Td>{item.observacao}</Td>
       <Td>
-        <CloseButton
-          onClick={() => handleDelete(item.id)}
-        />
+        <CloseButton onClick={() => handleDelete(item.id)} />
       </Td>
     </Tr>
   );
