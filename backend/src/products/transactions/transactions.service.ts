@@ -140,7 +140,7 @@ export class TransactionsService implements TransactionsServiceInterface {
         product: true,
       },
       orderBy: {
-        updatedAt: orderBy === 'asc' ? 'asc' : 'desc',
+        createdAt: orderBy === 'asc' ? 'asc' : 'desc',
       },
     });
 
