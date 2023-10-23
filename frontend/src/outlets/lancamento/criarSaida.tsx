@@ -10,6 +10,8 @@ import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import { Stock } from "@/types/stock.enum";
 import { ClientInput } from "@/components/inputs/client.input";
+import { excelService } from "@/services/excel.service";
+import { handleError401 } from "@/services/api";
 
 export function CriarSaida() {
   const [status, setStatus] = useState<
@@ -67,6 +69,20 @@ export function CriarSaida() {
         estoqueRef.current!.value = "";
       })
       .catch((err) => {
+        handleError401(err);
+        setError(err?.response?.data?.message || err.message);
+        setStatus("error");
+      });
+  }
+
+  function handleUpload(file: any) {
+    excelService
+      .uploadProductsExit(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        handleError401(err);
         setError(err?.response?.data?.message || err.message);
         setStatus("error");
       });
@@ -96,7 +112,11 @@ export function CriarSaida() {
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleUpload}
+        />
       </form>
     </Card>
   );

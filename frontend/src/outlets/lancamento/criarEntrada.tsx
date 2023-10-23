@@ -10,6 +10,7 @@ import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { ContainerInput } from "@/components/inputs/container.input";
 import { ImporterInput } from "@/components/inputs/importerInput";
+import { excelService } from "@/services/excel.service";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");
@@ -74,6 +75,19 @@ export function CriarEntrada() {
       });
   }
 
+  function handleImportData(file: any) {
+    excelService
+      .uploadProductsEntries(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        handleError401(err);
+        setError(err?.response?.data?.message || err.message);
+        setStatus("error");
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
@@ -98,7 +112,11 @@ export function CriarEntrada() {
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleImportData}
+        />
       </form>
     </Card>
   );

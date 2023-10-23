@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Product, ProductsOnContainer, Transaction } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Pageable, PageableParams } from 'src/types/pageable.interface';
@@ -40,11 +40,6 @@ import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
 import { ExcelService } from './excel/excel.service';
-import {
-  ConfirmReserveParams,
-  CreateReserveParmas,
-  GetReservesParams,
-} from './types/reserves.interface';
 
 interface ProductServiceInterface {
   createProduct(productCreation: ProductCreation): Promise<Product>;
@@ -88,7 +83,7 @@ export class ProductsService implements ProductServiceInterface {
     private excelService: ExcelService,
   ) {}
 
-  async uploadExcelFile(file: any){
+  async uploadExcelFile(file: any) {
     const fileReaded = await this.excelService.readExcelFile(file);
     return fileReaded;
   }
@@ -449,6 +444,111 @@ export class ProductsService implements ProductServiceInterface {
     return productsOnContainer;
   }
 
+  async entryProductByExcelFile(file: any) {
+    const entriesData = await this.excelService.readEntryProductExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < entriesData.length; index++) {
+        let rowIndex = index + 2;
+        const row = entriesData[index];
+        const {
+          codeOrEan,
+          container,
+          importer: importerName,
+          operator,
+          quantity,
+          observation,
+        } = row;
+        console.log({ codeOrEan });
+        const importer = getImporterId(importerName);
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        if (product.importer !== importer)
+          throw new HttpException(
+            `Produto, com essa importadora, não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        const productsContainer =
+          await this.containerService.findOrCreateContainer(container);
+
+        const productsOnContainerFound =
+          await this.containerService.getProductOnContainer(
+            product,
+            productsContainer,
+          );
+
+        if (productsOnContainerFound)
+          throw new HttpException(
+            `Produto ${product.code} já está no container ${container}, linha ${row}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.productsOnContainer.create({
+          data: {
+            quantityExpected: quantity,
+            quantityReceived: quantity,
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            observation,
+          },
+          include: {
+            product: true,
+            container: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            galpaoQuantity: {
+              increment: quantity,
+            },
+          },
+        });
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            operator: operator,
+            toStock: Stock.GALPAO,
+            entryAmount: quantity,
+            type: TransactionType.ENTRY,
+            observation: observation,
+            confirmed: true,
+          },
+        });
+      }
+    });
+
+    return entriesData;
+  }
+
   async exitProduct(productExit: ProductExit): Promise<Transaction> {
     if (!productExit.codeOrEan) throw new ProductCodeOrEanIsRequiredError();
     if (!productExit.from) throw new ProductStockIsRequiredError('origem');
@@ -495,6 +595,74 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     return transaction;
+  }
+
+  async exitProductByExcelFile(file: any) {
+    const exitsData = await this.excelService.readExitProductExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < exitsData.length; index++) {
+        const rowIndex = index + 2;
+        const row = exitsData[index];
+
+        const { codeOrEan, stock, operator, quantity, observation, client } =
+          row;
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        let stockId: any;
+        try {
+          stockId = getStockId(stock);
+        } catch {
+          stockId = undefined;
+        }
+
+        if (!stockId)
+          throw new HttpException(
+            `Estoque não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        if (
+          (stockId === Stock.LOJA && product.lojaQuantity < quantity) ||
+          (stockId === Stock.GALPAO && product.galpaoQuantity < quantity)
+        )
+          throw new HttpException(
+            `Quantidade insuficiente na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            fromStock: stockId,
+            exitAmount: quantity,
+            type: TransactionType.EXIT,
+            observation: observation,
+            operator: operator,
+            client: client,
+            confirmed: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            [stockId == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+              decrement: quantity,
+            },
+          },
+        });
+      }
+    });
+
+    return exitsData;
   }
 
   async devolutionProduct(

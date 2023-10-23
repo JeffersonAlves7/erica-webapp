@@ -2,11 +2,24 @@ import api from "./api";
 import * as ExcelJS from "exceljs";
 
 class ExcelService {
-  async uploadProducts(file: File) {
+  async uploadProductsEntries(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/products/upload", formData, {
+    const response = await api.post("/products/entry/sheet", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return response.data;
+  }
+
+  async uploadProductsExit(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post("/products/exit/sheet", formData, {
       headers: {
         "Content-Type": "multipart/form-data"
       }

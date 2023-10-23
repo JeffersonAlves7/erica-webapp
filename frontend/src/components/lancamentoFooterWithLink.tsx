@@ -8,12 +8,14 @@ import {
   Flex,
   Link as ChakraLink
 } from "@chakra-ui/react";
+import { ExcelUploadButton } from "./buttons/excelButtons";
 
 interface LancamentoFooterProps {
   status: "idle" | "loading" | "error" | "success";
   error?: string;
   to: string;
   linkText: string;
+  onUpload?: (file: any) => void;
 }
 
 export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
@@ -34,7 +36,7 @@ export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
             Lançamento incluído com sucesso!
           </Alert>
         )}
-        <Flex align={'center'} justify={'space-between'}>
+        <Flex align={"center"} justify={"space-between"}>
           <Flex mt={3} gap={3}>
             <Button type="reset" colorScheme="red">
               Cancelar
@@ -47,15 +49,18 @@ export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
               Criar
             </Button>
           </Flex>
-          <ChakraLink
-            as={RouterLink}
-            to={props.to}
-            textDecoration={"underline"}
-            textColor={"#7B65FF"}
-            textAlign={"center"}
-          >
-            {props.linkText}
-          </ChakraLink>
+          <Flex>
+            <ChakraLink
+              as={RouterLink}
+              to={props.to}
+              textDecoration={"underline"}
+              textColor={"#7B65FF"}
+              textAlign={"center"}
+            >
+              {props.linkText}
+            </ChakraLink>
+            <ExcelUploadButton withTitle onUpload={props.onUpload} />
+          </Flex>
         </Flex>
       </Box>
     </CardFooter>

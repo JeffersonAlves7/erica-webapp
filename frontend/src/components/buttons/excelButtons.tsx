@@ -1,16 +1,10 @@
-import { excelService } from "@/services/excel.service";
-import {
-  Box,
-  FormControl,
-  FormLabel,
-  Input,
-  useToast
-} from "@chakra-ui/react";
+import { FormControl, FormLabel, Input, useToast } from "@chakra-ui/react";
 import { useRef } from "react";
 import { BsFiletypeXlsx } from "react-icons/bs";
 
 interface ExcelUploadButtonProps {
   withTitle?: boolean;
+  onUpload?: (file: any) => void;
 }
 
 export function ExcelUploadButton(props: ExcelUploadButtonProps) {
@@ -30,30 +24,12 @@ export function ExcelUploadButton(props: ExcelUploadButtonProps) {
       });
       return;
     }
-
-    try {
-      await excelService.uploadProducts(file);
-
-      toast({
-        title: "Arquivo enviado com sucesso",
-        status: "success",
-        duration: 3000,
-        isClosable: true
-      });
-    } catch (e) {
-      toast({
-        title: "Erro ao enviar arquivo",
-        status: "error",
-        duration: 3000,
-        isClosable: true
-      });
-    } finally {
-      fileRef.current!.value = "";
-    }
+    fileRef.current.value = "";
+    props.onUpload && props.onUpload(file);
   }
 
   return (
-    <FormControl w={'max-content'} className="hover:cursor-pointer">
+    <FormControl w={"max-content"} className="hover:cursor-pointer">
       <FormLabel className="hover:cursor-pointer">
         <span className=" hover:cursor-pointer items-center text-purple-700 underline flex">
           <BsFiletypeXlsx className="text-xl" />
@@ -62,21 +38,23 @@ export function ExcelUploadButton(props: ExcelUploadButtonProps) {
       </FormLabel>
       <Input
         type="file"
-        display={'none'}
+        display={"none"}
         accept=".xlsx"
         ref={fileRef}
-        onChange={handleUpload} 
+        onChange={handleUpload}
         title="Arquivo"
       />
     </FormControl>
   );
 }
 
-interface ExcelDownloadButtonProps {}
+interface ExcelDownloadButtonProps {
+  onDownload?: () => void;
+}
 
-export function ExcelDownloadButton(_: ExcelDownloadButtonProps) {
+export function ExcelDownloadButton(props: ExcelDownloadButtonProps) {
   function handleDownload() {
-    excelService.downloadProducts();
+    props.onDownload && props.onDownload();
   }
 
   return (

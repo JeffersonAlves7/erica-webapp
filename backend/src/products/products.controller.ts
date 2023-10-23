@@ -91,6 +91,14 @@ export class ProductsController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('entry/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  entryProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.entryProductByExcelFile(file);
+  }
+
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('entries')
   getAllEntries(@Query() query: Record<string, any>) {
@@ -116,6 +124,14 @@ export class ProductsController {
       quantity: productExit.quantity,
       operator: productExit.operator,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('exit/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  exitProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.exitProductByExcelFile(file);
   }
 
   @UseGuards(AuthGuard)
