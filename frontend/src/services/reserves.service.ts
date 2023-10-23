@@ -8,31 +8,29 @@ interface GetReservesParams extends PageableParams {
   stock?: Stock;
 }
 
-interface CreateReserve {
+interface CreateReserveBody {
   codeOrEan: string;
   quantity: number;
   stock: Stock | string;
   observation?: string;
   client: string;
+  date: Date | number;
   operator: string;
 }
 
 class ReservesService {
-  async getReserves(params: GetReservesParams): Promise<Pageable<Reserve>> {
-    const { limit, page } = params;
-    console.log("Aqui")
-    const response = await api.get("/products/reserves", {
-      params: {
-        page,
-        limit
-      }
+  async getReserves(
+    params: GetReservesParams
+  ): Promise<Pageable<Reserve> & { summary: any }> {
+    const response = await api.get("/reserves", {
+      params
     });
 
     const reserves = response.data.data.map((reserve: any) => {
       const {
         id,
         operator,
-        createdAt: date,
+        exitDate: date,
         fromStock: stock,
         entryAmount: quantity,
         client,
@@ -55,13 +53,21 @@ class ReservesService {
     return {
       data: reserves,
       page: response.data.page,
-      total: response.data.total
+      total: response.data.total,
+      summary: response.data.summary
     };
   }
 
-  async createReserve(body: CreateReserve): Promise<any> {
-    const response = await api.post("/products/reserve", body);
+  async createReserve(body: CreateReserveBody): Promise<any> {
+    const response = await api.post("/reserves", body);
 
+    return response.data;
+  }
+
+  async confirmReserve(ids: number[]) {
+    const response = await api.post(`/reserves/confirm`, {
+      ids
+    });
     return response.data;
   }
 }

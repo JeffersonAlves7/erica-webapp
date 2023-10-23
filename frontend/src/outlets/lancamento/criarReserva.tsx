@@ -8,6 +8,7 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { reservesService } from "@/services/reserves.service";
+import { DateInput } from "@/components/inputs/dateInput";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");
@@ -21,6 +22,7 @@ export function CriarReserva() {
   const observacaoRef = useRef<HTMLInputElement>(null);
   const operatorRef = useRef<HTMLSelectElement>(null);
   const stockRef = useRef<HTMLSelectElement>(null);
+  const dataDeRediradaRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -33,9 +35,17 @@ export function CriarReserva() {
     const quantity = parseInt(quantidadeRef.current?.value || "0");
     const client = clienteRef.current?.value;
     const operator = operatorRef.current?.value;
+    const dataRetirada = dataDeRediradaRef.current?.value;
     const observation = observacaoRef.current?.value;
 
-    if (!codeOrEan || !quantity || !client || !stock || !operator) {
+    if (
+      !codeOrEan ||
+      !quantity ||
+      !client ||
+      !stock ||
+      !operator ||
+      !dataRetirada
+    ) {
       setError("Preencha todos os campos");
       setStatus("idle");
       return;
@@ -48,6 +58,7 @@ export function CriarReserva() {
         client,
         stock,
         operator,
+        date: new Date(dataRetirada),
         observation
       })
       .then(() => {
@@ -58,9 +69,10 @@ export function CriarReserva() {
         observacaoRef.current!.value = "";
         stockRef.current!.value = "";
         operatorRef.current!.value = "";
+        dataDeRediradaRef.current!.value = "";
       })
       .catch((err) => {
-        setError(err.message);
+        setError(err?.response?.data?.message);
         setStatus("error");
       });
   }
@@ -85,6 +97,7 @@ export function CriarReserva() {
             <StockInput label="Origem" ref={stockRef} />
             <ClientInput ref={clienteRef} />
             <OperatorInput ref={operatorRef} />
+            <DateInput label="Data de retirada" ref={dataDeRediradaRef} />
             <ObservacaoInput ref={observacaoRef} />
           </Grid>
         </CardBody>

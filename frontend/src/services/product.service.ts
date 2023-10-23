@@ -128,22 +128,20 @@ class ProductService {
       params: pageableParams
     });
 
-    const items = response.data.data.map((transaction: any, index: number) => {
-      return {
-        id: transaction.id,
-        code: transaction.product.code,
-        entryAmount: transaction.entryAmount,
-        exitAmount: transaction.exitAmount,
-        type: transaction.type,
-        from: transaction.fromStock,
-        to: transaction.toStock,
-        client: transaction.client,
-        operator: transaction.operator,
-        createdAt: transaction.createdAt,
-        observation: transaction.observation,
-        product: index == 0 ? transaction.product : undefined
-      };
-    });
+    const items = response.data.data.map((transaction: any, index: number) => ({
+      id: transaction.id,
+      code: transaction.product.code,
+      entryAmount: transaction.entryAmount,
+      exitAmount: transaction.exitAmount,
+      type: transaction.type,
+      from: transaction.fromStock,
+      to: transaction.toStock,
+      client: transaction.client,
+      operator: transaction.operator,
+      createdAt: transaction.createdAt,
+      observation: transaction.observation,
+      product: index == 0 ? transaction.product : undefined
+    }));
 
     return {
       data: items,
@@ -210,10 +208,13 @@ class ProductService {
           : 0;
 
       const saldo = !pageableParams.stock
-        ? item.galpaoQuantity + item.lojaQuantity
+        ? item.galpaoQuantity +
+          item.lojaQuantity +
+          item.galpaoQuantityReserve +
+          item.lojaQuantityReserve
         : pageableParams.stock == Stock.GALPAO
-        ? item.galpaoQuantity
-        : item.lojaQuantity;
+        ? item.galpaoQuantity + item.galpaoQuantityReserve
+        : item.lojaQuantity + item.lojaQuantityReserve;
 
       const giro =
         pageableParams.stock != Stock.LOJA

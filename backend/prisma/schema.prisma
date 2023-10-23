@@ -92,6 +92,7 @@ model Transaction {
   container        Container? @relation(fields: [containerId], references: [id])
   product          Product   @relation(fields: [productId], references: [id])
   createdAt        DateTime  @default(now()) @map("created_at")
+  exitDate         DateTime? @map("exit_date") 
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
   @@index([productId], map: "Transactions_product_id_fkey")

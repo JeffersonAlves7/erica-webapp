@@ -118,14 +118,18 @@ export function ProductTransactions() {
   }
 
   return (
-    <Stack h={'full'} gap={5}>
-      <Heading >Rotação - {code}</Heading>
+    <Stack h={"full"} gap={5}>
+      <Heading>Rotação - {code}</Heading>
       <StockButtonSelector onClick={handleChangeStock} />
 
       <ProductInfo
-        galpaoQuantity={product?.galpaoQuantity ?? 0}
-        lojaQuantity={product?.lojaQuantity ?? 0}
-        reservado={0}
+        galpaoQuantity={
+          product?.galpaoQuantity + product?.galpaoQuantityReserve ?? 0
+        }
+        lojaQuantity={product?.lojaQuantity + product?.lojaQuantityReserve ?? 0}
+        reservado={
+          product?.galpaoQuantityReserve + product?.lojaQuantityReserve ?? 0
+        }
       />
 
       <Box overflow={"auto"} minH={200}>
@@ -232,13 +236,15 @@ function ProductTableItem({
   const date = transaction.createdAt
     ? format(new Date(transaction.createdAt), "dd/MM/yyyy")
     : "";
-  
+
   return (
     <Tr>
       <Td>{transaction.code}</Td>
       <Td>{transaction.entryAmount}</Td>
       <Td>{transaction.exitAmount}</Td>
-      <Td>{TransactionType[transaction.type as keyof typeof TransactionType]}</Td>
+      <Td>
+        {TransactionType[transaction.type as keyof typeof TransactionType]}
+      </Td>
       <Td>{transaction.from}</Td>
       <Td>{transaction.to}</Td>
       <Td>{transaction.client}</Td>

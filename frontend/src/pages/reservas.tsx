@@ -21,7 +21,8 @@ import {
   Text,
   Th,
   Thead,
-  Tr
+  Tr,
+  useToast
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
@@ -36,6 +37,8 @@ export function Reservas() {
   const [page, setPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(0);
 
+  const toast = useToast();
+
   const reserversPerPage = 20;
   const pageQuantity = Math.ceil(pageLimit / reserversPerPage);
 
@@ -43,23 +46,24 @@ export function Reservas() {
     reservesService
       .getReserves({
         page: page,
-        limit: reserversPerPage
+        limit: reserversPerPage,
+        stock: stock
       })
       .then((reserves) => {
         setReserves(reserves.data);
         setPageLimit(reserves.total);
+        setPage(1);
+        setReserveSummary({
+          galpao: reserves.summary.galpaoQuantity as number,
+          loja: reserves.summary.lojaQuantity as number,
+          products: reserves.summary.products as number
+        });
       })
       .catch((error) => {
         handleError401(error);
         console.log(error);
       });
-
-    setReserveSummary({
-      galpao: 10,
-      loja: 10,
-      products: 2
-    });
-  }, []);
+  }, [stock]);
 
   const reservesSelected = reserves.filter((reserve) =>
     selecteds.includes(reserve.id)
@@ -99,7 +103,40 @@ export function Reservas() {
     }
   }
 
-  function handleConfirmItems() {}
+  function handleConfirmItems() {
+    reservesService
+      .confirmReserve(selecteds)
+      .then(() => {
+        toast({
+          title: "Reservas confirmadas com sucesso!",
+          status: "success",
+          duration: 5000,
+          isClosable: true
+        });
+
+        return reservesService.getReserves({
+          page: page,
+          limit: reserversPerPage,
+          stock: stock
+        });
+      })
+      .then((reserves) => {
+        setSelecteds([]);
+        setAllSelected(false);
+        setReserves(reserves.data);
+        setPageLimit(reserves.total);
+        setPage(1);
+        setReserveSummary({
+          galpao: reserves.summary.galpaoQuantity as number,
+          loja: reserves.summary.lojaQuantity as number,
+          products: reserves.summary.products as number
+        });
+      })
+      .catch((error) => {
+        handleError401(error);
+        console.log(error);
+      });
+  }
 
   return (
     <Stack h={"full"} justifyContent={"space-between"}>
