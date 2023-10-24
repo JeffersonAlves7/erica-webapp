@@ -233,9 +233,6 @@ export class TransactionsService implements TransactionsServiceInterface {
 
     if (!product) throw new ProductNotFoundError();
 
-    if (product.galpaoQuantity < data.entryAmount)
-      throw new ProductInsuficientStockError();
-
     return this.createTransferenceTransaction({
       entryExpected: data.entryAmount,
       product,

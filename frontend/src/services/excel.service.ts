@@ -28,6 +28,45 @@ class ExcelService {
     return response.data;
   }
 
+  async uploadProductTransfer(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post("/products/transference/sheet", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return response.data;
+  }
+
+  async uploadProductDevolution(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post("/products/devolution/sheet", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return response.data;
+  }
+
+  async uploadProductReserve(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post("/reserves/sheet", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return response.data;
+  }
+
   async downloadProducts() {
     const products = [
       {

@@ -9,6 +9,7 @@ import { StockInput } from "@/components/inputs/stock.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { reservesService } from "@/services/reserves.service";
 import { DateInput } from "@/components/inputs/dateInput";
+import { excelService } from "@/services/excel.service";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");
@@ -77,6 +78,18 @@ export function CriarReserva() {
       });
   }
 
+  function handleUploadReserve(file: File) {
+    excelService
+      .uploadProductReserve(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        setStatus("error");
+        setError(err?.response?.data?.message);
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
@@ -102,7 +115,11 @@ export function CriarReserva() {
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleUploadReserve}
+        />
       </form>
     </Card>
   );

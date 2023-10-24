@@ -8,6 +8,8 @@ import {
   Param,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ReservesService } from './reserves.service';
 import {
@@ -15,6 +17,7 @@ import {
   CreateReserveDto,
   GetReservesDto,
 } from './reserves.validators';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('reserves')
 export class ReservesController {
@@ -26,10 +29,17 @@ export class ReservesController {
     return this.reservesService.confirmReserve(body);
   }
 
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   @Post()
   createReserve(@Body() body: CreateReserveDto) {
     return this.reservesService.createReserve(body);
+  }
+
+  @HttpCode(HttpStatus.CREATED)
+  @Post('/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  createReserveBySheet(@UploadedFile() file: any) {
+    return this.reservesService.createReservesByFile(file);
   }
 
   @HttpCode(HttpStatus.OK)

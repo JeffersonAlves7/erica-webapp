@@ -715,6 +715,56 @@ export class ProductsService implements ProductServiceInterface {
     return transaction;
   }
 
+  async devolutionProductByExcelFile(file: any) {
+    const devolutionData =
+      await this.excelService.readDevolutionsExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let i = 0; i < devolutionData.length; i++) {
+        const { codeOrEan, client, observation, operator, quantity, stock } =
+          devolutionData[i];
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${i + 2}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            toStock: stock,
+            entryAmount: quantity,
+            type: TransactionType.DEVOLUTION,
+            observation: observation,
+            operator: operator,
+            client: client,
+            confirmed: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            [stock == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+              increment: quantity,
+            },
+          },
+        });
+      }
+    });
+
+    return devolutionData;
+  }
+
   async transferProduct(
     productTransference: ProductTransference,
   ): Promise<Transaction> {
@@ -738,6 +788,55 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     return transference;
+  }
+
+  async transferProductByExcelFile(file: any) {
+    const transferData = await this.excelService.readTransferExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < transferData.length; index++) {
+        const rowIndex = index + 2;
+        const row = transferData[index];
+
+        const {
+          codeOrEan,
+          quantity,
+          operator,
+          location,
+          observation,
+          from,
+          to,
+        } = row;
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        return this.prismaService.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            fromStock: from,
+            toStock: to,
+            entryExpected: quantity,
+            type: TransactionType.TRANSFERENCE,
+            observation: observation,
+            operator: operator,
+            location: location,
+            confirmed: false,
+          },
+        });
+      }
+    });
+
+    return transferData;
   }
 
   async confirmTransference(data: {

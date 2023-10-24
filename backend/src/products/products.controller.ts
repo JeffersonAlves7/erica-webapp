@@ -150,6 +150,14 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
+  @Post('devolution/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  devolutionProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.devolutionProductByExcelFile(file);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Post('transference')
   productTransference(@Body() productTransference: Record<string, any>) {
     return this.productsService.transferProduct({
@@ -159,6 +167,14 @@ export class ProductsController {
       quantity: productTransference.quantity,
       location: productTransference.location,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('transference/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  productTransferenceBySheet(@UploadedFile() file: any) {
+    return this.productsService.transferProductByExcelFile(file);
   }
 
   @UseGuards(AuthGuard)

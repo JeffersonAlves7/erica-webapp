@@ -4,6 +4,7 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink";
+import { excelService } from "@/services/excel.service";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
@@ -61,6 +62,21 @@ export function CriarTransferencia() {
       });
   }
 
+  function handleImportTransference(file: File) {
+    setStatus("loading");
+    setError("");
+
+    excelService
+      .uploadProductTransfer(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        setStatus("error");
+        setError(err?.response?.data?.message || err.message);
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleConfirm}>
@@ -89,6 +105,7 @@ export function CriarTransferencia() {
           error={error}
           to="./conferencias"
           linkText="Conferir Transferências"
+          onUpload={handleImportTransference}
         />
       </form>
     </Card>

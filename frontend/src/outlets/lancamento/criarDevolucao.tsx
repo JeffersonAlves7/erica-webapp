@@ -9,6 +9,7 @@ import { ClientInput } from "@/components/inputs/client.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { productService } from "@/services/product.service";
 import { handleError401 } from "@/services/api";
+import { excelService } from "@/services/excel.service";
 
 export function CriarDevolucao() {
   const [error, setError] = useState<string>("");
@@ -67,6 +68,22 @@ export function CriarDevolucao() {
       });
   }
 
+  function handleUploadDevolution(file: File) {
+    setStatus("loading");
+    setError("");
+
+    excelService
+      .uploadProductDevolution(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        handleError401(err);
+        setError(err.message);
+        setStatus("error");
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
@@ -91,7 +108,11 @@ export function CriarDevolucao() {
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleUploadDevolution}
+        />
       </form>
     </Card>
   );
