@@ -6,7 +6,8 @@ import {
   Button,
   CardFooter,
   Flex,
-  Link as ChakraLink
+  Link as ChakraLink,
+  Stack
 } from "@chakra-ui/react";
 import { ExcelUploadButton } from "./buttons/excelButtons";
 
@@ -49,7 +50,8 @@ export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
               Criar
             </Button>
           </Flex>
-          <Flex>
+
+          <Stack align={"center"} justify={"center"}>
             <ChakraLink
               as={RouterLink}
               to={props.to}
@@ -60,7 +62,8 @@ export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
               {props.linkText}
             </ChakraLink>
             <ExcelUploadButton withTitle onUpload={props.onUpload} />
-          </Flex>
+          </Stack>
+
         </Flex>
       </Box>
     </CardFooter>

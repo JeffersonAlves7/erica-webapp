@@ -84,32 +84,6 @@ interface TransactionsServiceInterface {
 export class TransactionsService implements TransactionsServiceInterface {
   constructor(private prismaService: PrismaService) {}
 
-  private async updateProductQuantities(
-    productId: number,
-    entryAmount: number,
-    location?: string,
-  ) {
-    const updateParams: any = {
-      lojaQuantity: {
-        increment: entryAmount,
-      },
-      galpaoQuantity: {
-        decrement: entryAmount,
-      },
-    };
-
-    if (location) {
-      updateParams.lojaLocation = location;
-    }
-
-    await this.prismaService.product.update({
-      where: {
-        id: productId,
-      },
-      data: updateParams,
-    });
-  }
-
   async getAll(
     pageableParams: TransactionFilterParams,
   ): Promise<Pageable<Transaction>> {
@@ -121,13 +95,26 @@ export class TransactionsService implements TransactionsServiceInterface {
           contains: code,
         },
       },
-      fromStock: stock,
-      OR: [
+      AND: [
         {
-          confirmed: true,
+          OR: [
+            {
+              fromStock: stock,
+            },
+            {
+              toStock: stock,
+            },
+          ],
         },
         {
-          type: TransactionType.RESERVE,
+          OR: [
+            {
+              confirmed: true,
+            },
+            {
+              type: TransactionType.RESERVE,
+            },
+          ],
         },
       ],
     };
@@ -264,32 +251,59 @@ export class TransactionsService implements TransactionsServiceInterface {
       throw new ProductInsuficientStockError();
 
     // create the transference of galpao
-    await this.createTransferenceTransaction({
-      product: transaction.product,
-      confirmed: true,
-      exitAmount: entryAmount,
-      partnerId: transaction.id,
-      entryExpected: transaction.entryExpected,
-      observation: transaction.observation,
-      operator: transaction.operator,
-      location: data.location,
-    });
+    const { observation, location, operator } = transaction;
 
-    await this.updateProductQuantities(
-      transaction.productId,
-      entryAmount,
-      data.location,
-    );
+    await this.prismaService.$transaction(async (prisma) => {
+      prisma.transaction.create({
+        data: {
+          product: {
+            connect: {
+              id: transaction.product.id,
+            },
+          },
+          fromStock: Stock.GALPAO,
+          toStock: Stock.LOJA,
+          entryExpected: entryAmount,
+          exitAmount: entryAmount,
+          type: TransactionType.TRANSFERENCE,
+          observation,
+          operator,
+          location,
+          confirmed: true,
+          partnerId: transaction.id,
+        },
+      });
 
-    await this.prismaService.transaction.update({
-      where: {
-        id,
-      },
-      data: {
-        confirmed: true,
-        entryAmount,
-        location: data.location,
-      },
+      const updateParams: any = {
+        lojaQuantity: {
+          increment: entryAmount,
+        },
+        galpaoQuantity: {
+          decrement: entryAmount,
+        },
+      };
+
+      if (data.location) {
+        updateParams.lojaLocation = data.location;
+      }
+
+      await prisma.product.update({
+        where: {
+          id: transaction.productId,
+        },
+        data: updateParams,
+      });
+
+      await prisma.transaction.update({
+        where: {
+          id,
+        },
+        data: {
+          confirmed: true,
+          exitAmount: entryAmount,
+          location: data.location,
+        },
+      });
     });
 
     return transaction;

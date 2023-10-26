@@ -119,7 +119,7 @@ export function ProductTransactions() {
 
   return (
     <Stack h={"full"} gap={5}>
-      <Heading>Rotação - {code}</Heading>
+      <Heading>{product.description} - {code}</Heading>
       <StockButtonSelector onClick={handleChangeStock} />
 
       <ProductInfo

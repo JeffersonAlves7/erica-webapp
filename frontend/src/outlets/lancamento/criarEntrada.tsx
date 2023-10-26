@@ -1,12 +1,20 @@
 import { Importer } from "@/types/importer.enum";
 import { productService } from "@/services/product.service";
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  FormControl,
+  FormLabel,
+  Grid,
+  Heading,
+  Input
+} from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
-import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { ContainerInput } from "@/components/inputs/container.input";
 import { ImporterInput } from "@/components/inputs/importerInput";
@@ -24,6 +32,8 @@ export function CriarEntrada() {
   const observacaoRef = useRef<HTMLInputElement>(null);
   const operatorRef = useRef<HTMLSelectElement>(null);
   const importerRef = useRef<HTMLSelectElement>(null);
+  const descricaoRef = useRef<HTMLInputElement>(null);
+  const eanRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,17 +41,21 @@ export function CriarEntrada() {
     setError("");
     setStatus("loading");
 
-    const codigoValue = codigoRef.current?.value;
-    const quantidadeValue = parseInt(quantidadeRef.current?.value || "0");
-    const containerValue = containerRef.current?.value;
-    const observacaoValue = observacaoRef.current?.value;
+    const code = codigoRef.current?.value;
+    const quantity = quantidadeRef.current?.value
+      ? parseInt(quantidadeRef.current?.value)
+      : 0;
+    const container = containerRef.current?.value;
+    const observation = observacaoRef.current?.value;
     const operator = operatorRef.current?.value;
     const importer = importerRef.current?.value as Importer;
+    const description = descricaoRef.current?.value;
+    const ean = descricaoRef.current?.value;
 
     if (
-      !codigoValue ||
-      !quantidadeValue ||
-      !containerValue ||
+      !code ||
+      !quantity ||
+      !container ||
       !importer ||
       !operator
     ) {
@@ -52,12 +66,14 @@ export function CriarEntrada() {
 
     productService
       .createEntry({
-        codeOrEan: codigoValue,
-        quantity: quantidadeValue,
-        container: containerValue,
+        code,
+        quantity,
+        container,
         importer,
         operator,
-        observation: observacaoValue
+        observation,
+        description,
+        ean
       })
       .then(() => {
         setStatus("success");
@@ -67,6 +83,8 @@ export function CriarEntrada() {
         observacaoRef.current!.value = "";
         operatorRef.current!.value = "";
         importerRef.current!.value = "";
+        eanRef.current!.value = "";
+        descricaoRef.current!.value = "";
       })
       .catch((err) => {
         handleError401(err);
@@ -103,12 +121,27 @@ export function CriarEntrada() {
             }}
             gap={6}
           >
-            <CodeOrEanInput ref={codigoRef} />
+            <FormControl>
+              <FormLabel>Código</FormLabel>
+              <Input required ref={codigoRef}/>
+            </FormControl>
+
+
+            <FormControl>
+              <FormLabel>EAN</FormLabel>
+              <Input placeholder="Optional para criação" ref={eanRef}/>
+            </FormControl>
+
             <QuantityInput ref={quantidadeRef} />
             <ContainerInput ref={containerRef} />
             <ImporterInput ref={importerRef} />
             <OperatorInput ref={operatorRef} />
             <ObservacaoInput ref={observacaoRef} />
+
+            <FormControl>
+              <FormLabel>Descrição</FormLabel>
+              <Input ref={descricaoRef} placeholder="Optional para criação"/>
+            </FormControl>
           </Grid>
         </CardBody>
 

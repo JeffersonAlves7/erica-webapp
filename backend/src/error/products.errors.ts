@@ -24,6 +24,18 @@ export class ProductCodeOrEanIsRequiredError extends HttpException {
   }
 }
 
+export class ProductEanIsRequiredError extends HttpException {
+  constructor() {
+    super('Código ou EAN é obrigatório', HttpStatus.BAD_REQUEST);
+  }
+}
+
+export class ProductCodeIsRequiredError extends HttpException {
+  constructor() {
+    super('Código ou EAN é obrigatório', HttpStatus.BAD_REQUEST);
+  }
+}
+
 export class ProductQuantityIsRequiredError extends HttpException {
   constructor(
     quantityName:

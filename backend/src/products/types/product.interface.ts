@@ -1,14 +1,22 @@
+import { IsNotEmpty } from 'class-validator';
 import { Importer } from 'src/types/importer.enum';
 import { PageableParams } from 'src/types/pageable.interface';
 import { Stock } from 'src/types/stock.enum';
 
-export interface ProductEntry {
-  codeOrEan: string;
-  quantity: number;
+export class ProductEntry {
+  @IsNotEmpty({ message: 'Código é obrigatório' })
+  code: string;
+  @IsNotEmpty({ message: 'Container é obrigatório' })
   container: string;
-  importer: string;
+  @IsNotEmpty({ message: 'Quantitade é brigatória' })
+  quantity: number;
+  @IsNotEmpty({ message: 'Importadora é obrigatória' })
+  importer: Importer;
+  @IsNotEmpty({ message: 'Operador é obrigatório' })
   operator: string;
   observation?: string;
+  description?: string;
+  ean?: string;
 }
 
 export interface ProductCreation {

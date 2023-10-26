@@ -24,6 +24,7 @@ import {
   ProductAlreadyExistsWithOtherCodeError,
   ProductAlreadyInContainerError,
   ProductClientIsRequiredError,
+  ProductCodeIsRequiredError,
   ProductCodeOrEanIsRequiredError,
   ProductContainerIsRequiredError,
   ProductImporterIsRequiredError,
@@ -266,7 +267,13 @@ export class ProductsService implements ProductServiceInterface {
             entriesToSend.push(productOnContainer);
 
             if (!stock) {
-              if (quantity >= product.lojaQuantity + product.galpaoQuantity)
+              if (
+                quantity >=
+                product.lojaQuantity +
+                  product.galpaoQuantity +
+                  product.galpaoQuantityReserve +
+                  product.lojaQuantityReserve
+              )
                 break;
             } else if (stock === Stock.GALPAO) {
               if (quantity >= product.galpaoQuantity) break;
@@ -299,7 +306,8 @@ export class ProductsService implements ProductServiceInterface {
               quantityReceived: transference.entryAmount,
             });
 
-            if (quantity >= product.lojaQuantity) break;
+            if (quantity >= product.lojaQuantity + product.lojaQuantityReserve)
+              break;
           }
         }
       }
@@ -356,19 +364,50 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer> {
-    const { codeOrEan, container, operator, quantity, observation } =
-      productEntry;
-
-    if (!container) throw new ProductContainerIsRequiredError();
-    if (!codeOrEan) throw new ProductCodeOrEanIsRequiredError();
-    if (!quantity) throw new ProductQuantityIsRequiredError();
-    if (!productEntry.importer) throw new ProductImporterIsRequiredError();
+    const {
+      code,
+      container,
+      operator,
+      quantity,
+      observation,
+      description,
+      ean,
+    } = productEntry;
 
     const importer = getImporterId(productEntry.importer);
-    const product = await this.getProductByCodeOrEan(codeOrEan);
+    let product = await this.prismaService.product.findFirst({
+      where: {
+        OR: [
+          {
+            code,
+          },
+          {
+            ean,
+          },
+        ],
+      },
+    });
 
-    if (!product || product.importer !== importer)
-      throw new ProductNotFoundError();
+    if (product && product.importer !== importer)
+      throw new HttpException(
+        `Produto encontrado com outra importadora: ${product.importer}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    else if (!product) {
+      // create the product if if don't exists
+      if (!description)
+        throw new HttpException(
+          `O campo *Descrição* é obrigatória para a criação de um produto`,
+          HttpStatus.BAD_REQUEST,
+        );
+
+      product = await this.createProduct({
+        code,
+        importer,
+        description,
+        ean,
+      });
+    }
 
     const productsContainer =
       await this.containerService.findOrCreateContainer(container);
@@ -459,7 +498,7 @@ export class ProductsService implements ProductServiceInterface {
           quantity,
           observation,
         } = row;
-        console.log({ codeOrEan });
+
         const importer = getImporterId(importerName);
         const product = await this.getProductByCodeOrEan(codeOrEan);
 

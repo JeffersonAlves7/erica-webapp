@@ -32,7 +32,7 @@ export function LancamentoFooter(props: LancamentoFooterProps) {
             Lançamento incluído com sucesso!
           </Alert>
         )}
-        <Flex mt={3}  justify={'space-between'} align={'center'}>
+        <Flex mt={3} justify={"space-between"} align={"center"}>
           <Flex gap={3}>
             <Button type="reset" colorScheme="red">
               Cancelar
@@ -45,7 +45,9 @@ export function LancamentoFooter(props: LancamentoFooterProps) {
               Criar
             </Button>
           </Flex>
-          <ExcelUploadButton onUpload={props.onUpload} withTitle />
+          {props.onUpload && (
+            <ExcelUploadButton onUpload={props.onUpload} withTitle />
+          )}
         </Flex>
       </Box>
     </CardFooter>

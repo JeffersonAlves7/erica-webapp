@@ -23,6 +23,7 @@ import {
 import { ProductInvalidProductsError } from 'src/error/products.errors';
 import { PageMaxLimitError } from 'src/error/page.errors';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ProductEntry } from './types/product.interface';
 
 @Controller('products')
 export class ProductsController {
@@ -79,15 +80,8 @@ export class ProductsController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('entry')
-  entryProduct(@Body() productEntry: Record<string, any>) {
-    return this.productsService.entryProduct({
-      codeOrEan: productEntry.codeOrEan,
-      container: productEntry.container,
-      importer: productEntry.importer,
-      operator: productEntry.operator,
-      observation: productEntry.observation,
-      quantity: productEntry.quantity,
-    });
+  entryProduct(@Body() productEntry: ProductEntry) {
+    return this.productsService.entryProduct(productEntry);
   }
 
   @UseGuards(AuthGuard)

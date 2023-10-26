@@ -15,8 +15,12 @@ const NavLinks = [
     title: "Incluir Lançamento",
     to: "/incluir-lancamento"
   },
+  // {
+  //   title: "Embarques",
+  //   to: "/embarques"
+  // },
   {
-    title: "Produtos",
+    title: "Lista de produtos",
     to: "/produtos"
   },
   {
