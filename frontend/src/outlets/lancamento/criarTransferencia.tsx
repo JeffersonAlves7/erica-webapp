@@ -7,7 +7,7 @@ import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink"
 import { excelService } from "@/services/excel.service";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, Grid, GridItem, Heading } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 
 export function CriarTransferencia() {
@@ -96,7 +96,9 @@ export function CriarTransferencia() {
             <QuantityInput ref={quantidadeRef} />
             <OperatorInput ref={operatorRef} />
             <DestinyInput ref={locationRef} />
-            <ObservacaoInput ref={observacaoRef} />
+            <GridItem colSpan={2}>
+              <ObservacaoInput  ref={observacaoRef} />
+            </GridItem>
           </Grid>
         </CardBody>
 

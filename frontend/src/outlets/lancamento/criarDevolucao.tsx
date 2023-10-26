@@ -1,11 +1,20 @@
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  FormControl,
+  FormLabel,
+  Grid,
+  GridItem,
+  Heading,
+  Input
+} from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
-import { ClientInput } from "@/components/inputs/client.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { productService } from "@/services/product.service";
 import { handleError401 } from "@/services/api";
@@ -101,10 +110,15 @@ export function CriarDevolucao() {
           >
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
-            <ClientInput ref={clienteRef} />
             <StockInput label="Destino" ref={stockRef} />
+            <FormControl>
+              <FormLabel>Origem/Cliente</FormLabel>
+              <Input required ref={clienteRef} />
+            </FormControl>
             <OperatorInput ref={operadorRef} />
-            <ObservacaoInput ref={observacaoRef} />
+            <GridItem colSpan={2}>
+              <ObservacaoInput  ref={observacaoRef} />
+            </GridItem>
           </Grid>
         </CardBody>
 

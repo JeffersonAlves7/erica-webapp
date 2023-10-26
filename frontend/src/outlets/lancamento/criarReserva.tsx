@@ -1,8 +1,7 @@
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, FormControl, FormLabel, Grid, GridItem, Heading, Input } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
-import { ClientInput } from "@/components/inputs/client.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { StockInput } from "@/components/inputs/stock.input";
@@ -108,10 +107,17 @@ export function CriarReserva() {
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={stockRef} />
-            <ClientInput ref={clienteRef} />
+
+            <FormControl>
+              <FormLabel>Destino/Cliente</FormLabel>
+              <Input required ref={clienteRef} />
+            </FormControl>
+
             <OperatorInput ref={operatorRef} />
             <DateInput label="Data de retirada" ref={dataDeRediradaRef} />
-            <ObservacaoInput ref={observacaoRef} />
+            <GridItem colSpan={2}>
+              <ObservacaoInput ref={observacaoRef} />
+            </GridItem>
           </Grid>
         </CardBody>
 

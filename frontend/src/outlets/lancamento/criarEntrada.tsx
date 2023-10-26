@@ -7,6 +7,7 @@ import {
   FormControl,
   FormLabel,
   Grid,
+  GridItem,
   Heading,
   Input
 } from "@chakra-ui/react";
@@ -123,25 +124,29 @@ export function CriarEntrada() {
           >
             <FormControl>
               <FormLabel>Código</FormLabel>
-              <Input required ref={codigoRef}/>
+              <Input required ref={codigoRef} />
             </FormControl>
 
-
             <FormControl>
-              <FormLabel>EAN</FormLabel>
-              <Input placeholder="Optional para criação" ref={eanRef}/>
+              <FormLabel>Ean</FormLabel>
+              <Input placeholder="Optional para criação" ref={eanRef} />
             </FormControl>
 
             <QuantityInput ref={quantidadeRef} />
             <ContainerInput ref={containerRef} />
             <ImporterInput ref={importerRef} />
             <OperatorInput ref={operatorRef} />
-            <ObservacaoInput ref={observacaoRef} />
 
-            <FormControl>
-              <FormLabel>Descrição</FormLabel>
-              <Input ref={descricaoRef} placeholder="Optional para criação"/>
-            </FormControl>
+            <GridItem colSpan={2}>
+              <ObservacaoInput ref={observacaoRef} />
+            </GridItem>
+
+            <GridItem colSpan={2}>
+              <FormControl>
+                <FormLabel>Descrição</FormLabel>
+                <Input ref={descricaoRef} placeholder="Optional para criação" />
+              </FormControl>
+            </GridItem>
           </Grid>
         </CardBody>
 

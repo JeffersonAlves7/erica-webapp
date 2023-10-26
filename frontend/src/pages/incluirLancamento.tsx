@@ -33,11 +33,6 @@ export function IncluirLancamento() {
       to: "reserva",
       or: ["/incluir-lancamento/reserva"]
     },
-    {
-      title: "Cadastro",
-      to: "cadastro",
-      or: ["/incluir-lancamento/cadastro"]
-    }
   ];
 
   return (
