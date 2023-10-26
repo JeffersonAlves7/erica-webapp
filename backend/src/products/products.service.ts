@@ -567,6 +567,7 @@ export class ProductsService implements ProductServiceInterface {
 
     if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
       throw new StockNotFoundError();
+
     if (
       (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) ||
       (stockId === Stock.GALPAO &&
