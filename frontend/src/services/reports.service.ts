@@ -13,11 +13,7 @@ class ReportsService {
   }): Promise<Pageable<any>> {
     const response = await api.get("/reports/exit", {
       params: {
-        day: `${day.getFullYear()}-${(day.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}-${(day.getDate() + 1)
-          .toString()
-          .padStart(2, "0")}`,
+        day: day.toISOString().slice(0, 10),
         limit,
         page
       }

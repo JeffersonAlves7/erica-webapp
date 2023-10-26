@@ -33,7 +33,7 @@ export function ReportExit() {
   const [reports, setReports] = useState<ExitReport[]>([]);
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
-  const [day, setDay] = useState<Date | undefined>(undefined);
+  const [day, setDay] = useState<Date>(new Date());
 
   const reportLimit = 50;
   const pageLimit = Math.ceil(pageQuantity / reportLimit);
@@ -60,7 +60,7 @@ export function ReportExit() {
   useEffect(() => {
     reportsService
       .getExitReports({
-        day: day || new Date(),
+        day: day,
         limit: reportLimit,
         page
       })
@@ -78,7 +78,7 @@ export function ReportExit() {
   function handleChangePage(page: number) {
     setPage(page);
   }
-
+  console.log()
   return (
     <Stack w={"full"} maxW={"container.xl"}>
       <Flex justify={"space-between"} align={"end"} w={"full"}>
@@ -91,6 +91,7 @@ export function ReportExit() {
                   const date = e.currentTarget.valueAsDate;
                   setDay(date || new Date());
                 }}
+                value={day.toISOString().slice(0, 10)}
                 type="date"
               />
             </FormControl>
