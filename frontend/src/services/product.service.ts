@@ -193,13 +193,20 @@ class ProductService {
     const items = data.data.map((item: any) => {
       const entriesLength = item.entries.length;
 
+      console.log(item.entries)
       const entradaSum =
         entriesLength > 0
-          ? item.entries.reduce((previous: any, current: any) => {
-              if (typeof previous == "number")
-                return previous + current.quantityReceived;
-              return previous.quantityReceived + current.quantityReceived;
-            }, 0)
+          ? pageableParams.stock != Stock.LOJA
+            ? item.entries.reduce((previous: any, current: any) => {
+                if (typeof previous == "number")
+                  return previous + current.quantityReceived;
+                return previous.quantityReceived + current.quantityReceived;
+              }, 0)
+            : item.entries.reduce((previous: any, current: any) => {
+                if (typeof previous == "number")
+                  return previous + current.exitAmount;
+                return previous.exitAmount + current.exitAmount;
+              }, 0)
           : 0;
 
       const containerNames =
@@ -230,9 +237,7 @@ class ProductService {
 
       const giro =
         pageableParams.stock != Stock.LOJA
-          ? diasEmEstoque > 0
-            ? (entradaSum - saldo) / diasEmEstoque
-            : (entradaSum - saldo) / 1
+          ? ((entradaSum - saldo) / entradaSum) * 100
           : 0;
 
       const observacao = entriesLength > 0 ? item.entries[0].observation : "";
