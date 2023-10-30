@@ -16,7 +16,11 @@ const NavLinks = [
     to: "/incluir-lancamento"
   },
   {
-    title: "Produtos",
+    title: "Embarques",
+    to: "/embarques"
+  },
+  {
+    title: "Lista de produtos",
     to: "/produtos"
   },
   {
@@ -31,11 +35,9 @@ export function Template(props: PropsWithChildren) {
   const location = useLocation();
 
   useEffect(() => {
-    if (location.pathname !== "/" && !isAuthorized) setIsAuthorized(true);
-    else if (location.pathname === "/") setIsAuthorized(false);
+    if (!isAuthorized && location.pathname !== "/") setIsAuthorized(true);
+    else if (isAuthorized && location.pathname === "/") setIsAuthorized(false);
   }, [isAuthorized, location]);
-
-  if (!isAuthorized) return <>{props.children}</>;
 
   return (
     <Grid

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Product, ProductsOnContainer, Transaction } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Pageable, PageableParams } from 'src/types/pageable.interface';
@@ -25,8 +25,6 @@ import {
   ProductAlreadyInContainerError,
   ProductClientIsRequiredError,
   ProductCodeOrEanIsRequiredError,
-  ProductContainerIsRequiredError,
-  ProductImporterIsRequiredError,
   ProductNotFoundError,
   ProductOperatorIsRequiredError,
   ProductQuantityIsRequiredError,
@@ -39,52 +37,21 @@ import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
-import {
-  ConfirmReserveParams,
-  CreateReserveParmas,
-  GetReservesParams,
-} from './types/reserves.interface';
-
-interface ProductServiceInterface {
-  createProduct(productCreation: ProductCreation): Promise<Product>;
-  getAllProductsAndStockByPage(
-    pageableParams: ProductWithLastEntryParams,
-  ): Promise<Pageable<Product>>;
-  getAllProductsByPage(
-    pageableParams: PageableParams,
-  ): Promise<Pageable<Product>>;
-
-  entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer>;
-  exitProduct(productExit: ProductExit): Promise<Transaction>;
-  transferProduct(
-    productTransference: ProductTransference,
-  ): Promise<Transaction>;
-  confirmTransference(data: {
-    id: number;
-    entryAmount: number;
-    location?: string;
-  }): Promise<Transaction>;
-
-  getAllEntriesByPage(
-    pageableParams: PageableParams & EntriesFilterParams,
-  ): Promise<Pageable<ProductsOnContainer>>;
-  getAllTransferencesByPage(
-    pageableParams: TransferenceFilterParams,
-  ): Promise<Pageable<any>>;
-
-  deleteTransaction(id: number): Promise<Transaction>;
-  getAllTransactionsByPage(
-    pageableParams: TransactionFilterParams,
-  ): Promise<Pageable<Transaction>>;
-}
+import { ExcelService } from './excel/excel.service';
 
 @Injectable()
-export class ProductsService implements ProductServiceInterface {
+export class ProductsService{
   constructor(
     private prismaService: PrismaService,
     private transactionsService: TransactionsService,
     private containerService: ContainerService,
+    private excelService: ExcelService,
   ) {}
+
+  async uploadExcelFile(file: any) {
+    const fileReaded = await this.excelService.readExcelFile(file);
+    return fileReaded;
+  }
 
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
     return this.prismaService.product.findFirst({
@@ -248,6 +215,7 @@ export class ProductsService implements ProductServiceInterface {
               take: 10,
               where: {
                 productId: product.id,
+                confirmed: true,
               },
               orderBy: {
                 createdAt: 'desc',
@@ -264,7 +232,13 @@ export class ProductsService implements ProductServiceInterface {
             entriesToSend.push(productOnContainer);
 
             if (!stock) {
-              if (quantity >= product.lojaQuantity + product.galpaoQuantity)
+              if (
+                quantity >=
+                product.lojaQuantity +
+                  product.galpaoQuantity +
+                  product.galpaoQuantityReserve +
+                  product.lojaQuantityReserve
+              )
                 break;
             } else if (stock === Stock.GALPAO) {
               if (quantity >= product.galpaoQuantity) break;
@@ -297,7 +271,8 @@ export class ProductsService implements ProductServiceInterface {
               quantityReceived: transference.entryAmount,
             });
 
-            if (quantity >= product.lojaQuantity) break;
+            if (quantity >= product.lojaQuantity + product.lojaQuantityReserve)
+              break;
           }
         }
       }
@@ -354,19 +329,50 @@ export class ProductsService implements ProductServiceInterface {
   }
 
   async entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer> {
-    const { codeOrEan, container, operator, quantity, observation } =
-      productEntry;
-
-    if (!container) throw new ProductContainerIsRequiredError();
-    if (!codeOrEan) throw new ProductCodeOrEanIsRequiredError();
-    if (!quantity) throw new ProductQuantityIsRequiredError();
-    if (!productEntry.importer) throw new ProductImporterIsRequiredError();
+    const {
+      code,
+      container,
+      operator,
+      quantity,
+      observation,
+      description,
+      ean,
+    } = productEntry;
 
     const importer = getImporterId(productEntry.importer);
-    const product = await this.getProductByCodeOrEan(codeOrEan);
+    let product = await this.prismaService.product.findFirst({
+      where: {
+        OR: [
+          {
+            code,
+          },
+          {
+            ean,
+          },
+        ],
+      },
+    });
 
-    if (!product || product.importer !== importer)
-      throw new ProductNotFoundError();
+    if (product && product.importer !== importer)
+      throw new HttpException(
+        `Produto encontrado com outra importadora: ${product.importer}`,
+        HttpStatus.BAD_REQUEST,
+      );
+    else if (!product) {
+      // create the product if if don't exists
+      if (!description)
+        throw new HttpException(
+          `O campo *Descrição* é obrigatória para a criação de um produto`,
+          HttpStatus.BAD_REQUEST,
+        );
+
+      product = await this.createProduct({
+        code,
+        importer,
+        description,
+        ean,
+      });
+    }
 
     const productsContainer =
       await this.containerService.findOrCreateContainer(container);
@@ -442,6 +448,111 @@ export class ProductsService implements ProductServiceInterface {
     return productsOnContainer;
   }
 
+  async entryProductByExcelFile(file: any) {
+    const entriesData = await this.excelService.readEntryProductExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < entriesData.length; index++) {
+        let rowIndex = index + 2;
+        const row = entriesData[index];
+        const {
+          codeOrEan,
+          container,
+          importer: importerName,
+          operator,
+          quantity,
+          observation,
+        } = row;
+
+        const importer = getImporterId(importerName);
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        if (product.importer !== importer)
+          throw new HttpException(
+            `Produto, com essa importadora, não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        const productsContainer =
+          await this.containerService.findOrCreateContainer(container);
+
+        const productsOnContainerFound =
+          await this.containerService.getProductOnContainer(
+            product,
+            productsContainer,
+          );
+
+        if (productsOnContainerFound)
+          throw new HttpException(
+            `Produto ${product.code} já está no container ${container}, linha ${row}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.productsOnContainer.create({
+          data: {
+            quantityExpected: quantity,
+            quantityReceived: quantity,
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            observation,
+          },
+          include: {
+            product: true,
+            container: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            galpaoQuantity: {
+              increment: quantity,
+            },
+          },
+        });
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            operator: operator,
+            toStock: Stock.GALPAO,
+            entryAmount: quantity,
+            type: TransactionType.ENTRY,
+            observation: observation,
+            confirmed: true,
+          },
+        });
+      }
+    });
+
+    return entriesData;
+  }
+
   async exitProduct(productExit: ProductExit): Promise<Transaction> {
     if (!productExit.codeOrEan) throw new ProductCodeOrEanIsRequiredError();
     if (!productExit.from) throw new ProductStockIsRequiredError('origem');
@@ -460,6 +571,7 @@ export class ProductsService implements ProductServiceInterface {
 
     if (stockId !== Stock.LOJA && stockId !== Stock.GALPAO)
       throw new StockNotFoundError();
+
     if (
       (stockId === Stock.LOJA && product.lojaQuantity < productExit.quantity) ||
       (stockId === Stock.GALPAO &&
@@ -488,6 +600,74 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     return transaction;
+  }
+
+  async exitProductByExcelFile(file: any) {
+    const exitsData = await this.excelService.readExitProductExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < exitsData.length; index++) {
+        const rowIndex = index + 2;
+        const row = exitsData[index];
+
+        const { codeOrEan, stock, operator, quantity, observation, client } =
+          row;
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        let stockId: any;
+        try {
+          stockId = getStockId(stock);
+        } catch {
+          stockId = undefined;
+        }
+
+        if (!stockId)
+          throw new HttpException(
+            `Estoque não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        if (
+          (stockId === Stock.LOJA && product.lojaQuantity < quantity) ||
+          (stockId === Stock.GALPAO && product.galpaoQuantity < quantity)
+        )
+          throw new HttpException(
+            `Quantidade insuficiente na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            fromStock: stockId,
+            exitAmount: quantity,
+            type: TransactionType.EXIT,
+            observation: observation,
+            operator: operator,
+            client: client,
+            confirmed: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            [stockId == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+              decrement: quantity,
+            },
+          },
+        });
+      }
+    });
+
+    return exitsData;
   }
 
   async devolutionProduct(
@@ -540,6 +720,56 @@ export class ProductsService implements ProductServiceInterface {
     return transaction;
   }
 
+  async devolutionProductByExcelFile(file: any) {
+    const devolutionData =
+      await this.excelService.readDevolutionsExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let i = 0; i < devolutionData.length; i++) {
+        const { codeOrEan, client, observation, operator, quantity, stock } =
+          devolutionData[i];
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${i + 2}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            toStock: stock,
+            entryAmount: quantity,
+            type: TransactionType.DEVOLUTION,
+            observation: observation,
+            operator: operator,
+            client: client,
+            confirmed: true,
+          },
+        });
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            [stock == Stock.GALPAO ? 'galpaoQuantity' : 'lojaQuantity']: {
+              increment: quantity,
+            },
+          },
+        });
+      }
+    });
+
+    return devolutionData;
+  }
+
   async transferProduct(
     productTransference: ProductTransference,
   ): Promise<Transaction> {
@@ -563,6 +793,55 @@ export class ProductsService implements ProductServiceInterface {
     });
 
     return transference;
+  }
+
+  async transferProductByExcelFile(file: any) {
+    const transferData = await this.excelService.readTransferExcelFile(file);
+
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let index = 0; index < transferData.length; index++) {
+        const rowIndex = index + 2;
+        const row = transferData[index];
+
+        const {
+          codeOrEan,
+          quantity,
+          operator,
+          location,
+          observation,
+          from,
+          to,
+        } = row;
+
+        const product = await this.getProductByCodeOrEan(codeOrEan);
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        return this.prismaService.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            fromStock: from,
+            toStock: to,
+            entryExpected: quantity,
+            type: TransactionType.TRANSFERENCE,
+            observation: observation,
+            operator: operator,
+            location: location,
+            confirmed: false,
+          },
+        });
+      }
+    });
+
+    return transferData;
   }
 
   async confirmTransference(data: {
@@ -672,7 +951,10 @@ export class ProductsService implements ProductServiceInterface {
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where,
+        where: {
+          ...where,
+          confirmed: true,
+        },
         orderBy: {
           createdAt: orderBy === 'asc' ? 'asc' : 'desc',
         },

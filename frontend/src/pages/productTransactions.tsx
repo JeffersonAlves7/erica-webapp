@@ -1,5 +1,5 @@
 import { CloseButton } from "@/components/buttons/closeButton";
-import { ModalDelete } from "@/components/modalDelete";
+import { ModalConfirm } from "@/components/ModalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -119,7 +119,9 @@ export function ProductTransactions() {
 
   return (
     <Stack h={"full"} gap={5}>
-      <Heading>Rotação - {code}</Heading>
+      <Heading>
+        {product?.description || "Rotação"} - {code}
+      </Heading>
       <StockButtonSelector onClick={handleChangeStock} />
 
       <ProductInfo
@@ -160,14 +162,14 @@ export function ProductTransactions() {
         }}
       />
 
-      <ModalDelete
+      <ModalConfirm
         isOpen={isOpen}
         onClose={onClose}
         handleConfirm={handleConfirmDelete}
       >
         Você realmente deseja excluir esta transação? Essa ação não pode ser
         desfeita.
-      </ModalDelete>
+      </ModalConfirm>
     </Stack>
   );
 }

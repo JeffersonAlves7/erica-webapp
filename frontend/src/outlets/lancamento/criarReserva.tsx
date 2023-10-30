@@ -1,14 +1,14 @@
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import { Card, CardBody, CardHeader, FormControl, FormLabel, Grid, GridItem, Heading, Input } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { QuantityInput } from "@/components/inputs/quantity.input";
-import { ClientInput } from "@/components/inputs/client.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
 import { reservesService } from "@/services/reserves.service";
 import { DateInput } from "@/components/inputs/dateInput";
+import { excelService } from "@/services/excel.service";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");
@@ -77,6 +77,18 @@ export function CriarReserva() {
       });
   }
 
+  function handleUploadReserve(file: File) {
+    excelService
+      .uploadProductReserve(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        setStatus("error");
+        setError(err?.response?.data?.message);
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
@@ -95,14 +107,25 @@ export function CriarReserva() {
             <CodeOrEanInput ref={codigoOuEanRef} />
             <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={stockRef} />
-            <ClientInput ref={clienteRef} />
+
+            <FormControl>
+              <FormLabel>Destino/Cliente</FormLabel>
+              <Input required ref={clienteRef} />
+            </FormControl>
+
             <OperatorInput ref={operatorRef} />
             <DateInput label="Data de retirada" ref={dataDeRediradaRef} />
-            <ObservacaoInput ref={observacaoRef} />
+            <GridItem colSpan={2}>
+              <ObservacaoInput ref={observacaoRef} />
+            </GridItem>
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleUploadReserve}
+        />
       </form>
     </Card>
   );

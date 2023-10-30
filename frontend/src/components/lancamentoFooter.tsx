@@ -6,10 +6,12 @@ import {
   CardFooter,
   Flex
 } from "@chakra-ui/react";
+import { ExcelUploadButton } from "./buttons/excelButtons";
 
 interface LancamentoFooterProps {
   status: "idle" | "loading" | "error" | "success";
   error?: string;
+  onUpload?: (file: any) => void;
 }
 
 export function LancamentoFooter(props: LancamentoFooterProps) {
@@ -30,17 +32,22 @@ export function LancamentoFooter(props: LancamentoFooterProps) {
             Lançamento incluído com sucesso!
           </Alert>
         )}
-        <Flex mt={3} gap={3}>
-          <Button type="reset" colorScheme="red">
-            Cancelar
-          </Button>
-          <Button
-            type="submit"
-            colorScheme="green"
-            backgroundColor={"erica.green"}
-          >
-            Criar
-          </Button>
+        <Flex mt={3} justify={"space-between"} align={"center"}>
+          <Flex gap={3}>
+            <Button type="reset" colorScheme="red">
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              colorScheme="green"
+              backgroundColor={"erica.green"}
+            >
+              Criar
+            </Button>
+          </Flex>
+          {props.onUpload && (
+            <ExcelUploadButton onUpload={props.onUpload} withTitle />
+          )}
         </Flex>
       </Box>
     </CardFooter>

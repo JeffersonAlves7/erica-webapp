@@ -17,33 +17,25 @@ model User {
 }
 
 model Product {
-  id                  Int                   @id @default(autoincrement())
-  code                String
-  ean                 String?
-  importer            String
-  description         String?
+  id          Int     @id @default(autoincrement())
+  code        String
+  ean         String?
+  importer    String
+  description String?
 
-  galpaoQuantity      Int                   @default(0) @map("galpao_quantity")
-  galpaoQuantityReserve Int                @default(0) @map("galpao_quantity_reserve")
-  lojaQuantity        Int                   @default(0) @map("loja_quantity")
-  lojaQuantityReserve Int                   @default(0) @map("loja_quantity_reserve")
+  galpaoQuantity        Int @default(0) @map("galpao_quantity")
+  galpaoQuantityReserve Int @default(0) @map("galpao_quantity_reserve")
+  lojaQuantity          Int @default(0) @map("loja_quantity")
+  lojaQuantityReserve   Int @default(0) @map("loja_quantity_reserve")
 
   lojaLocation        String?               @map("loja_location")
   createdAt           DateTime              @default(now()) @map("created_at")
   updatedAt           DateTime              @updatedAt @map("updated_at")
-  productsOnContainer ProductsOnContainer[] 
+  productsOnContainer ProductsOnContainer[]
   transactions        Transaction[]
 
   @@map("products")
 }
-
-// enum Importer {
-//   ATTUS_BLOOM
-//   ATTUS
-//   ALPHA_YNFINITY
-  
-//   @@map("importers")
-// }
 
 model Container {
   id                  String                @id @unique
@@ -59,12 +51,19 @@ model ProductsOnContainer {
   id               Int       @id @default(autoincrement())
   containerId      String    @map("container_id")
   productId        Int       @map("product_id")
-  quantityExpected Int      @map("quantity_expected")
-  quantityReceived Int      @map("quantity_received")
+  quantityExpected Int       @default(0) @map("quantity_expected")
+  quantityReceived Int       @default(0) @map("quantity_received")
   container        Container @relation(fields: [containerId], references: [id])
   product          Product   @relation(fields: [productId], references: [id])
+  confirmed        Boolean   @default(true)
+  inConference     Boolean   @default(false)
   observation      String?
-  createdAt        DateTime  @default(now()) @map("created_at")
+
+  embarqueAt DateTime? @map("embarque_at")
+  arrivalAt  DateTime? @map("arrival_at")
+
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updatedAt")
 
   @@index([containerId], map: "ProductsOnContainer_container_id_fkey")
   @@index([productId], map: "ProductsOnContainer_product_id_fkey")
@@ -72,46 +71,31 @@ model ProductsOnContainer {
 }
 
 model Transaction {
-  id               Int       @id @default(autoincrement())
-  productId        Int       @map("product_id")
-  type             String 
-  fromStock        String?    @map("from_stock")
-  toStock          String?    @map("to_stock")
-  client           String?
-  operator         String?
+  id        Int     @id @default(autoincrement())
+  productId Int     @map("product_id")
+  type      String
+  fromStock String? @map("from_stock")
+  toStock   String? @map("to_stock")
+  client    String?
+  operator  String?
 
-  entryAmount      Int?      @default(0) @map("entry_amount")
-  entryExpected    Int?      @default(0) @map("entry_expected")
-  exitAmount       Int?      @default(0) @map("exit_amount")
+  entryAmount   Int? @default(0) @map("entry_amount")
+  entryExpected Int? @default(0) @map("entry_expected")
+  exitAmount    Int? @default(0) @map("exit_amount")
 
-  observation      String?
-  partnerId        Int?   @map("partner_id")
-  location         String?
-  confirmed        Boolean   @default(false) @map("checked")
-  containerId      String?   @map("container_id")
-  container        Container? @relation(fields: [containerId], references: [id])
-  product          Product   @relation(fields: [productId], references: [id])
-  createdAt        DateTime  @default(now()) @map("created_at")
-  exitDate         DateTime? @map("exit_date") 
-  updatedAt        DateTime  @updatedAt @map("updated_at")
+  observation String?
+  partnerId   Int?    @map("partner_id")
+  location    String?
+  confirmed   Boolean @default(false) @map("checked")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  exitDate  DateTime? @map("exit_date")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  container   Container? @relation(fields: [containerId], references: [id])
+  containerId String?    @map("container_id")
+  product     Product    @relation(fields: [productId], references: [id])
 
   @@index([productId], map: "Transactions_product_id_fkey")
   @@map("transactions")
 }
-
-// enum TransactionType {
-//   ENTRY
-//   EXIT
-//   RESERVE
-//   DEVOLUTION
-//   TRANSFERENCE
-
-//   @@map("transaction_types")
-// }
-
-// enum Stock {
-//   GALPAO
-//   LOJA
-
-//   @@map("stocks")
-// }

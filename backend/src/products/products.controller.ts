@@ -9,7 +9,9 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -20,10 +22,19 @@ import {
 } from 'src/error/transaction.errors';
 import { ProductInvalidProductsError } from 'src/error/products.errors';
 import { PageMaxLimitError } from 'src/error/page.errors';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ProductEntry } from './types/product.interface';
 
 @Controller('products')
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
+
+  @UseGuards(AuthGuard)
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadExcelFile(@UploadedFile() file: any) {
+    return this.productsService.uploadExcelFile(file);
+  }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
@@ -70,15 +81,16 @@ export class ProductsController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('entry')
-  entryProduct(@Body() productEntry: Record<string, any>) {
-    return this.productsService.entryProduct({
-      codeOrEan: productEntry.codeOrEan,
-      container: productEntry.container,
-      importer: productEntry.importer,
-      operator: productEntry.operator,
-      observation: productEntry.observation,
-      quantity: productEntry.quantity,
-    });
+  entryProduct(@Body() productEntry: ProductEntry) {
+    return this.productsService.entryProduct(productEntry);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('entry/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  entryProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.entryProductByExcelFile(file);
   }
 
   @UseGuards(AuthGuard)
@@ -111,6 +123,14 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
+  @Post('exit/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  exitProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.exitProductByExcelFile(file);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Post('devolution')
   devolutionProduct(@Body() productDevolution: Record<string, any>) {
     return this.productsService.devolutionProduct({
@@ -125,6 +145,14 @@ export class ProductsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
+  @Post('devolution/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  devolutionProductBySheet(@UploadedFile() file: any) {
+    return this.productsService.devolutionProductByExcelFile(file);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
   @Post('transference')
   productTransference(@Body() productTransference: Record<string, any>) {
     return this.productsService.transferProduct({
@@ -134,6 +162,14 @@ export class ProductsController {
       quantity: productTransference.quantity,
       location: productTransference.location,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('transference/sheet')
+  @UseInterceptors(FileInterceptor('file'))
+  productTransferenceBySheet(@UploadedFile() file: any) {
+    return this.productsService.transferProductByExcelFile(file);
   }
 
   @UseGuards(AuthGuard)

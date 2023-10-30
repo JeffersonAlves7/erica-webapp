@@ -7,7 +7,11 @@ export function IncluirLancamento() {
     {
       title: "Entrada",
       to: "entrada",
-      or: ["incluir-lancamento", "/incluir-lancamento/entrada", "/incluir-lancamento"]
+      or: [
+        "incluir-lancamento",
+        "/incluir-lancamento/entrada",
+        "/incluir-lancamento"
+      ]
     },
     {
       title: "Saída",
@@ -28,7 +32,7 @@ export function IncluirLancamento() {
       title: "Reserva",
       to: "reserva",
       or: ["/incluir-lancamento/reserva"]
-    }
+    },
   ];
 
   return (

@@ -3,7 +3,7 @@ import { SearchButton } from "@/components/buttons/searchButton";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
-import { ModalDelete } from "@/components/modalDelete";
+import { ModalConfirm } from "@/components/ModalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -91,13 +91,13 @@ export function Stocks() {
   }
 
   function handleChangeStock(stock: string) {
-    if (stock === "Geral") {
-      setStock(undefined);
-    } else if (stock === "Galpão") {
-      setStock(Stock.GALPAO);
-    } else if (stock === "Loja") {
-      setStock(Stock.LOJA);
-    }
+    setStock(
+      stock === "Geral"
+        ? undefined
+        : stock === "Galpão"
+        ? Stock.GALPAO
+        : Stock.LOJA
+    );
   }
 
   const qntDeCaixas = items.reduce<number | ProductsWithStock>(
@@ -212,13 +212,13 @@ export function Stocks() {
         </Box>
       </Stack>
 
-      <ModalDelete
+      <ModalConfirm
         isOpen={isOpen}
         onClose={onClose}
         handleConfirm={handleConfirmDeleteProduct}
       >
         Tem certeza que deseja apagar o produto?
-      </ModalDelete>
+      </ModalConfirm>
     </>
   );
 }
@@ -274,8 +274,13 @@ function StockItem({
   stock: Stock | undefined;
   handleDelete: (id: number) => void;
 }) {
-  const quantidadeParaAlerta =
-    item.quantidadeEntrada * (alertaPorcentagem / 100);
+  /* 
+  fix: invalid float value problema
+  Fix it using math's floor method
+  */
+  const quantidadeParaAlerta = Math.floor(
+    item.quantidadeEntrada * (alertaPorcentagem / 100)
+  );
 
   const saldoColor = !stock
     ? item.saldo > quantidadeParaAlerta
@@ -302,7 +307,7 @@ function StockItem({
       <Td>{item.importadora}</Td>
       <Td>{date}</Td>
       <Td>{item.diasEmEstoque} dia(s)</Td>
-      {!stock && <Td>{item.giro}%</Td>}
+      {!stock && <Td>{Number(item.giro).toFixed(1)}%</Td>}
       {!stock && <Td>{quantidadeParaAlerta}</Td>}
       <Td>{item.observacao}</Td>
       <Td>

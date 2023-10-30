@@ -10,12 +10,14 @@ import {
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
 interface ProductEntry {
-  codeOrEan: string;
+  code: string;
   container: string;
   quantity: number;
   importer: Importer;
   operator: string;
   observation?: string;
+  description?: string;
+  ean?: string;
 }
 
 interface Product {
@@ -164,6 +166,16 @@ class ProductService {
     return response.data as EntryResponse;
   }
 
+  async createRegister(body: {
+    code: string;
+    ean?: string;
+    importer: string;
+    description?: string;
+  }) {
+    const response = await api.post("/products/create", body);
+    return response.data;
+  }
+
   async createExit(productExit: ProductExit) {
     const response = await api.post("/products/exit", productExit);
     return response.data;
@@ -183,11 +195,17 @@ class ProductService {
 
       const entradaSum =
         entriesLength > 0
-          ? item.entries.reduce((previous: any, current: any) => {
-              if (typeof previous == "number")
-                return previous + current.quantityReceived;
-              return previous.quantityReceived + current.quantityReceived;
-            }, 0)
+          ? pageableParams.stock != Stock.LOJA
+            ? item.entries.reduce((previous: any, current: any) => {
+                if (typeof previous == "number")
+                  return previous + current.quantityReceived;
+                return previous.quantityReceived + current.quantityReceived;
+              }, 0)
+            : item.entries.reduce((previous: any, current: any) => {
+                if (typeof previous == "number")
+                  return previous + current.exitAmount;
+                return previous.exitAmount + current.exitAmount;
+              }, 0)
           : 0;
 
       const containerNames =
@@ -216,12 +234,12 @@ class ProductService {
         ? item.galpaoQuantity + item.galpaoQuantityReserve
         : item.lojaQuantity + item.lojaQuantityReserve;
 
-      const giro =
+      let giro =
         pageableParams.stock != Stock.LOJA
-          ? diasEmEstoque > 0
-            ? (entradaSum - saldo) / diasEmEstoque
-            : (entradaSum - saldo) / 1
+          ? ((entradaSum - saldo) / entradaSum) * 100
           : 0;
+
+      if (!isFinite(giro)) giro = 0;
 
       const observacao = entriesLength > 0 ? item.entries[0].observation : "";
 

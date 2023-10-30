@@ -4,12 +4,23 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
-import { Card, CardBody, CardHeader, Grid, Heading } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  FormControl,
+  FormLabel,
+  Grid,
+  GridItem,
+  Heading,
+  Input
+} from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
 import { Stock } from "@/types/stock.enum";
-import { ClientInput } from "@/components/inputs/client.input";
+import { excelService } from "@/services/excel.service";
+import { handleError401 } from "@/services/api";
 
 export function CriarSaida() {
   const [status, setStatus] = useState<
@@ -67,6 +78,20 @@ export function CriarSaida() {
         estoqueRef.current!.value = "";
       })
       .catch((err) => {
+        handleError401(err);
+        setError(err?.response?.data?.message || err.message);
+        setStatus("error");
+      });
+  }
+
+  function handleUpload(file: any) {
+    excelService
+      .uploadProductsExit(file)
+      .then(() => {
+        setStatus("success");
+      })
+      .catch((err) => {
+        handleError401(err);
         setError(err?.response?.data?.message || err.message);
         setStatus("error");
       });
@@ -90,13 +115,24 @@ export function CriarSaida() {
             <CodeOrEanInput ref={codigoRef} />
             <QuantityInput ref={quantidadeRef} />
             <StockInput label="Origem" ref={estoqueRef} />
-            <ClientInput ref={clienteRef} />
+
+            <FormControl>
+              <FormLabel>Destino/Cliente</FormLabel>
+              <Input required ref={clienteRef} />
+            </FormControl>
+
             <OperatorInput ref={operadorRef} />
-            <ObservacaoInput ref={observacaoRef} />
+            <GridItem colSpan={2}>
+              <ObservacaoInput ref={observacaoRef} />
+            </GridItem>
           </Grid>
         </CardBody>
 
-        <LancamentoFooter status={status} error={error} />
+        <LancamentoFooter
+          status={status}
+          error={error}
+          onUpload={handleUpload}
+        />
       </form>
     </Card>
   );

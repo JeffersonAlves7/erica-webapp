@@ -17,10 +17,12 @@ import {
 } from 'src/error/products.errors';
 import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { Stock } from 'src/types/stock.enum';
+import { ExcelService } from '../excel/excel.service';
 
 @Injectable()
 export class ReservesService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(private prismaService: PrismaService, 
+    private excelService: ExcelService) { }
 
   async getReservesByPage(
     params: GetReservesDto,
@@ -263,6 +265,94 @@ export class ReservesService {
       });
 
       return transaction;
+    });
+  }
+
+  async createReservesByFile(file: any) {
+    const reserveData = await this.excelService.readReservesFile(file);
+
+    this.prismaService.$transaction(async (prisma) => {
+      for (let i = 0; i < reserveData.length; i++) {
+        const row = reserveData[i];
+        const rowIndex = i + 2;
+
+        const {
+          client,
+          codeOrEan,
+          dataDeSaida,
+          observation,
+          operator,
+          quantity,
+          stock,
+        } = row;
+
+        const product = await this.prismaService.product.findFirst({
+          where: {
+            OR: [
+              {
+                code: codeOrEan,
+              },
+              {
+                ean: codeOrEan,
+              },
+            ],
+          },
+        });
+
+        if (!product)
+          throw new HttpException(
+            `Produto não encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        if (stock === Stock.LOJA && product.lojaQuantity < quantity)
+          throw new HttpException(
+            `Quantidade insuficiente no estoque da loja, linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        if (stock === Stock.GALPAO && product.galpaoQuantity < quantity)
+          throw new HttpException(
+            `Quantidade insuficiente no estoque do galpão, linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
+        await prisma.product.update({
+          data: {
+            [stock === Stock.LOJA
+              ? 'lojaQuantityReserve'
+              : 'galpaoQuantityReserve']: {
+              increment: quantity,
+            },
+            [stock === Stock.LOJA ? 'lojaQuantity' : 'galpaoQuantity']: {
+              decrement: quantity,
+            },
+          },
+          where: {
+            id: product.id,
+          },
+        });
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            type: TransactionType.RESERVE,
+            client: client,
+            operator: operator,
+            confirmed: false,
+            entryAmount: quantity,
+            observation: observation,
+            fromStock: stock,
+            exitDate: dataDeSaida,
+          },
+          include: {
+            product: true,
+          },
+        });
+      }
     });
   }
 
