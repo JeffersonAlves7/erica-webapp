@@ -67,6 +67,19 @@ class ExcelService {
     return response.data;
   }
 
+  async uploadProductEmbarques(file: File) {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await api.post("/embarques/sheet", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      }
+    });
+
+    return response.data;
+  }
+
   async downloadProducts() {
     const products = [
       {

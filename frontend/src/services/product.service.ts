@@ -193,7 +193,6 @@ class ProductService {
     const items = data.data.map((item: any) => {
       const entriesLength = item.entries.length;
 
-      console.log(item.entries)
       const entradaSum =
         entriesLength > 0
           ? pageableParams.stock != Stock.LOJA
@@ -235,10 +234,12 @@ class ProductService {
         ? item.galpaoQuantity + item.galpaoQuantityReserve
         : item.lojaQuantity + item.lojaQuantityReserve;
 
-      const giro =
+      let giro =
         pageableParams.stock != Stock.LOJA
           ? ((entradaSum - saldo) / entradaSum) * 100
           : 0;
+
+      if (!isFinite(giro)) giro = 0;
 
       const observacao = entriesLength > 0 ? item.entries[0].observation : "";
 

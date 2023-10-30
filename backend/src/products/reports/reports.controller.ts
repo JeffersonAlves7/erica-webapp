@@ -1,11 +1,13 @@
-import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ReportsInvalidDateError } from 'src/error/reports.errors';
+import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('reports')
 export class ReportsController {
   constructor(private reportsService: ReportsService) {}
 
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('exit')
   exitReports(@Query() query: { day?: string; page?: string; limit?: string }) {
@@ -30,6 +32,7 @@ export class ReportsController {
     });
   }
 
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('stock-minimum')
   stockMinimumReports(@Query() query: { page?: string; limit?: string }) {

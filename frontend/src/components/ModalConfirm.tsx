@@ -17,7 +17,7 @@ interface ModalDeleteProps extends PropsWithChildren {
   handleConfirm: () => void;
 }
 
-export function ModalDelete(props: ModalDeleteProps) {
+export function ModalConfirm(props: ModalDeleteProps) {
   const { onClose, isOpen, handleConfirm, children } = props;
 
   return (

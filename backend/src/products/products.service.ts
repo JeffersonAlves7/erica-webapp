@@ -24,10 +24,7 @@ import {
   ProductAlreadyExistsWithOtherCodeError,
   ProductAlreadyInContainerError,
   ProductClientIsRequiredError,
-  ProductCodeIsRequiredError,
   ProductCodeOrEanIsRequiredError,
-  ProductContainerIsRequiredError,
-  ProductImporterIsRequiredError,
   ProductNotFoundError,
   ProductOperatorIsRequiredError,
   ProductQuantityIsRequiredError,
@@ -42,41 +39,8 @@ import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
 import { ExcelService } from './excel/excel.service';
 
-interface ProductServiceInterface {
-  createProduct(productCreation: ProductCreation): Promise<Product>;
-  getAllProductsAndStockByPage(
-    pageableParams: ProductWithLastEntryParams,
-  ): Promise<Pageable<Product>>;
-  getAllProductsByPage(
-    pageableParams: PageableParams,
-  ): Promise<Pageable<Product>>;
-
-  entryProduct(productEntry: ProductEntry): Promise<ProductsOnContainer>;
-  exitProduct(productExit: ProductExit): Promise<Transaction>;
-  transferProduct(
-    productTransference: ProductTransference,
-  ): Promise<Transaction>;
-  confirmTransference(data: {
-    id: number;
-    entryAmount: number;
-    location?: string;
-  }): Promise<Transaction>;
-
-  getAllEntriesByPage(
-    pageableParams: PageableParams & EntriesFilterParams,
-  ): Promise<Pageable<ProductsOnContainer>>;
-  getAllTransferencesByPage(
-    pageableParams: TransferenceFilterParams,
-  ): Promise<Pageable<any>>;
-
-  deleteTransaction(id: number): Promise<Transaction>;
-  getAllTransactionsByPage(
-    pageableParams: TransactionFilterParams,
-  ): Promise<Pageable<Transaction>>;
-}
-
 @Injectable()
-export class ProductsService implements ProductServiceInterface {
+export class ProductsService{
   constructor(
     private prismaService: PrismaService,
     private transactionsService: TransactionsService,
@@ -251,6 +215,7 @@ export class ProductsService implements ProductServiceInterface {
               take: 10,
               where: {
                 productId: product.id,
+                confirmed: true,
               },
               orderBy: {
                 createdAt: 'desc',
@@ -986,7 +951,10 @@ export class ProductsService implements ProductServiceInterface {
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
-        where,
+        where: {
+          ...where,
+          confirmed: true,
+        },
         orderBy: {
           createdAt: orderBy === 'asc' ? 'asc' : 'desc',
         },

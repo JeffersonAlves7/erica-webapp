@@ -1,4 +1,4 @@
-import { ModalDelete } from "@/components/modalDelete";
+import { ModalConfirm } from "@/components/ModalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
@@ -239,13 +239,13 @@ export function Conferencias() {
         Confirmar Transferências
       </Button>
 
-      <ModalDelete
+      <ModalConfirm
         isOpen={isOpen}
         onClose={onClose}
         handleConfirm={handleConfirmButton}
       >
         Você realmente deseja confirmar essa conferência?
-      </ModalDelete>
+      </ModalConfirm>
     </Stack>
   );
 }

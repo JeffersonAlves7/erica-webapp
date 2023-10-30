@@ -29,6 +29,7 @@ import { ProductEntry } from './types/product.interface';
 export class ProductsController {
   constructor(private productsService: ProductsService) {}
 
+  @UseGuards(AuthGuard)
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   uploadExcelFile(@UploadedFile() file: any) {

@@ -14,6 +14,8 @@ import { CriarDevolucao } from "./outlets/lancamento/criarDevolucao";
 import { CriarReserva } from "./outlets/lancamento/criarReserva";
 import { ProductTransactions } from "./pages/productTransactions";
 import { Reservas } from "./pages/reservas";
+import { Embarques } from "./pages/embarques";
+import { EmbarqueConferencia } from "./pages/embarqueConferencia";
 
 function App() {
   return (
@@ -79,6 +81,13 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/embarques" element={<Embarques />} />
+          <Route
+            path="/embarques/conferencias"
+            element={<EmbarqueConferencia />}
+          />
+
           <Route
             path="/produtos"
             element={

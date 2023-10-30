@@ -3,7 +3,7 @@ import { SearchButton } from "@/components/buttons/searchButton";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
-import { ModalDelete } from "@/components/modalDelete";
+import { ModalConfirm } from "@/components/ModalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -212,13 +212,13 @@ export function Stocks() {
         </Box>
       </Stack>
 
-      <ModalDelete
+      <ModalConfirm
         isOpen={isOpen}
         onClose={onClose}
         handleConfirm={handleConfirmDeleteProduct}
       >
         Tem certeza que deseja apagar o produto?
-      </ModalDelete>
+      </ModalConfirm>
     </>
   );
 }

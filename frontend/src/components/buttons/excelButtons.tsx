@@ -24,6 +24,7 @@ export function ExcelUploadButton(props: ExcelUploadButtonProps) {
       });
       return;
     }
+
     fileRef.current.value = "";
     props.onUpload && props.onUpload(file);
   }
