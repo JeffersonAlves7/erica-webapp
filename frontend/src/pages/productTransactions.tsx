@@ -9,6 +9,7 @@ import { Stock } from "@/types/stock.enum";
 import { TransactionType } from "@/types/transaction-type.enum";
 import {
   Box,
+  Flex,
   Grid,
   Heading,
   Stack,
@@ -19,14 +20,19 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure
+  useDisclosure,
+  useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 export function ProductTransactions() {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const deleteTransactionDisclosure = useDisclosure();
+  const deleteProductDisclusure = useDisclosure();
+
+  const toast = useToast();
+  const navigator = useNavigate();
 
   const [transactionToDelete, setTransactionToDelete] = useState<
     number | undefined
@@ -37,7 +43,11 @@ export function ProductTransactions() {
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
 
-  const { codigo: code } = useParams<{ codigo: string }>();
+  const { id: idString, codigo: code } = useParams<{
+    codigo: string;
+    id: string;
+  }>();
+  const id = parseInt(idString as string);
 
   const transactionsLimit = 10;
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
@@ -53,7 +63,7 @@ export function ProductTransactions() {
       })
       .then((response) => {
         setProduct(response.data[0]?.product);
-        setPage(1);
+        setPage(page);
         setPageQuantity(response.total);
         setTransactions(response.data);
       })
@@ -63,8 +73,6 @@ export function ProductTransactions() {
   }, [stock, code]);
 
   function handleChangePage(page: number) {
-    setPage(page);
-
     productService
       .getTransactions({
         limit: transactionsLimit,
@@ -75,6 +83,8 @@ export function ProductTransactions() {
       })
       .then((response) => {
         setProduct(response.data[0]?.product);
+        setPage(page);
+        setPageQuantity(response.total);
         setTransactions(response.data);
       })
       .catch((error) => {
@@ -92,14 +102,39 @@ export function ProductTransactions() {
     }
   }
 
+  function handleConfirmDeleteProduct() {
+    productService
+      .deleteProduct(id)
+      .then(() => {
+        toast({
+          title: "Produto apagado com sucesso",
+          status: "success",
+          duration: 3000,
+          isClosable: true
+        });
+        navigator("/")
+      })
+      .catch(() => {
+        toast({
+          title: "Falha ao apagar o produto",
+          status: "error",
+          duration: 3000,
+          isClosable: true
+        });
+      })
+      .finally(() => {
+        deleteProductDisclusure.onClose();
+      });
+  }
+
   function handleDelete(id: number) {
     setTransactionToDelete(id);
-    onOpen();
+    deleteTransactionDisclosure.onOpen();
   }
 
   function handleConfirmDelete() {
     if (!transactionToDelete) {
-      onClose();
+      deleteTransactionDisclosure.onClose();
       return;
     }
 
@@ -107,14 +142,14 @@ export function ProductTransactions() {
       .deleteTransaction(transactionToDelete)
       .then(() => {
         setTransactionToDelete(undefined);
-        onClose();
         handleChangePage(page);
       })
       .catch((error) => {
         handleError401(error);
+      })
+      .finally(() => {
+        deleteTransactionDisclosure.onClose();
       });
-
-    onClose();
   }
 
   return (
@@ -122,8 +157,13 @@ export function ProductTransactions() {
       <Heading>
         {product?.description || "Rotação"} - {code}
       </Heading>
-      <StockButtonSelector onClick={handleChangeStock} />
 
+      <Flex gap={4}>
+        <StockButtonSelector onClick={handleChangeStock} />
+
+        <CloseButton onClick={deleteProductDisclusure.onOpen}/>
+      </Flex>
+    `
       <ProductInfo
         galpaoQuantity={
           product?.galpaoQuantity + product?.galpaoQuantityReserve ?? 0
@@ -163,12 +203,20 @@ export function ProductTransactions() {
       />
 
       <ModalConfirm
-        isOpen={isOpen}
-        onClose={onClose}
+        isOpen={deleteTransactionDisclosure.isOpen}
+        onClose={deleteTransactionDisclosure.onClose}
         handleConfirm={handleConfirmDelete}
       >
         Você realmente deseja excluir esta transação? Essa ação não pode ser
         desfeita.
+      </ModalConfirm>
+
+      <ModalConfirm
+        isOpen={deleteProductDisclusure.isOpen}
+        onClose={deleteProductDisclusure.onClose}
+        handleConfirm={handleConfirmDeleteProduct}
+      >
+        Tem certeza que deseja apagar o produto?
       </ModalConfirm>
     </Stack>
   );

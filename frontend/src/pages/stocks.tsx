@@ -1,9 +1,7 @@
-import { CloseButton } from "@/components/buttons/closeButton";
 import { SearchButton } from "@/components/buttons/searchButton";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
-import { ModalConfirm } from "@/components/ModalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -21,8 +19,6 @@ import {
   Th,
   Thead,
   Tr,
-  useDisclosure,
-  useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
@@ -36,12 +32,6 @@ export function Stocks() {
   const [stock, setStock] = useState<Stock | undefined>(undefined);
   const [code, setCode] = useState<string | undefined>(undefined);
   const [alertaPorcentagem, setAlertaPorcentagem] = useState(50);
-  const [productIdToDelete, setProductIdToDelete] = useState<
-    ProductsWithStock["id"] | undefined
-  >(undefined);
-
-  const toast = useToast();
-  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const productsLimit = 10;
   const codigoRef = useRef<HTMLInputElement>(null);
@@ -108,52 +98,7 @@ export function Stocks() {
     0
   ) as number;
 
-  function handleConfirmDeleteProduct() {
-    console.log({ productIdToDelete });
-    productService
-      .deleteProduct(productIdToDelete!)
-      .then(() => {
-        productService
-          .getAllProductsStock({
-            page,
-            limit: productsLimit,
-            stock,
-            importer,
-            code
-          })
-          .then((data) => {
-            setItems(data.data);
-            setTotalItems(data.total);
-            setPage(1);
-          })
-          .catch((error) => {
-            handleError401(error);
-          });
-
-        toast({
-          title: "Produto apagado com sucesso",
-          status: "success",
-          duration: 3000,
-          isClosable: true
-        });
-      })
-      .catch((_) => {
-        toast({
-          title: "Erro ao apagar produto",
-          status: "error",
-          duration: 3000,
-          isClosable: true
-        });
-      });
-    onClose();
-  }
-
-  function handleDeleteProduct(id: number) {
-    setProductIdToDelete(id);
-    onOpen();
-  }
-
-  return (
+    return (
     <>
       <Stack gap={10} overflowY={"auto"}>
         <Heading>Estoques</Heading>
@@ -179,7 +124,44 @@ export function Stocks() {
 
         <Box overflow={"auto"} minH={200}>
           <Table>
-            <StockTableHead stock={stock} />
+            <Thead>
+              <Tr>
+                <Th>Código</Th>
+                <Th>
+                  Quantidade <br /> de entrada
+                </Th>
+                <Th>
+                  Saldo <br />
+                  Atual
+                </Th>
+                {stock != Stock.LOJA && (
+                  <Th>
+                    Container <br /> de Origem
+                  </Th>
+                )}
+                <Th>Importadora</Th>
+                <Th>
+                  Data <br />
+                  de Entrada
+                </Th>
+                <Th>
+                  Dias <br />
+                  em Estoque
+                </Th>
+                {!stock && (
+                  <>
+                    <Th>Giro</Th>
+                    <Th>
+                      Quantidade
+                      <br /> para alerta
+                    </Th>
+                  </>
+                )}
+                {stock == Stock.LOJA && <Th>Localização</Th>}
+                <Th>Observação</Th>
+              </Tr>
+            </Thead>
+
             <Tbody>
               {items.map((item) => (
                 <StockItem
@@ -187,7 +169,6 @@ export function Stocks() {
                   item={item}
                   alertaPorcentagem={alertaPorcentagem}
                   stock={stock}
-                  handleDelete={handleDeleteProduct}
                 />
               ))}
             </Tbody>
@@ -212,72 +193,19 @@ export function Stocks() {
         </Box>
       </Stack>
 
-      <ModalConfirm
-        isOpen={isOpen}
-        onClose={onClose}
-        handleConfirm={handleConfirmDeleteProduct}
-      >
-        Tem certeza que deseja apagar o produto?
-      </ModalConfirm>
     </>
-  );
-}
-
-function StockTableHead(props: { stock: Stock | undefined }) {
-  return (
-    <Thead>
-      <Tr>
-        <Th>Código</Th>
-        <Th>
-          Quantidade <br /> de entrada
-        </Th>
-        <Th>
-          Saldo <br />
-          Atual
-        </Th>
-        {props.stock != Stock.LOJA && (
-          <Th>
-            Container <br /> de Origem
-          </Th>
-        )}
-        <Th>Importadora</Th>
-        <Th>
-          Data <br />
-          de Entrada
-        </Th>
-        <Th>
-          Dias <br />
-          em Estoque
-        </Th>
-        {!props.stock && <Th>Giro</Th>}
-        {!props.stock && (
-          <Th>
-            Quantidade
-            <br /> para alerta
-          </Th>
-        )}
-        <Th>Observação</Th>
-        <Th>Apagar</Th>
-      </Tr>
-    </Thead>
   );
 }
 
 function StockItem({
   item,
   alertaPorcentagem,
-  stock,
-  handleDelete
+  stock
 }: {
   item: ProductsWithStock;
   alertaPorcentagem: number;
   stock: Stock | undefined;
-  handleDelete: (id: number) => void;
 }) {
-  /* 
-  fix: invalid float value problema
-  Fix it using math's floor method
-  */
   const quantidadeParaAlerta = Math.floor(
     item.quantidadeEntrada * (alertaPorcentagem / 100)
   );
@@ -297,7 +225,7 @@ function StockItem({
   return (
     <Tr>
       <Td>
-        <Link to={item.sku} className=" underline text-blue-500">
+        <Link to={`${item.sku}/${item.id}`} className=" underline text-blue-500">
           {item.sku}
         </Link>
       </Td>
@@ -307,12 +235,14 @@ function StockItem({
       <Td>{item.importadora}</Td>
       <Td>{date}</Td>
       <Td>{item.diasEmEstoque} dia(s)</Td>
-      {!stock && <Td>{Number(item.giro).toFixed(1)}%</Td>}
-      {!stock && <Td>{quantidadeParaAlerta}</Td>}
+      {!stock && (
+        <>
+          <Td>{Number(item.giro).toFixed(1)}%</Td>
+          <Td>{quantidadeParaAlerta}</Td>
+        </>
+      )}
+      {stock == Stock.LOJA && <Td>{item.lojaLocation}</Td>}
       <Td>{item.observacao}</Td>
-      <Td>
-        <CloseButton onClick={() => handleDelete(item.id)} />
-      </Td>
     </Tr>
   );
 }

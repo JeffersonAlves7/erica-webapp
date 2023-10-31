@@ -253,6 +253,7 @@ class ProductService {
         diasEmEstoque,
         dataDeEntrada: lastDate,
         giro,
+        lojaLocation: item.lojaLocation,
         observacao
       };
     });

@@ -33,7 +33,7 @@ function App() {
             }
           />
           <Route
-            path="/estoques/:codigo"
+            path="/estoques/:codigo/:id"
             element={
               <ProtectedRoute>
                 <ProductTransactions />

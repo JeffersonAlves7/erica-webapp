@@ -9,6 +9,7 @@ export interface ProductsWithStock {
   diasEmEstoque: number;
   giro: number;
   observacao?: string;
+  lojaLocation?: string
 }
 
 export interface ProductTransaction {

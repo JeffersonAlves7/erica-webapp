@@ -13,8 +13,11 @@ import {
 } from './types/product.interface';
 import { TransactionsService } from './transactions/transactions.service';
 import { ContainerService } from './container/container.service';
-import { getImporterId } from './utils/importer.utils';
-import { getStockId } from './utils/stock.utils';
+import {
+  getImporterId,
+  getImporterIdOrUndefined,
+} from './utils/importer.utils';
+import { getStockId, getStockIdOrUndefined } from './utils/stock.utils';
 import {
   TransactionFilterParams,
   TransferenceFilterParams,
@@ -40,7 +43,7 @@ import { Stock } from 'src/types/stock.enum';
 import { ExcelService } from './excel/excel.service';
 
 @Injectable()
-export class ProductsService{
+export class ProductsService {
   constructor(
     private prismaService: PrismaService,
     private transactionsService: TransactionsService,
@@ -155,39 +158,17 @@ export class ProductsService{
 
     const maxLimit = 100;
 
-    if (!limit) limit = 10;
+    if (!limit || limit > maxLimit) limit = 100;
     if (!page) page = 1;
-    if (limit > maxLimit) throw new PageMaxLimitError(maxLimit);
 
-    if (importer) {
-      try {
-        importer = getImporterId(importer);
-      } catch {
-        importer = undefined;
-      }
-    } else {
-      importer = undefined;
-    }
-
-    if (pageableParams.stock) {
-      try {
-        stock = getStockId(stock);
-      } catch {
-        stock = undefined;
-      }
-    } else {
-      stock = undefined;
-    }
+    importer = getImporterIdOrUndefined(importer);
+    stock = getStockIdOrUndefined(stock);
 
     const where: any = {
       importer: importer,
     };
 
-    if (code) {
-      where.code = {
-        contains: code ?? '',
-      };
-    }
+    if (code) where.code = { contains: code ?? '' };
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,

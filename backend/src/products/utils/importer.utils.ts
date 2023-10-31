@@ -16,7 +16,9 @@ export function getImporterId(importer: string): Importer {
   throw new Error('Importadora não encontrada');
 }
 
-export function getImporterIdOrNull(importer: string): Importer | null {
+export function getImporterIdOrUndefined(importer?: string): Importer | undefined {
+  if(!importer) return undefined;
+
   switch (importer.toLowerCase().trim().replace(/\s/g, '')) {
     case 'attus':
       return Importer.ATTUS;
@@ -30,5 +32,5 @@ export function getImporterIdOrNull(importer: string): Importer | null {
       return Importer.ALPHA_YNFINITY;
   }
 
-  return null;
+  return undefined;
 }
