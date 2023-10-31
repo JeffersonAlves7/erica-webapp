@@ -4,7 +4,6 @@ import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
 import {
-  ProductTransaction,
   ProductsWithStock
 } from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
@@ -63,12 +62,6 @@ interface GetTransferencesQueryParams extends PageableParams {
   orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
 }
 
-interface GetTransactionsQueryParams extends PageableParams {
-  orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
-  code?: string | undefined;
-  stock?: Stock | string | undefined;
-}
-
 interface CreateTransferenceParams {
   codeOrEan: string;
   quantity: number;
@@ -121,35 +114,6 @@ class ProductService {
     });
 
     return response.data;
-  }
-
-  async getTransactions(
-    pageableParams: GetTransactionsQueryParams
-  ): Promise<Pageable<ProductTransaction>> {
-    const response = await api.get("/products/transactions", {
-      params: pageableParams
-    });
-
-    const items = response.data.data.map((transaction: any, index: number) => ({
-      id: transaction.id,
-      code: transaction.product.code,
-      entryAmount: transaction.entryAmount,
-      exitAmount: transaction.exitAmount,
-      type: transaction.type,
-      from: transaction.fromStock,
-      to: transaction.toStock,
-      client: transaction.client,
-      operator: transaction.operator,
-      createdAt: transaction.createdAt,
-      observation: transaction.observation,
-      product: index == 0 ? transaction.product : undefined
-    }));
-
-    return {
-      data: items,
-      page: response.data.page,
-      total: response.data.total
-    };
   }
 
   async createTransference(data: CreateTransferenceParams) {
@@ -287,11 +251,6 @@ class ProductService {
       page: response.data.page,
       total: response.data.total
     };
-  }
-
-  async deleteTransaction(id: number) {
-    const response = await api.delete(`/products/transaction/${id}`);
-    return response.data;
   }
 
   async createDevolution(body: ProductDevolution) {

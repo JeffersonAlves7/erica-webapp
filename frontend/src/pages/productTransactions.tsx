@@ -4,9 +4,10 @@ import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
+import { transactionService } from "@/services/transactionService";
 import { ProductTransaction } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
-import { TransactionType } from "@/types/transaction-type.enum";
+import { TransactionTypePT } from "@/types/transaction-type.enum";
 import {
   Box,
   Flex,
@@ -52,9 +53,26 @@ export function ProductTransactions() {
   const transactionsLimit = 10;
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
 
+  function formatTransactions(data: any): any {
+    return data.map((transaction: any, index: number) => ({
+      id: transaction.id,
+      code: transaction.product.code,
+      entryAmount: transaction.entryAmount,
+      exitAmount: transaction.exitAmount,
+      type: transaction.type,
+      from: transaction.fromStock,
+      to: transaction.toStock,
+      client: transaction.client,
+      operator: transaction.operator,
+      createdAt: transaction.createdAt,
+      observation: transaction.observation,
+      product: index == 0 ? transaction.product : undefined
+    }));
+  }
+
   useEffect(() => {
-    productService
-      .getTransactions({
+    transactionService
+      .getAll({
         limit: transactionsLimit,
         page: page,
         orderBy: "desc",
@@ -62,10 +80,11 @@ export function ProductTransactions() {
         stock
       })
       .then((response) => {
-        setProduct(response.data[0]?.product);
+        const transactions = formatTransactions(response.data);
+        setProduct(transactions[0]?.product);
         setPage(page);
         setPageQuantity(response.total);
-        setTransactions(response.data);
+        setTransactions(transactions);
       })
       .catch((error) => {
         handleError401(error);
@@ -73,8 +92,8 @@ export function ProductTransactions() {
   }, [stock, code]);
 
   function handleChangePage(page: number) {
-    productService
-      .getTransactions({
+    transactionService
+      .getAll({
         limit: transactionsLimit,
         page: page,
         orderBy: "desc",
@@ -82,10 +101,11 @@ export function ProductTransactions() {
         stock
       })
       .then((response) => {
-        setProduct(response.data[0]?.product);
+        const transactions = formatTransactions(response.data);
+        setProduct(transactions[0]?.product);
         setPage(page);
         setPageQuantity(response.total);
-        setTransactions(response.data);
+        setTransactions(transactions);
       })
       .catch((error) => {
         handleError401(error);
@@ -112,7 +132,7 @@ export function ProductTransactions() {
           duration: 3000,
           isClosable: true
         });
-        navigator("/")
+        navigator("/");
       })
       .catch(() => {
         toast({
@@ -138,8 +158,8 @@ export function ProductTransactions() {
       return;
     }
 
-    productService
-      .deleteTransaction(transactionToDelete)
+    transactionService
+      .delete(transactionToDelete)
       .then(() => {
         setTransactionToDelete(undefined);
         handleChangePage(page);
@@ -157,13 +177,12 @@ export function ProductTransactions() {
       <Heading>
         {product?.description || "Rotação"} - {code}
       </Heading>
-
       <Flex gap={4}>
         <StockButtonSelector onClick={handleChangeStock} />
 
-        <CloseButton onClick={deleteProductDisclusure.onOpen}/>
+        <CloseButton onClick={deleteProductDisclusure.onOpen} />
       </Flex>
-    `
+      `
       <ProductInfo
         galpaoQuantity={
           product?.galpaoQuantity + product?.galpaoQuantityReserve ?? 0
@@ -173,7 +192,6 @@ export function ProductTransactions() {
           product?.galpaoQuantityReserve + product?.lojaQuantityReserve ?? 0
         }
       />
-
       <Box overflow={"auto"} minH={200}>
         <Table>
           <ProductTableHead />
@@ -188,7 +206,6 @@ export function ProductTransactions() {
           </Tbody>
         </Table>
       </Box>
-
       <PaginationSelector
         page={page}
         pageQuantity={pageLimit}
@@ -201,7 +218,6 @@ export function ProductTransactions() {
           handleChangePage(page - 1);
         }}
       />
-
       <ModalConfirm
         isOpen={deleteTransactionDisclosure.isOpen}
         onClose={deleteTransactionDisclosure.onClose}
@@ -210,7 +226,6 @@ export function ProductTransactions() {
         Você realmente deseja excluir esta transação? Essa ação não pode ser
         desfeita.
       </ModalConfirm>
-
       <ModalConfirm
         isOpen={deleteProductDisclusure.isOpen}
         onClose={deleteProductDisclusure.onClose}
@@ -293,7 +308,7 @@ function ProductTableItem({
       <Td>{transaction.entryAmount}</Td>
       <Td>{transaction.exitAmount}</Td>
       <Td>
-        {TransactionType[transaction.type as keyof typeof TransactionType]}
+        {TransactionTypePT[transaction.type as keyof typeof TransactionTypePT]}
       </Td>
       <Td>{transaction.from}</Td>
       <Td>{transaction.to}</Td>

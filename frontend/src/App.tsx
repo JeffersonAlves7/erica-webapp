@@ -16,6 +16,7 @@ import { ProductTransactions } from "./pages/productTransactions";
 import { Reservas } from "./pages/reservas";
 import { Embarques } from "./pages/embarques";
 import { EmbarqueConferencia } from "./pages/embarqueConferencia";
+import { HistoricoTransferencias } from "./pages/historicoTransferencias";
 
 function App() {
   return (
@@ -81,6 +82,15 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/incluir-lancamento/transferencia/historico"
+            element={
+              <ProtectedRoute>
+                <HistoricoTransferencias/>
+              </ProtectedRoute>
+            }
+          />
+
 
           <Route path="/embarques" element={<Embarques />} />
           <Route

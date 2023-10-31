@@ -1,4 +1,3 @@
-import { Link as RouterLink } from "react-router-dom";
 import {
   Alert,
   AlertIcon,
@@ -6,10 +5,10 @@ import {
   Button,
   CardFooter,
   Flex,
-  Link as ChakraLink,
   Stack
 } from "@chakra-ui/react";
 import { ExcelUploadButton } from "./buttons/excelButtons";
+import { EricaLink } from "./ericaLink";
 
 interface LancamentoFooterProps {
   status: "idle" | "loading" | "error" | "success";
@@ -52,18 +51,9 @@ export function LancamentoFooterWithLink(props: LancamentoFooterProps) {
           </Flex>
 
           <Stack align={"center"} justify={"center"}>
-            <ChakraLink
-              as={RouterLink}
-              to={props.to}
-              textDecoration={"underline"}
-              textColor={"#7B65FF"}
-              textAlign={"center"}
-            >
-              {props.linkText}
-            </ChakraLink>
+            <EricaLink to={props.to}>{props.linkText}</EricaLink>
             <ExcelUploadButton withTitle onUpload={props.onUpload} />
           </Stack>
-
         </Flex>
       </Box>
     </CardFooter>

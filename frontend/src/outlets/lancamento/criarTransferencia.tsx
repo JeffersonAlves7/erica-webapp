@@ -1,3 +1,4 @@
+import { EricaLink } from "@/components/ericaLink";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
 import { DestinyInput } from "@/components/inputs/destiny.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
@@ -7,7 +8,15 @@ import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink"
 import { excelService } from "@/services/excel.service";
 import { productService } from "@/services/product.service";
 import { Operator } from "@/types/operator.enum";
-import { Card, CardBody, CardHeader, Grid, GridItem, Heading } from "@chakra-ui/react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Flex,
+  Grid,
+  GridItem,
+  Heading
+} from "@chakra-ui/react";
 import { useRef, useState } from "react";
 
 export function CriarTransferencia() {
@@ -81,7 +90,11 @@ export function CriarTransferencia() {
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleConfirm}>
         <CardHeader>
-          <Heading size={"md"}>Criar Transferência</Heading>
+          <Flex justify={'space-between'}>
+            <Heading size={"md"}>Criar Transferência</Heading>
+
+            <EricaLink to="./historico">Histórico de Transferências</EricaLink>
+          </Flex>
         </CardHeader>
 
         <CardBody>
@@ -97,7 +110,7 @@ export function CriarTransferencia() {
             <OperatorInput ref={operatorRef} />
             <DestinyInput ref={locationRef} />
             <GridItem colSpan={2}>
-              <ObservacaoInput  ref={observacaoRef} />
+              <ObservacaoInput ref={observacaoRef} />
             </GridItem>
           </Grid>
         </CardBody>

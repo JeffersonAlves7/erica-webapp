@@ -11,6 +11,7 @@ import { ReservesService } from './reserves/reserves.service';
 import { ExcelService } from './excel/excel.service';
 import { EmbarquesController } from './embarques/embarques.controller';
 import { EmbarquesService } from './embarques/embarques.service';
+import { TransactionsController } from './transactions/transactions.controller';
 
 @Module({
   imports: [PrismaModule],
@@ -23,6 +24,6 @@ import { EmbarquesService } from './embarques/embarques.service';
     ExcelService,
     EmbarquesService,
   ],
-  controllers: [ProductsController, ReportsController, ReservesController, EmbarquesController],
+  controllers: [ProductsController, ReportsController, ReservesController, EmbarquesController, TransactionsController],
 })
 export class ProductsModule {}

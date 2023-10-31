@@ -80,45 +80,27 @@ class ExcelService {
     return response.data;
   }
 
-  async downloadProducts() {
-    const products = [
-      {
-        code: "123",
-        ean: "1234567891234",
-        description: "Produto 1"
-      },
-      {
-        code: "456",
-        ean: "1234567891235",
-        description: "Produto 2"
-      },
-      {
-        code: "789",
-        ean: "1234567891236",
-        description: "Produto 3"
-      }
-    ];
-
-    const headers = ["Código", "EAN", "Descrição"];
+  async downloadDataAsSheet(tableName: string, header: string[], rows: any[][]) {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Produtos");
+    const worksheet = workbook.addWorksheet(tableName);
 
-    worksheet.columns = headers.map((header) => ({ header, key: header }));
+    worksheet.columns = header.map((h) => ({
+      header: h,
+      key: h
+    }));
 
-    products.forEach((product) => {
-      worksheet.addRow(Object.values(product));
-    });
+    rows.forEach(row => {
+      worksheet.addRow(row);
+    })
 
-    // return workbook.xlsx.writeBuffer();
     const buffer = await workbook.xlsx.writeBuffer();
-    // download the file using the browser's download file function
 
     const blob = new Blob([buffer], { type: "application/vnd.ms-excel" });
     const url = window.URL.createObjectURL(blob);
 
     const link = document.createElement("a");
     link.href = url;
-    link.download = "products.xlsx";
+    link.download = tableName + ".xlsx";
     link.click();
 
     window.URL.revokeObjectURL(url);

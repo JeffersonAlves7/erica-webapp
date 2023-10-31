@@ -19,7 +19,6 @@ import {
 } from './utils/importer.utils';
 import { getStockId, getStockIdOrUndefined } from './utils/stock.utils';
 import {
-  TransactionFilterParams,
   TransferenceFilterParams,
 } from './types/transaction.interface';
 import {
@@ -37,7 +36,6 @@ import {
 } from 'src/error/products.errors';
 import { PageMaxLimitError } from 'src/error/page.errors';
 import { StockNotFoundError } from 'src/error/stock.errors';
-import { TransactionNotFoundError } from 'src/error/transaction.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
 import { ExcelService } from './excel/excel.service';
@@ -954,39 +952,5 @@ export class ProductsService {
       total: total,
       data: productsOnContainer,
     };
-  }
-
-  async deleteTransaction(id: number): Promise<Transaction> {
-    if (!id) throw new ProductTransactionIdNotFoundError();
-
-    const transactionToDelete = await this.prismaService.transaction.findUnique(
-      {
-        where: {
-          id,
-        },
-      },
-    );
-
-    if (!transactionToDelete) throw new TransactionNotFoundError();
-
-    const { type } = transactionToDelete;
-    if (type === TransactionType.ENTRY)
-      await this.transactionsService.deleteEntry(id);
-    else if (type === TransactionType.EXIT)
-      await this.transactionsService.deleteExit(id);
-    else if (type === TransactionType.TRANSFERENCE)
-      await this.transactionsService.deleteTransference(id);
-    else if (type == TransactionType.RESERVE)
-      await this.transactionsService.deleteReserve(id);
-    else throw new TransactionNotFoundError();
-
-    return transactionToDelete;
-  }
-
-  async getAllTransactionsByPage(
-    pageableParams: TransactionFilterParams,
-  ): Promise<Pageable<Transaction>> {
-    const transactions = await this.transactionsService.getAll(pageableParams);
-    return transactions;
   }
 }

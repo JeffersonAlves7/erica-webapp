@@ -215,12 +215,12 @@ export function Conferencias() {
 
       <PaginationSelector
         page={page}
-        pageQuantity={pageQuantity}
+        pageQuantity={pageMax}
         increasePage={() => {
           if (page < pageMax) setPage(page + 1);
         }}
         decreasePage={() => {
-          if (page > 0) setPage(page - 1);
+          if (page - 1 > 0) setPage(page - 1);
         }}
       />
 

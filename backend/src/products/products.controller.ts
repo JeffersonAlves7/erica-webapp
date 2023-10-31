@@ -226,27 +226,4 @@ export class ProductsController {
       code: code,
     });
   }
-
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.OK)
-  @Delete('transaction/:id')
-  deleteTransaction(@Param('id') id: string) {
-    return this.productsService.deleteTransaction(parseInt(id));
-  }
-
-  @UseGuards(AuthGuard)
-  @HttpCode(HttpStatus.OK)
-  @Get('transactions')
-  getAllTransactions(@Query() query: Record<string, any>) {
-    const { page, limit, type, orderBy, code, stock } = query;
-
-    return this.productsService.getAllTransactionsByPage({
-      page: Number(page),
-      limit: Number(limit),
-      type,
-      orderBy,
-      code,
-      stock,
-    });
-  }
 }
