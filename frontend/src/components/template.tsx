@@ -35,9 +35,11 @@ export function Template(props: PropsWithChildren) {
   const location = useLocation();
 
   useEffect(() => {
-    if (!isAuthorized && location.pathname !== "/") setIsAuthorized(true);
-    else if (isAuthorized && location.pathname === "/") setIsAuthorized(false);
-  }, [isAuthorized, location]);
+    if (location.pathname !== "/" && !isAuthorized) setIsAuthorized(true);
+    else if (location.pathname === "/") setIsAuthorized(false);
+  }, [location]);
+
+  if (!isAuthorized) return <>{props.children}</>;
 
   return (
     <Grid
