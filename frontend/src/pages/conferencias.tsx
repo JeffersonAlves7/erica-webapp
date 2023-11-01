@@ -1,4 +1,4 @@
-import { ModalConfirm } from "@/components/ModalConfirm";
+import { ModalConfirm } from "@/components/modalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";

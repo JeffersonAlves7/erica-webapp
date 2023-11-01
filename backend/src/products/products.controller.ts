@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  HttpException,
   HttpStatus,
   Param,
   Patch,
@@ -45,6 +46,29 @@ export class ProductsController {
       description: productCreation.description,
       ean: productCreation.ean,
       importer: productCreation.importer,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Patch('archive/:id')
+  archiveProduct(@Param('id') id: string) {
+    const idInt = parseInt(id);
+
+    if (!idInt || !isFinite(idInt))
+      throw new HttpException(`Id inválido`, HttpStatus.BAD_REQUEST);
+
+    return this.productsService.toggleArchiveProduct(idInt);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Get('archive')
+  getArchivedProducts(@Query() query: Record<string, any>) {
+    return this.productsService.getArchivedProducts({
+      limit: parseInt(query.limit),
+      page: parseInt(query.page),
+      importer: query.importer,
     });
   }
 

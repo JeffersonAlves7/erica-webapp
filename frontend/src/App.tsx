@@ -17,6 +17,7 @@ import { Reservas } from "./pages/reservas";
 import { Embarques } from "./pages/embarques";
 import { EmbarqueConferencia } from "./pages/embarqueConferencia";
 import { HistoricoTransferencias } from "./pages/historicoTransferencias";
+import { ItensArquivados } from "./pages/itensArquivados";
 
 function App() {
   return (
@@ -24,7 +25,9 @@ function App() {
       <Template>
         <Routes>
           <Route path="/login" element={<Login />} />
+
           <Route path="/" element={<Login />} />
+
           <Route
             path="/estoques"
             element={
@@ -33,6 +36,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/estoques/arquivados"
+            element={
+              <ProtectedRoute>
+                <ItensArquivados />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/estoques/:codigo/:id"
             element={
@@ -41,6 +54,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/reservas"
             element={
@@ -49,6 +63,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/relatorios"
             element={
@@ -57,6 +72,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/incluir-lancamento"
             element={
@@ -86,11 +102,10 @@ function App() {
             path="/incluir-lancamento/transferencia/historico"
             element={
               <ProtectedRoute>
-                <HistoricoTransferencias/>
+                <HistoricoTransferencias />
               </ProtectedRoute>
             }
           />
-
 
           <Route path="/embarques" element={<Embarques />} />
           <Route

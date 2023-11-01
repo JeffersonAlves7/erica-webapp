@@ -1,4 +1,6 @@
+import { ArchiveButton } from "@/components/buttons/archiveButton";
 import { SearchButton } from "@/components/buttons/searchButton";
+import { EricaLink } from "@/components/ericaLink";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
@@ -11,6 +13,7 @@ import { ProductsWithStock } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
 import {
   Box,
+  Flex,
   Heading,
   Stack,
   Table,
@@ -18,7 +21,7 @@ import {
   Td,
   Th,
   Thead,
-  Tr,
+  Tr
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
@@ -98,12 +101,18 @@ export function Stocks() {
     0
   ) as number;
 
-    return (
+  return (
     <>
       <Stack gap={10} overflowY={"auto"}>
         <Heading>Estoques</Heading>
 
-        <StockButtonSelector onClick={handleChangeStock} />
+        <Flex gap={6}>
+          <StockButtonSelector onClick={handleChangeStock} />
+
+          <EricaLink to="./arquivados">
+            <ArchiveButton />
+          </EricaLink>
+        </Flex>
 
         <Stack direction={"row"} gap={4} align={"center"}>
           <ImporterInputForStock onChange={setImporter} />
@@ -192,7 +201,6 @@ export function Stocks() {
           </span>
         </Box>
       </Stack>
-
     </>
   );
 }
@@ -225,7 +233,10 @@ function StockItem({
   return (
     <Tr>
       <Td>
-        <Link to={`${item.sku}/${item.id}`} className=" underline text-blue-500">
+        <Link
+          to={`${item.sku}/${item.id}`}
+          className=" underline text-blue-500"
+        >
           {item.sku}
         </Link>
       </Td>

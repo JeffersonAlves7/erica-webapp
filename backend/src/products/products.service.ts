@@ -18,9 +18,7 @@ import {
   getImporterIdOrUndefined,
 } from './utils/importer.utils';
 import { getStockId, getStockIdOrUndefined } from './utils/stock.utils';
-import {
-  TransferenceFilterParams,
-} from './types/transaction.interface';
+import { TransferenceFilterParams } from './types/transaction.interface';
 import {
   ProductAlreadyExistsInOtherImporterError,
   ProductAlreadyExistsWithOtherCodeError,
@@ -52,6 +50,67 @@ export class ProductsService {
   async uploadExcelFile(file: any) {
     const fileReaded = await this.excelService.readExcelFile(file);
     return fileReaded;
+  }
+
+  async toggleArchiveProduct(id: number) {
+    const product = await this.prismaService.product.findUnique({
+      where: {
+        id,
+      },
+    });
+
+    if (!product) throw new ProductNotFoundError();
+
+    return this.prismaService.product.update({
+      where: {
+        id,
+      },
+      data: {
+        isActive: !product.isActive,
+      },
+    });
+  }
+
+  async getArchivedProducts(
+    query: PageableParams & { importer?: string },
+  ): Promise<Pageable<any>> {
+    if (!query.page) query.page = 1;
+    if (!query.limit || query.limit > 100) query.limit = 100;
+
+    const { page, limit, importer } = query;
+
+    const products = await this.prismaService.product.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where: {
+        isActive: false,
+        importer: importer ? importer : undefined,
+      },
+      include: {
+        transactions: {
+          where: {
+            type: TransactionType.ENTRY,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          take: 1,
+        },
+      },
+    });
+
+    const total = await this.prismaService.product.count({
+      where: {
+        isActive: false,
+        importer: importer ? importer : undefined,
+      },
+    });
+
+    return {
+      page,
+      data: products,
+      total,
+    };
   }
 
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
@@ -164,6 +223,7 @@ export class ProductsService {
 
     const where: any = {
       importer: importer,
+      isActive: true
     };
 
     if (code) where.code = { contains: code ?? '' };

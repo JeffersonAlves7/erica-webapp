@@ -28,9 +28,11 @@ model Product {
   lojaQuantity          Int @default(0) @map("loja_quantity")
   lojaQuantityReserve   Int @default(0) @map("loja_quantity_reserve")
 
-  lojaLocation        String?               @map("loja_location")
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @updatedAt @map("updated_at")
+  lojaLocation String?  @map("loja_location")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  isActive     Boolean  @default(true) @map("is_active")
+
   productsOnContainer ProductsOnContainer[]
   transactions        Transaction[]
 
@@ -56,14 +58,14 @@ model ProductsOnContainer {
   container        Container @relation(fields: [containerId], references: [id])
   product          Product   @relation(fields: [productId], references: [id])
   confirmed        Boolean   @default(true)
-  inConference     Boolean   @default(false)
+  inConference     Boolean   @default(false) @map("in_conference")
   observation      String?
 
   embarqueAt DateTime? @map("embarque_at")
   arrivalAt  DateTime? @map("arrival_at")
 
-  createdAt  DateTime  @default(now()) @map("created_at")
-  updatedAt  DateTime  @updatedAt @map("updatedAt")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([containerId], map: "ProductsOnContainer_container_id_fkey")
   @@index([productId], map: "ProductsOnContainer_product_id_fkey")
@@ -72,7 +74,6 @@ model ProductsOnContainer {
 
 model Transaction {
   id        Int     @id @default(autoincrement())
-  productId Int     @map("product_id")
   type      String
   fromStock String? @map("from_stock")
   toStock   String? @map("to_stock")
@@ -86,7 +87,7 @@ model Transaction {
   observation String?
   partnerId   Int?    @map("partner_id")
   location    String?
-  confirmed   Boolean @default(false) @map("checked")
+  confirmed   Boolean @default(false) @map("confirmed")
 
   createdAt DateTime  @default(now()) @map("created_at")
   exitDate  DateTime? @map("exit_date")
@@ -95,6 +96,7 @@ model Transaction {
   container   Container? @relation(fields: [containerId], references: [id])
   containerId String?    @map("container_id")
   product     Product    @relation(fields: [productId], references: [id])
+  productId   Int        @map("product_id")
 
   @@index([productId], map: "Transactions_product_id_fkey")
   @@map("transactions")

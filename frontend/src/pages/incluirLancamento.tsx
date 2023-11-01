@@ -32,7 +32,7 @@ export function IncluirLancamento() {
       title: "Reserva",
       to: "reserva",
       or: ["/incluir-lancamento/reserva"]
-    },
+    }
   ];
 
   return (

@@ -1,5 +1,7 @@
+import { ArchiveButton } from "@/components/buttons/archiveButton";
 import { CloseButton } from "@/components/buttons/closeButton";
-import { ModalConfirm } from "@/components/ModalConfirm";
+import { TrashButton } from "@/components/buttons/trashButton";
+import { ModalConfirm } from "@/components/modalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
@@ -31,6 +33,7 @@ import { useNavigate, useParams } from "react-router-dom";
 export function ProductTransactions() {
   const deleteTransactionDisclosure = useDisclosure();
   const deleteProductDisclusure = useDisclosure();
+  const archiveProductDisclusure = useDisclosure();
 
   const toast = useToast();
   const navigator = useNavigate();
@@ -147,7 +150,32 @@ export function ProductTransactions() {
       });
   }
 
-  function handleDelete(id: number) {
+  function handleArchiveProduct() {
+    productService
+      .archiveProduct(id)
+      .then(() => {
+        toast({
+          title: "Produto arquivado com sucesso",
+          status: "success",
+          duration: 3000,
+          isClosable: true
+        });
+        navigator("/");
+      })
+      .catch(() => {
+        toast({
+          title: "Falha ao arquivar o produto",
+          status: "error",
+          duration: 3000,
+          isClosable: true
+        });
+      })
+      .finally(() => {
+        archiveProductDisclusure.onClose();
+      });
+  }
+
+   function handleDelete(id: number) {
     setTransactionToDelete(id);
     deleteTransactionDisclosure.onOpen();
   }
@@ -172,6 +200,7 @@ export function ProductTransactions() {
       });
   }
 
+
   return (
     <Stack h={"full"} gap={5}>
       <Heading>
@@ -180,7 +209,9 @@ export function ProductTransactions() {
       <Flex gap={4}>
         <StockButtonSelector onClick={handleChangeStock} />
 
-        <CloseButton onClick={deleteProductDisclusure.onOpen} />
+        <ArchiveButton onClick={archiveProductDisclusure.onOpen} />
+
+        <TrashButton onClick={deleteProductDisclusure.onOpen} />
       </Flex>
       `
       <ProductInfo
@@ -232,6 +263,13 @@ export function ProductTransactions() {
         handleConfirm={handleConfirmDeleteProduct}
       >
         Tem certeza que deseja apagar o produto?
+      </ModalConfirm>
+      <ModalConfirm
+        isOpen={archiveProductDisclusure.isOpen}
+        onClose={archiveProductDisclusure.onClose}
+        handleConfirm={handleArchiveProduct}
+      >
+        Tem certeza que deseja arquivar o produto?
       </ModalConfirm>
     </Stack>
   );

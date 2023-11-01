@@ -3,9 +3,7 @@ import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
-import {
-  ProductsWithStock
-} from "@/types/products.interface";
+import { ProductsWithStock } from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
 interface ProductEntry {
@@ -74,24 +72,6 @@ interface ConfirmTransferenceParams {
   transferences: { id: number; entryAmount: number; location?: string }[];
 }
 
-interface ProductExit {
-  codeOrEan: string;
-  quantity: number;
-  from: string;
-  observation?: string;
-  operator: Operator | string;
-  client: string;
-}
-
-interface ProductDevolution {
-  codeOrEan: string;
-  quantity: number;
-  client: string;
-  operator: string;
-  stock: Stock | string;
-  observation?: string;
-}
-
 class ProductService {
   async getProducts(pageableParams: PageableParams): Promise<Pageable<any>> {
     const response = await api.get("/products", {
@@ -140,7 +120,14 @@ class ProductService {
     return response.data;
   }
 
-  async createExit(productExit: ProductExit) {
+  async createExit(productExit: {
+    codeOrEan: string;
+    quantity: number;
+    from: string;
+    observation?: string;
+    operator: Operator | string;
+    client: string;
+  }) {
     const response = await api.post("/products/exit", productExit);
     return response.data;
   }
@@ -253,9 +240,35 @@ class ProductService {
     };
   }
 
-  async createDevolution(body: ProductDevolution) {
+  async createDevolution(body: {
+    codeOrEan: string;
+    quantity: number;
+    client: string;
+    operator: string;
+    stock: Stock | string;
+    observation?: string;
+  }) {
     const response = await api.post(`/products/devolution`, body);
     return response.data;
+  }
+
+  async getArchivedProducts(
+    query: { importer?: Importer | string } & PageableParams
+  ): Promise<Pageable<any>> {
+    const { data } = await api.get("/products/archive", {
+      params: query
+    });
+
+    return {
+      page: data.page,
+      data: data.data,
+      total: data.total
+    };
+  }
+
+  async archiveProduct(id: number) {
+    const { data } = await api.patch("products/archive/" + id);
+    return data;
   }
 }
 
