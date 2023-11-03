@@ -6,6 +6,7 @@ import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PercentageInput } from "@/components/inputs/percentageInput";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
 import { Importer } from "@/types/importer.enum";
@@ -34,7 +35,7 @@ export function Stocks() {
   const [importer, setImporter] = useState<Importer | undefined>(undefined);
   const [stock, setStock] = useState<Stock | undefined>(undefined);
   const [code, setCode] = useState<string | undefined>(undefined);
-  const [alertaPorcentagem, setAlertaPorcentagem] = useState(50);
+  const [alertaPorcentagem, setAlertaPorcentagem] = useLocalStorage('alerta-porcentagem', 50);
 
   const productsLimit = 10;
   const codigoRef = useRef<HTMLInputElement>(null);

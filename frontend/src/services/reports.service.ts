@@ -22,19 +22,12 @@ class ReportsService {
     return response.data;
   }
 
-  async getStockMinimumReports({
-    limit,
-    page
-  }: {
+  async getStockMinimumReports(params: {
     page: number;
     limit: number;
+    percentage: number;
   }): Promise<Pageable<any>> {
-    const response = await api.get("/reports/stock-minimum", {
-      params: {
-        limit,
-        page
-      }
-    });
+    const response = await api.get("/reports/stock-minimum", { params });
 
     return response.data;
   }

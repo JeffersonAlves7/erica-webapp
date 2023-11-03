@@ -17,7 +17,9 @@ export class ReportsService {
     page,
   }: ExitReportsParams): Promise<Pageable<any>> {
     const where = {
-      type: TransactionType.EXIT,
+      type: {
+        in: [TransactionType.DEVOLUTION, TransactionType.EXIT],
+      },
       AND: [
         {
           updatedAt: {
@@ -68,10 +70,68 @@ export class ReportsService {
     };
   }
 
+  async exitReportsInfo(day: Date) {
+    const where = {
+      type: {
+        in: [TransactionType.DEVOLUTION, TransactionType.EXIT],
+      },
+      AND: [
+        {
+          updatedAt: {
+            gte: day,
+          },
+        },
+        {
+          updatedAt: {
+            lt: new Date(day.getTime() + 86400000),
+          },
+        },
+      ],
+    };
+
+    const transactions = await this.prismaService.transaction.findMany({
+      where,
+      select: {
+        id: true,
+        entryAmount: true,
+        exitAmount: true,
+        type: true,
+        updatedAt: true,
+      },
+      orderBy: {
+        updatedAt: 'asc',
+      },
+    });
+
+    const devolutions = [];
+    const exits = [];
+
+    transactions.forEach((t) => {
+      if (t.type == TransactionType.EXIT) exits.push(t);
+      else devolutions.push(t);
+    });
+
+    return {
+      devolutionAmount: devolutions.reduce(
+        (previous: number, current: (typeof transactions)[0]) => {
+          return previous + current.entryAmount;
+        },
+        0,
+      ),
+      exitAmount: exits.reduce(
+        (previous: number, current: (typeof transactions)[0]) => {
+          return previous + current.exitAmount;
+        },
+        0,
+      ),
+    };
+  }
+
   async stockMinimumReports({
     page,
     limit,
-  }: PageableParams): Promise<Pageable<any>> {
+    percentage,
+  }: { percentage: number } & PageableParams): Promise<Pageable<any>> {
     const offset = (page - 1) * limit;
 
     const products: any[] = await this.prismaService.$queryRaw`
@@ -96,7 +156,7 @@ export class ReportsService {
       INNER JOIN LatestContainer lc ON p.id = lc.product_id
       INNER JOIN products_on_container pc ON lc.product_id = pc.product_id
     WHERE
-      (p.galpao_quantity + p.loja_quantity) < (0.5 * pc.quantity_received)
+      (p.galpao_quantity + p.loja_quantity) < (${percentage} * pc.quantity_received)
     LIMIT ${limit} OFFSET ${offset}
     `;
 
@@ -118,7 +178,7 @@ export class ReportsService {
       INNER JOIN LatestContainer lc ON p.id = lc.product_id
       INNER JOIN products_on_container pc ON lc.product_id = pc.product_id
     WHERE
-      (p.galpao_quantity + p.loja_quantity) < (0.5 * pc.quantity_received)
+      (p.galpao_quantity + p.loja_quantity) < (${percentage} * pc.quantity_received)
     `;
 
     return {

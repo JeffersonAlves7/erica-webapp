@@ -1,4 +1,5 @@
 import {
+  Box,
   Flex,
   Heading,
   Stack,
@@ -45,11 +46,15 @@ export function ReportStockMinimum() {
       })
     );
 
+  const percentageLocalStorage = localStorage.getItem("alerta-porcentagem");
+  const percentage = percentageLocalStorage ? Number(percentageLocalStorage) : 50;
+
   useEffect(() => {
     reportsService
       .getStockMinimumReports({
         limit: reportLimit,
-        page
+        page,
+        percentage
       })
       .then((response) => {
         setReports(transformData(response.data));
@@ -77,6 +82,8 @@ export function ReportStockMinimum() {
         </Heading>
         <ExcelDownloadButton onDownload={handleDownloadExit} />
       </Flex>
+      
+      <p>Porcentagem para alerta: {percentage}%</p>
 
       <TableContainer>
         <Table>

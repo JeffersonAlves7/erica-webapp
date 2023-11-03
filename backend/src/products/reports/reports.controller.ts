@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, HttpStatus, Query, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { ReportsService } from './reports.service';
 import { ReportsInvalidDateError } from 'src/error/reports.errors';
 import { AuthGuard } from 'src/auth/auth.guard';
@@ -34,13 +41,33 @@ export class ReportsController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
+  @Get('exit/info')
+  exitReportsInfo(@Query() query: { day?: string }) {
+    let { day }: any = query;
+
+    if (day) {
+      day = new Date(day);
+      if (isNaN(day.getTime())) throw new ReportsInvalidDateError();
+    } else {
+      day = new Date();
+    }
+
+    return this.reportsService.exitReportsInfo(day);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
   @Get('stock-minimum')
-  stockMinimumReports(@Query() query: { page?: string; limit?: string }) {
-    let { page, limit } = query as any;
+  stockMinimumReports(
+    @Query() query: { page?: string; limit?: string; percentage?: string },
+  ) {
+    let { page, limit, percentage } = query as any;
+
     page = page ? parseInt(page) : 1;
     limit = limit ? parseInt(limit) : 1;
+    percentage = percentage ? Number(percentage) / 100 : 0.5;
     if (limit > 100) limit = 100;
 
-    return this.reportsService.stockMinimumReports({ page, limit });
+    return this.reportsService.stockMinimumReports({ page, limit, percentage });
   }
 }

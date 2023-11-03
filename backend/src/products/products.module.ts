@@ -24,6 +24,12 @@ import { TransactionsController } from './transactions/transactions.controller';
     ExcelService,
     EmbarquesService,
   ],
-  controllers: [ProductsController, ReportsController, ReservesController, EmbarquesController, TransactionsController],
+  controllers: [
+    ProductsController,
+    ReportsController,
+    ReservesController,
+    EmbarquesController,
+    TransactionsController,
+  ],
 })
 export class ProductsModule {}

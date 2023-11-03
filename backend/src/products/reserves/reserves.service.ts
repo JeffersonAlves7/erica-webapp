@@ -21,8 +21,10 @@ import { ExcelService } from '../excel/excel.service';
 
 @Injectable()
 export class ReservesService {
-  constructor(private prismaService: PrismaService, 
-    private excelService: ExcelService) { }
+  constructor(
+    private prismaService: PrismaService,
+    private excelService: ExcelService,
+  ) {}
 
   async getReservesByPage(
     params: GetReservesDto,

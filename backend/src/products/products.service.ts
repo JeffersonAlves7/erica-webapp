@@ -223,7 +223,7 @@ export class ProductsService {
 
     const where: any = {
       importer: importer,
-      isActive: true
+      isActive: true,
     };
 
     if (code) where.code = { contains: code ?? '' };
