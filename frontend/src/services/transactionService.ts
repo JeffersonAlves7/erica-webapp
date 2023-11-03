@@ -11,7 +11,7 @@ class TransactionService {
     orderBy?: "desc" | "asc";
     code?: string;
     stock?: Stock | string;
-    day?: Date
+    day?: Date;
   }): Promise<Pageable<any>> {
     const response = await api.get("/transactions", { params });
 

@@ -6,11 +6,11 @@ import {
   Heading,
   Input,
   Stack,
-  Table,
   TableContainer,
   Tbody,
   Td,
   Tfoot,
+  Th,
   Thead,
   Tr
 } from "@chakra-ui/react";
@@ -19,9 +19,16 @@ import { ExcelDownloadButton } from "../../components/buttons/excelButtons";
 import { reportsService } from "@/services/reports.service";
 import { PaginationSelector } from "../../components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
+import {
+  TransactionType,
+  TransactionTypePT
+} from "@/types/transaction-type.enum";
+import { CustomTable } from "@/components/customTable";
+import { excelService } from "@/services/excel.service";
 
 interface ExitReport {
   code: string;
+  type: string;
   quantity: number;
   client: string;
   operator: string;
@@ -34,51 +41,100 @@ export function ReportExit() {
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
   const [day, setDay] = useState<Date>(new Date());
+  const [exitInfo, setExitInfo] = useState<{
+    devolutionAmount: number;
+    exitAmount: number;
+    productsAmount: number;
+  }>({
+    devolutionAmount: 0,
+    exitAmount: 0,
+    productsAmount: 0
+  });
 
-  const reportLimit = 50;
-  const pageLimit = Math.ceil(pageQuantity / reportLimit);
+  const limitPerPage = 50;
+  const lastPage = Math.ceil(pageQuantity / limitPerPage);
 
   const transformData = (data: any[]): ExitReport[] =>
     data.map<ExitReport>(
       ({
         client,
         product,
-        exitAmount: quantity,
+        exitAmount: quantityExit,
+        entryAmount: quantityEntry,
         operator,
         fromStock,
-        observation
+        toStock,
+        observation,
+        type
       }) => ({
         client,
         code: product.code,
         observation,
-        quantity,
+        type: TransactionTypePT[type as keyof typeof TransactionTypePT],
+        quantity: type == TransactionType.EXIT ? quantityExit : quantityEntry,
         operator,
-        origin: fromStock
+        origin: type == TransactionType.EXIT ? fromStock : toStock
       })
     );
 
+  async function searchInitialData(withPage: boolean = false) {
+    const exitData = await reportsService.getExitReports({
+      day: day,
+      limit: limitPerPage,
+      page
+    });
+
+    setReports(transformData(exitData.data));
+    setPageQuantity(exitData.total);
+
+    if (!withPage) {
+      const exitInfo = await reportsService.getExitReportsinfo(day);
+      setExitInfo(exitInfo);
+    }
+  }
+
   useEffect(() => {
-    reportsService
-      .getExitReports({
-        day: day,
-        limit: reportLimit,
-        page
-      })
-      .then((response) => {
-        setReports(transformData(response.data));
-        setPageQuantity(response.total);
-      })
-      .catch((error) => {
-        handleError401(error);
-      });
+    searchInitialData().catch((e) => handleError401(e));
   }, [day]);
 
-  function handleDownloadExit() {}
+  useEffect(() => {
+    searchInitialData(true).catch((e) => handleError401(e));
+  }, [page]);
 
-  function handleChangePage(page: number) {
+  async function handleDownload() {
+    const rows: any[][] = [];
+
+    const headers = [
+      ...document.querySelectorAll("#saidas-diarias thead th")
+    ].map((th) => th.textContent || "");
+
+    for (let page = 1; page <= lastPage; page++) {
+      const { data } = await reportsService.getExitReports({
+        day: day,
+        limit: limitPerPage,
+        page
+      });
+
+      transformData(data).forEach((d) => {
+        rows.push([
+          d.code,
+          d.quantity,
+          d.type,
+          d.client,
+          d.operator,
+          d.origin,
+          d.observation
+        ]);
+      });
+    }
+
+    excelService.downloadDataAsSheet("Relatório de saídas diárias", headers, rows);
+  }
+
+  async function handleChangePage(page: number) {
     setPage(page);
   }
-  console.log()
+
   return (
     <Stack w={"full"} maxW={"container.xl"}>
       <Flex justify={"space-between"} align={"end"} w={"full"}>
@@ -93,72 +149,76 @@ export function ReportExit() {
                 }}
                 value={day.toISOString().slice(0, 10)}
                 type="date"
+                max={new Date().toISOString().slice(0, 10)}
               />
             </FormControl>
           </Box>
           <Heading size={"lg"}>Relatório de saídas diárias</Heading>
         </Flex>
 
-        <ExcelDownloadButton onDownload={handleDownloadExit} />
+        <ExcelDownloadButton onDownload={handleDownload} />
       </Flex>
 
       <TableContainer>
-        <Table>
+        <CustomTable id="saidas-diarias">
           <Thead>
             <Tr>
-              <Td roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
+              <Th roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
                 Código
-              </Td>
-              <Td backgroundColor={"erica.green"}>Quantidade</Td>
-              <Td backgroundColor={"erica.green"}>Cliente</Td>
-              <Td backgroundColor={"erica.green"}>Operador</Td>
-              <Td backgroundColor={"erica.green"}>Origem</Td>
-              <Td roundedTopRight={"xl"} backgroundColor={"erica.green"}>
+              </Th>
+              <Th backgroundColor={"erica.green"}>Quantidade</Th>
+              <Th backgroundColor={"erica.green"}>Operação</Th>
+              <Th backgroundColor={"erica.green"}>Cliente</Th>
+              <Th backgroundColor={"erica.green"}>Operador</Th>
+              <Th backgroundColor={"erica.green"}>Origem</Th>
+              <Th roundedTopRight={"xl"} backgroundColor={"erica.green"}>
                 Observações
-              </Td>
+              </Th>
             </Tr>
           </Thead>
 
           <Tbody>
-            {reports.map((row, index) => {
-              return (
-                <Tr key={`exit-by-day-${row.code}-${index}`}>
-                  <Td>{row.code}</Td>
-                  <Td>{row.quantity}</Td>
-                  <Td>{row.client}</Td>
-                  <Td>{row.operator}</Td>
-                  <Td>{row.origin}</Td>
-                  <Td>{row.observation}</Td>
-                </Tr>
-              );
-            })}
+            {reports.map((row, index) => (
+              <Tr key={`exit-by-day-${row.code}-${index}`}>
+                <Td>{row.code}</Td>
+                <Td>{row.quantity}</Td>
+                <Td>{row.type}</Td>
+                <Td>{row.client}</Td>
+                <Td>{row.operator}</Td>
+                <Td>{row.origin}</Td>
+                <Td>{row.observation}</Td>
+              </Tr>
+            ))}
           </Tbody>
 
           <Tfoot>
             <Tr>
               <Td roundedBottomLeft={"xl"} backgroundColor={"erica.green"}>
-                Total de {[...new Set(reports.map((c) => c.code))].length}{" "}
-                Produtos
+                Total de {exitInfo.productsAmount} Produtos
+              </Td>
+              <Td backgroundColor={"erica.green"}>
+                Total de {exitInfo.exitAmount + exitInfo.devolutionAmount}{" "}
+                Movimentações
+              </Td>
+              <Td backgroundColor={"erica.green"}>
+                Total de {exitInfo.exitAmount} Saídas
               </Td>
               <Td roundedBottomRight={"xl"} backgroundColor={"erica.green"}>
-                {reports.reduce((previous, current) => {
-                  return previous + current.quantity;
-                }, 0)}{" "}
-                Caixas
+                Total de {exitInfo.devolutionAmount} Devoluções
               </Td>
             </Tr>
           </Tfoot>
-        </Table>
+        </CustomTable>
       </TableContainer>
 
       <PaginationSelector
         page={page}
-        pageQuantity={pageLimit}
+        pageQuantity={lastPage}
         decreasePage={() => {
           if (page > 1) handleChangePage(page - 1);
         }}
         increasePage={() => {
-          if (page < pageLimit) handleChangePage(page + 1);
+          if (page < lastPage) handleChangePage(page + 1);
         }}
       />
     </Stack>

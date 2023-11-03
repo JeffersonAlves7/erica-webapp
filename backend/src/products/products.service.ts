@@ -61,7 +61,7 @@ export class ProductsService {
 
     if (!product) throw new ProductNotFoundError();
 
-    return this.prismaService.product.update({
+    const updated = await this.prismaService.product.update({
       where: {
         id,
       },
@@ -69,6 +69,8 @@ export class ProductsService {
         isActive: !product.isActive,
       },
     });
+
+    return updated;
   }
 
   async getArchivedProducts(

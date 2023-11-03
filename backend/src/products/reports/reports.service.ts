@@ -40,12 +40,15 @@ export class ReportsService {
       where,
       select: {
         exitAmount: true,
+        entryAmount: true,
         id: true,
         operator: true,
         createdAt: true,
         updatedAt: true,
         observation: true,
         fromStock: true,
+        toStock: true,
+        type: true,
         client: true,
         product: {
           select: {
@@ -55,7 +58,7 @@ export class ReportsService {
         },
       },
       orderBy: {
-        updatedAt: 'asc',
+        updatedAt: 'desc',
       },
     });
 
@@ -71,59 +74,52 @@ export class ReportsService {
   }
 
   async exitReportsInfo(day: Date) {
-    const where = {
-      type: {
-        in: [TransactionType.DEVOLUTION, TransactionType.EXIT],
-      },
-      AND: [
-        {
-          updatedAt: {
-            gte: day,
-          },
-        },
-        {
-          updatedAt: {
-            lt: new Date(day.getTime() + 86400000),
-          },
-        },
-      ],
-    };
-
     const transactions = await this.prismaService.transaction.findMany({
-      where,
+      where: {
+        type: {
+          in: [TransactionType.DEVOLUTION, TransactionType.EXIT],
+        },
+        AND: [
+          {
+            updatedAt: {
+              gte: day,
+            },
+          },
+          {
+            updatedAt: {
+              lt: new Date(day.getTime() + 86400000),
+            },
+          },
+        ],
+      },
       select: {
         id: true,
         entryAmount: true,
         exitAmount: true,
         type: true,
         updatedAt: true,
+        productId: true,
       },
       orderBy: {
-        updatedAt: 'asc',
+        updatedAt: 'desc',
       },
     });
 
-    const devolutions = [];
-    const exits = [];
+    let devolutionAmount = 0;
+    let exitAmount = 0;
+    let products = [];
 
     transactions.forEach((t) => {
-      if (t.type == TransactionType.EXIT) exits.push(t);
-      else devolutions.push(t);
+      if (t.type == TransactionType.EXIT) exitAmount += t.exitAmount;
+      else devolutionAmount += t.entryAmount;
+
+      if (!products.includes(t.productId)) products.push(t.productId);
     });
 
     return {
-      devolutionAmount: devolutions.reduce(
-        (previous: number, current: (typeof transactions)[0]) => {
-          return previous + current.entryAmount;
-        },
-        0,
-      ),
-      exitAmount: exits.reduce(
-        (previous: number, current: (typeof transactions)[0]) => {
-          return previous + current.exitAmount;
-        },
-        0,
-      ),
+      devolutionAmount,
+      exitAmount,
+      productsAmount: products.length,
     };
   }
 

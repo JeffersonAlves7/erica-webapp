@@ -143,14 +143,20 @@ export function EmbarqueConferencia() {
         <Tbody>
           {embarquesData.map((embarque) => {
             const isChecked = selecteds.includes(embarque.id);
+            const color =
+              embarque.quantity == 0 || !embarque.quantity
+                ? ""
+                : embarque.quantityExpected > embarque.quantity
+                ? "red.200"
+                : "erica.green";
 
             return (
               <Tr key={"embarque-conferencia-" + embarque.id}>
-                <Td>{embarque.product.code}</Td>
-                <Td>{embarque.product.importer}</Td>
-                <Td>{embarque.containerId}</Td>
-                <Td>{embarque.quantityExpected}</Td>
-                <Td>
+                <Td backgroundColor={color}>{embarque.product.code}</Td>
+                <Td backgroundColor={color}>{embarque.product.importer}</Td>
+                <Td backgroundColor={color}>{embarque.containerId}</Td>
+                <Td backgroundColor={color}>{embarque.quantityExpected}</Td>
+                <Td backgroundColor={color}>
                   <Input
                     type="number"
                     value={embarque.quantity}
@@ -162,7 +168,7 @@ export function EmbarqueConferencia() {
                     }
                   />
                 </Td>
-                <Td>
+                <Td backgroundColor={color}>
                   <Input
                     type="text"
                     onChange={(e) =>
@@ -170,13 +176,12 @@ export function EmbarqueConferencia() {
                     }
                   />
                 </Td>
-                <Td>
+                <Td backgroundColor={color}>
                   <Checkbox
                     isChecked={isChecked}
                     onChange={() => handleSelectItem(embarque.id, isChecked)}
                   />
                 </Td>
-                <Td></Td>
               </Tr>
             );
           })}

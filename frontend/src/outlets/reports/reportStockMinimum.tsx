@@ -1,12 +1,11 @@
 import {
-  Box,
   Flex,
   Heading,
   Stack,
-  Table,
   TableContainer,
   Tbody,
   Td,
+  Th,
   Thead,
   Tr
 } from "@chakra-ui/react";
@@ -15,6 +14,8 @@ import { ExcelDownloadButton } from "../../components/buttons/excelButtons";
 import { reportsService } from "@/services/reports.service";
 import { PaginationSelector } from "../../components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
+import { excelService } from "@/services/excel.service";
+import { CustomTable } from "@/components/customTable";
 
 interface StockMinimumReport {
   code: string;
@@ -26,10 +27,15 @@ interface StockMinimumReport {
 export function ReportStockMinimum() {
   const [reports, setReports] = useState<StockMinimumReport[]>([]);
   const [page, setPage] = useState(1);
-  const [totalReports, setTotalReports] = useState(0);
+  const [pageQuantity, setTotalReports] = useState(0);
 
-  const reportLimit = 50;
-  const totalPages = Math.ceil(totalReports / reportLimit);
+  const limitPerPage = 50;
+  const lastPage = Math.ceil(pageQuantity / limitPerPage);
+
+  const percentageLocalStorage = localStorage.getItem("alerta-porcentagem");
+  const percentage = percentageLocalStorage
+    ? Number(percentageLocalStorage)
+    : 50;
 
   const transformData = (data: any[]): StockMinimumReport[] =>
     data.map<StockMinimumReport>(
@@ -39,20 +45,17 @@ export function ReportStockMinimum() {
         loja_quantity,
         container_quantity_received
       }) => ({
-        alertQuantity: container_quantity_received * 0.5,
+        alertQuantity: container_quantity_received * (percentage / 100),
         code: product_code,
         entryAmount: container_quantity_received,
         currentAmount: galpao_quantity + loja_quantity
       })
     );
 
-  const percentageLocalStorage = localStorage.getItem("alerta-porcentagem");
-  const percentage = percentageLocalStorage ? Number(percentageLocalStorage) : 50;
-
   useEffect(() => {
     reportsService
       .getStockMinimumReports({
-        limit: reportLimit,
+        limit: limitPerPage,
         page,
         percentage
       })
@@ -65,12 +68,34 @@ export function ReportStockMinimum() {
       });
   }, []);
 
-  function handleDownloadExit() {
-    // download logic
+  async function handleDownload() {
+    const rows: any[][] = [];
+
+    const headers = [
+      ...document.querySelectorAll("#relatorio-estoque-minimo thead th")
+    ].map((th) => th.textContent || "");
+
+    for (let page = 1; page <= lastPage; page++) {
+      const { data } = await reportsService.getStockMinimumReports({
+        limit: limitPerPage,
+        page,
+        percentage
+      });
+
+      transformData(data).forEach((d) => {
+        rows.push([d.code, d.entryAmount, d.currentAmount, d.alertQuantity]);
+      });
+    }
+
+    excelService.downloadDataAsSheet(
+      "Relatório de Sku's com o Estoque mínimo atingido",
+      headers,
+      rows
+    );
   }
 
   function handleChangePage(newPage: number) {
-    if (!(newPage >= 1 && newPage <= totalPages)) return;
+    if (!(newPage >= 1 && newPage <= lastPage)) return;
     setPage(newPage);
   }
 
@@ -80,23 +105,23 @@ export function ReportStockMinimum() {
         <Heading size={"lg"}>
           Relatório de Sku's com o Estoque mínimo atingido
         </Heading>
-        <ExcelDownloadButton onDownload={handleDownloadExit} />
+        <ExcelDownloadButton onDownload={handleDownload} />
       </Flex>
-      
+
       <p>Porcentagem para alerta: {percentage}%</p>
 
       <TableContainer>
-        <Table>
+        <CustomTable id="relatorio-estoque-minimo">
           <Thead>
             <Tr>
-              <Td roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
+              <Th roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
                 Código
-              </Td>
-              <Td backgroundColor={"erica.green"}>Quantidade de Entrada</Td>
-              <Td backgroundColor={"erica.green"}>Saldo atual</Td>
-              <Td roundedTopRight={"xl"} backgroundColor={"erica.green"}>
+              </Th>
+              <Th backgroundColor={"erica.green"}>Quantidade de Entrada</Th>
+              <Th backgroundColor={"erica.green"}>Saldo atual</Th>
+              <Th roundedTopRight={"xl"} backgroundColor={"erica.green"}>
                 Quantidade de alerta
-              </Td>
+              </Th>
             </Tr>
           </Thead>
 
@@ -112,12 +137,12 @@ export function ReportStockMinimum() {
               );
             })}
           </Tbody>
-        </Table>
+        </CustomTable>
       </TableContainer>
 
       <PaginationSelector
         page={page}
-        pageQuantity={totalPages}
+        pageQuantity={lastPage}
         decreasePage={() => handleChangePage(page - 1)}
         increasePage={() => handleChangePage(page + 1)}
       />

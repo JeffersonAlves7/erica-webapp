@@ -539,7 +539,7 @@ export class ExcelService {
 
       if (!status || (typeof status !== 'string' && typeof status !== 'number'))
         throw new HttpException(
-          `Status de destino não encontrado na linha ${rowIndex}`,
+          `Status não encontrado na linha ${rowIndex}`,
           HttpStatus.BAD_REQUEST,
         );
 

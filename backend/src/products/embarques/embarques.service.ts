@@ -44,8 +44,6 @@ export class EmbarquesService {
 
   async uploadExcelFile(file: any) {
     const embarquesData = await this.excelService.readEmbarquesFile(file);
-
-    console.log(embarquesData);
     let productCodes = embarquesData.map((embarque) => embarque.code);
 
     let productsWithCode = await this.prismaService.product.groupBy({
@@ -136,9 +134,12 @@ export class EmbarquesService {
             HttpStatus.BAD_REQUEST,
           );
 
+        const isEntry = status === 'Em Estoque';
+
         await prisma.productsOnContainer.create({
           data: {
             quantityExpected: quantity,
+            quantityReceived: isEntry ? quantity : 0,
             product: {
               connect: {
                 id: product.id,
@@ -149,12 +150,45 @@ export class EmbarquesService {
                 id: productsContainer.id,
               },
             },
-            confirmed: false,
+            confirmed: isEntry,
             embarqueAt: dataDeEmbarque,
           },
           include: {
             product: true,
             container: true,
+          },
+        });
+
+        if (!isEntry) continue;
+
+        await prisma.product.update({
+          where: {
+            id: product.id,
+          },
+          data: {
+            galpaoQuantity: {
+              increment: quantity,
+            },
+          },
+        });
+
+        await prisma.transaction.create({
+          data: {
+            product: {
+              connect: {
+                id: product.id,
+              },
+            },
+            container: {
+              connect: {
+                id: productsContainer.id,
+              },
+            },
+            operator: 'Erica',
+            toStock: Stock.GALPAO,
+            entryAmount: quantity,
+            type: TransactionType.ENTRY,
+            confirmed: true,
           },
         });
       }
@@ -275,12 +309,10 @@ export class EmbarquesService {
     });
   }
 
-  async confirmConferenec({ embarques }: ConfirmEmbarquesDto) {
-    console.log("Aqui");
-    
-    await this.prismaService.$transaction(async prisma => {
-      for(let i = 0; i < embarques.length; i++){
-        const { id, operator, quantity, observation} = embarques[i];
+  async confirmConference({ embarques }: ConfirmEmbarquesDto) {
+    await this.prismaService.$transaction(async (prisma) => {
+      for (let i = 0; i < embarques.length; i++) {
+        const { id, operator, quantity, observation } = embarques[i];
 
         const productOnContainer = await prisma.productsOnContainer.update({
           where: {
@@ -331,6 +363,6 @@ export class EmbarquesService {
           },
         });
       }
-    })
+    });
   }
 }

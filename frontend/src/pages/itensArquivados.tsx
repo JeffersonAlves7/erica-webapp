@@ -21,6 +21,7 @@ import {
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
+import { handleError401 } from "@/services/api";
 
 export function ItensArquivados() {
   const [items, setItems] = useState<any[]>([]);
@@ -79,7 +80,8 @@ export function ItensArquivados() {
         });
         search();
       })
-      .catch(() => {
+      .catch((e) => {
+        handleError401(e);
         toast({
           title: "Erro ao desarquivar o produto.",
           status: "error",
@@ -120,10 +122,16 @@ export function ItensArquivados() {
 
         <Tbody>
           {items.map((item) => {
-            const data = new Date(item.transactions[0].createdAt);
+            let date: Date | undefined;
+            let containerId: string | undefined;
+
+            if(item.transactions.length){
+              date = new Date(item.transactions[0].createdAt);
+              containerId = item.transactions[0].containerId;
+            }
 
             return (
-              <Tr>
+              <Tr key={"itens-arquivados-" + item.code}>
                 <Td>{item.code}</Td>
                 <Td>
                   {item.galpaoQuantity +
@@ -131,9 +139,9 @@ export function ItensArquivados() {
                     item.lojaQuantity +
                     item.lojaQuantityReserve}
                 </Td>
-                <Td>{item.transactions[0].containerId}</Td>
+                <Td>{containerId ?? 'Não possuí entradas.'}</Td>
                 <Td>{item.importer}</Td>
-                <Td>{format(data, "dd/MM/yyyy")}</Td>
+                <Td>{date ? format(date, "dd/MM/yyyy"): 'Não possuí entradas.'}</Td>
                 <Td>
                   <ReturnButton
                     onClick={() => {

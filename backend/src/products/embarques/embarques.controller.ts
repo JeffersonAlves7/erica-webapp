@@ -4,8 +4,6 @@ import {
   Get,
   HttpException,
   HttpStatus,
-  Param,
-  Patch,
   Post,
   Query,
   UploadedFile,
@@ -13,7 +11,11 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ConfirmEmbarquesDto, EmbarquesService, GetEmbarquesDto } from './embarques.service';
+import {
+  ConfirmEmbarquesDto,
+  EmbarquesService,
+  GetEmbarquesDto,
+} from './embarques.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
 @Controller('embarques')
@@ -51,6 +53,6 @@ export class EmbarquesController {
   @UseGuards(AuthGuard)
   @Post('/conferences/confirm')
   confirmConference(@Body() body: ConfirmEmbarquesDto) {
-    return this.embarquesService.confirmConferenec(body);
+    return this.embarquesService.confirmConference(body);
   }
 }

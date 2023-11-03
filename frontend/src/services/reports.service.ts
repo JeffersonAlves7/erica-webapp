@@ -22,6 +22,16 @@ class ReportsService {
     return response.data;
   }
 
+  async getExitReportsinfo(day: Date){
+    const response = await api.get("/reports/exit/info", {
+      params: {
+        day: day.toISOString().slice(0, 10)
+      }
+    });
+
+    return response.data;
+  }
+
   async getStockMinimumReports(params: {
     page: number;
     limit: number;
