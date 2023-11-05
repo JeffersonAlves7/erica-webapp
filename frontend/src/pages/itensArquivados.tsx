@@ -55,7 +55,7 @@ export function ItensArquivados() {
 
   useEffect(() => {
     search();
-  }, []);
+  }, [importer]);
 
   function handleConfirmModal() {
     if (!idToUnarchive) {
