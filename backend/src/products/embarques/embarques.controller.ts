@@ -2,8 +2,7 @@ import {
   Body,
   Controller,
   Get,
-  HttpException,
-  HttpStatus,
+  Param,
   Post,
   Query,
   UploadedFile,
@@ -36,18 +35,9 @@ export class EmbarquesController {
   }
 
   @UseGuards(AuthGuard)
-  @Post('/conferences')
-  changeToConference(@Body() body: Record<string, any>) {
-    if (!body.ids || body.ids.some((id: any) => typeof id !== 'number'))
-      throw new HttpException(`IDs inválidos`, HttpStatus.BAD_REQUEST);
-
-    return this.embarquesService.toConference(body.ids);
-  }
-
-  @UseGuards(AuthGuard)
-  @Get('/conferences')
-  getConferences() {
-    return this.embarquesService.getConferences();
+  @Get('/conferences/:id')
+  getConferences(@Param('id') id: string) {
+    return this.embarquesService.getConferences(id);
   }
 
   @UseGuards(AuthGuard)

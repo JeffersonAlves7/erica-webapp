@@ -20,6 +20,7 @@ import {
   useToast
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
+import { useParams } from "react-router-dom";
 
 export function EmbarqueConferencia() {
   const [embarquesData, setEmbarquesData] = useState<
@@ -27,6 +28,7 @@ export function EmbarqueConferencia() {
   >([]);
   const [selecteds, setSelecteds] = useState<number[]>([]);
   const toast = useToast();
+  const { containerId } = useParams<{ containerId: string }>();
 
   const itemsSelecionados = embarquesData.filter((v) =>
     selecteds.includes(v.id)
@@ -36,7 +38,7 @@ export function EmbarqueConferencia() {
 
   useEffect(() => {
     embarquesService
-      .getEmbarqueConferences()
+      .getEmbarqueConferences(containerId ?? "")
       .then((data) =>
         setEmbarquesData(
           data.map((d) => ({ ...d, quantity: 0, observation: "" }))
@@ -127,76 +129,84 @@ export function EmbarqueConferencia() {
     <Stack gap={4}>
       <Heading>Conferência de Container</Heading>
 
-      <CustomTable>
-        <Thead>
-          <Tr>
-            <Th>Código</Th>
-            <Th>Importadora</Th>
-            <Th>Container</Th>
-            <Th>Quantidade Esperada</Th>
-            <Th>Quantidade Verificada</Th>
-            <Th>Observação</Th>
-            <Th>Confirmar Entrada</Th>
-          </Tr>
-        </Thead>
-
-        <Tbody>
-          {embarquesData.map((embarque) => {
-            const isChecked = selecteds.includes(embarque.id);
-            const color =
-              embarque.quantity == 0 || !embarque.quantity
-                ? ""
-                : embarque.quantityExpected > embarque.quantity
-                ? "red.200"
-                : "erica.green";
-
-            return (
-              <Tr key={"embarque-conferencia-" + embarque.id}>
-                <Td backgroundColor={color}>{embarque.product.code}</Td>
-                <Td backgroundColor={color}>{embarque.product.importer}</Td>
-                <Td backgroundColor={color}>{embarque.containerId}</Td>
-                <Td backgroundColor={color}>{embarque.quantityExpected}</Td>
-                <Td backgroundColor={color}>
-                  <Input
-                    type="number"
-                    value={embarque.quantity}
-                    onChange={(e) =>
-                      handleChangeQuantity(
-                        embarque.id,
-                        parseInt(e.target.value)
-                      )
-                    }
-                  />
-                </Td>
-                <Td backgroundColor={color}>
-                  <Input
-                    type="text"
-                    onChange={(e) =>
-                      handleChangeObservation(embarque.id, e.target.value)
-                    }
-                  />
-                </Td>
-                <Td backgroundColor={color}>
-                  <Checkbox
-                    isChecked={isChecked}
-                    onChange={() => handleSelectItem(embarque.id, isChecked)}
-                  />
-                </Td>
+      {embarquesData.length > 0 ? (
+        <>
+          <CustomTable>
+            <Thead>
+              <Tr>
+                <Th>Código</Th>
+                <Th>Importadora</Th>
+                <Th>Container</Th>
+                <Th>Quantidade Esperada</Th>
+                <Th>Quantidade Verificada</Th>
+                <Th>Observação</Th>
+                <Th>Confirmar Entrada</Th>
               </Tr>
-            );
-          })}
-        </Tbody>
-      </CustomTable>
+            </Thead>
 
-      <Flex gap={4}>
-        <ColorButton color="green" onClick={handleConfirmConference}>
-          Mudar Status para Em Estoque
-        </ColorButton>
+            <Tbody>
+              {embarquesData.map((embarque) => {
+                const isChecked = selecteds.includes(embarque.id);
+                const color =
+                  embarque.quantity == 0 || !embarque.quantity
+                    ? ""
+                    : embarque.quantityExpected > embarque.quantity
+                    ? "red.200"
+                    : "erica.green";
 
-        <Box>
-          <OperatorSelector ref={operatorRef} />
-        </Box>
-      </Flex>
+                return (
+                  <Tr key={"embarque-conferencia-" + embarque.id}>
+                    <Td backgroundColor={color}>{embarque.product.code}</Td>
+                    <Td backgroundColor={color}>{embarque.product.importer}</Td>
+                    <Td backgroundColor={color}>{embarque.containerId}</Td>
+                    <Td backgroundColor={color}>{embarque.quantityExpected}</Td>
+                    <Td backgroundColor={color}>
+                      <Input
+                        type="number"
+                        value={embarque.quantity}
+                        onChange={(e) =>
+                          handleChangeQuantity(
+                            embarque.id,
+                            parseInt(e.target.value)
+                          )
+                        }
+                      />
+                    </Td>
+                    <Td backgroundColor={color}>
+                      <Input
+                        type="text"
+                        onChange={(e) =>
+                          handleChangeObservation(embarque.id, e.target.value)
+                        }
+                      />
+                    </Td>
+                    <Td backgroundColor={color}>
+                      <Checkbox
+                        isChecked={isChecked}
+                        onChange={() =>
+                          handleSelectItem(embarque.id, isChecked)
+                        }
+                      />
+                    </Td>
+                  </Tr>
+                );
+              })}
+            </Tbody>
+          </CustomTable>
+
+          <Flex gap={4}>
+            <ColorButton color="green" onClick={handleConfirmConference}>
+              Mudar Status para Em Estoque
+            </ColorButton>
+
+            <Box>
+              <OperatorSelector ref={operatorRef} />
+            </Box>
+          </Flex>
+        </>
+      ) : (
+        <p>Nenhum item encontrado...</p>
+      )}
     </Stack>
   );
 }

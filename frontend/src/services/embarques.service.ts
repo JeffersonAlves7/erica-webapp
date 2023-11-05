@@ -8,6 +8,7 @@ export interface EmbarquesResponse {
   embarqueAt: Date;
   confirmed: boolean;
   containerId: string;
+  arrivalAt: Date;
   product: {
     id: number;
     code: string;
@@ -36,8 +37,10 @@ class EmbarquesService {
     };
   }
 
-  async getEmbarqueConferences(): Promise<EmbarquesResponse[]> {
-    const { data } = await api.get("/embarques/conferences");
+  async getEmbarqueConferences(
+    containerId: string
+  ): Promise<EmbarquesResponse[]> {
+    const { data } = await api.get("/embarques/conferences/" + containerId);
     return data;
   }
 
@@ -51,14 +54,6 @@ class EmbarquesService {
   ): Promise<EmbarquesResponse[]> {
     const { data } = await api.post("/embarques/conferences/confirm", {
       embarques
-    });
-
-    return data;
-  }
-
-  async embarquesToConference(ids: number[]): Promise<void> {
-    const { data } = await api.post("/embarques/conferences", {
-      ids
     });
 
     return data;

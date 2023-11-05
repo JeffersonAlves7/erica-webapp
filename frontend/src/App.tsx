@@ -109,7 +109,7 @@ function App() {
 
           <Route path="/embarques" element={<Embarques />} />
           <Route
-            path="/embarques/conferencias"
+            path="/embarques/:containerId"
             element={<EmbarqueConferencia />}
           />
 

@@ -58,7 +58,6 @@ model ProductsOnContainer {
   container        Container @relation(fields: [containerId], references: [id])
   product          Product   @relation(fields: [productId], references: [id])
   confirmed        Boolean   @default(true)
-  inConference     Boolean   @default(false) @map("in_conference")
   observation      String?
 
   embarqueAt DateTime? @map("embarque_at")

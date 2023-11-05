@@ -232,13 +232,12 @@ export class EmbarquesService {
       take: limit,
       where: {
         ...where,
-        confirmed: false,
-        inConference: false,
       },
       select: {
         id: true,
         quantityExpected: true,
         embarqueAt: true,
+        arrivalAt: true,
         confirmed: true,
         containerId: true,
         product: {
@@ -269,10 +268,10 @@ export class EmbarquesService {
     };
   }
 
-  async getConferences() {
+  async getConferences(containerId: string) {
     return this.prismaService.productsOnContainer.findMany({
       where: {
-        inConference: true,
+        containerId,
         confirmed: false,
       },
       select: {
@@ -293,22 +292,6 @@ export class EmbarquesService {
     });
   }
 
-  async toConference(ids: number[]) {
-    const currentDate = new Date();
-
-    return this.prismaService.productsOnContainer.updateMany({
-      where: {
-        id: {
-          in: ids,
-        },
-      },
-      data: {
-        inConference: true,
-        arrivalAt: currentDate,
-      },
-    });
-  }
-
   async confirmConference({ embarques }: ConfirmEmbarquesDto) {
     await this.prismaService.$transaction(async (prisma) => {
       for (let i = 0; i < embarques.length; i++) {
@@ -321,8 +304,8 @@ export class EmbarquesService {
           data: {
             observation,
             confirmed: true,
-            inConference: false,
             quantityReceived: quantity,
+            arrivalAt: new Date(),
           },
           select: {
             id: true,

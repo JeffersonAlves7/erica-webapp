@@ -1,8 +1,6 @@
-import { ColorButton } from "@/components/buttons/colorButton";
 import { ExcelUploadButton } from "@/components/buttons/excelButtons";
 import { CustomTable } from "@/components/customTable";
 import { CustomFormControl } from "@/components/form/CustomFormControl";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { CustomLabel } from "@/components/form/CustomLabel";
 import { CustomSelect } from "@/components/form/CustomSelect";
 import { InputWithSearch } from "@/components/inputs/inputWithSearch";
@@ -15,11 +13,8 @@ import {
 import { excelService } from "@/services/excel.service";
 import { Importer } from "@/types/importer.enum";
 import {
-  Checkbox,
   Flex,
-  FormControl,
   Heading,
-  Link,
   Stack,
   Tbody,
   Td,
@@ -29,6 +24,7 @@ import {
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { ChangeEvent, useEffect, useState } from "react";
+import { EricaLink } from "@/components/ericaLink";
 
 export function Embarques() {
   const [importer, setImporter] = useState<Importer | string | undefined>(
@@ -39,13 +35,10 @@ export function Embarques() {
   const [status, setStatus] = useState<string>("");
 
   const [embarquesData, setEmbarquesData] = useState<EmbarquesResponse[]>([]);
-  const [selecteds, setSelecteds] = useState<number[]>([]);
-  const [allSelected, setAllSelected] = useState<boolean>(false);
 
   const [page, setPage] = useState<number>(1);
   const [embarquesTotal, setEmbarquesTotal] = useState<number>(0);
 
-  const navigator = useNavigate();
   const embarquesLimit = 50;
 
   const pageLimit = Math.ceil(embarquesTotal / embarquesLimit);
@@ -87,26 +80,6 @@ export function Embarques() {
     setStatus(event.currentTarget.value);
   }
 
-  function handleSelectAll() {
-    if (!allSelected) {
-      setAllSelected(true);
-      setSelecteds(embarquesData.map((d) => d.id));
-    } else {
-      setAllSelected(false);
-      setSelecteds([]);
-    }
-  }
-
-  function handleSelectItem(id: number, isSelected: boolean) {
-    if (isSelected) {
-      setSelecteds([...selecteds.filter((v) => v !== id)]);
-    } else {
-      setSelecteds([...selecteds, id]);
-    }
-
-    if (allSelected) setAllSelected(false);
-  }
-
   async function handleUploadFile(file: File) {
     try {
       await excelService.uploadProductEmbarques(file);
@@ -133,15 +106,6 @@ export function Embarques() {
     if (!(page > 0 && page < pageLimit)) return;
     setPage(page);
   }
-
-  const embarquesSelected = embarquesData.filter((embarque) =>
-    selecteds.includes(embarque.id)
-  );
-
-  const caixas = embarquesSelected.reduce(
-    (acc, reserve) => acc + reserve.quantityExpected,
-    0
-  );
 
   return (
     <Stack gap={4}>
@@ -196,27 +160,9 @@ export function Embarques() {
         </CustomFormControl>
       </Flex>
 
-      <Flex gap={4}>
-        <FormControl className="flex gap-2 items-center max-w-max">
-          <Checkbox onChange={handleSelectAll} isChecked={allSelected} />
-          <CustomLabel className="underline" margin={0}>
-            Selecionar todos
-          </CustomLabel>
-        </FormControl>
-
-        <p className="font-bold">
-          Total de{" "}
-          <span className="border p-1 px-2 border-black rounded-md">
-            {caixas}
-          </span>{" "}
-          Caixas selecionadas.
-        </p>
-      </Flex>
-
       <CustomTable>
         <Thead>
           <Tr>
-            <Th></Th>
             <Th>Código</Th>
             <Th>Quantidade de caixas</Th>
             <Th>Importadora</Th>
@@ -231,8 +177,6 @@ export function Embarques() {
 
         <Tbody>
           {embarquesData.map((embarque) => {
-            const isSelected = selecteds.includes(embarque.id);
-
             const dataDeEmbarque = new Date(embarque.embarqueAt);
             const dayToCome = new Date(dataDeEmbarque);
             dayToCome.setDate(dayToCome.getDate() + 30);
@@ -242,21 +186,55 @@ export function Embarques() {
                 (1000 * 60 * 60 * 24)
             );
 
+            const arrivalDate = new Date(embarque.arrivalAt);
+            const diaEsperado = new Date();
+            let arrivalMessage = embarque.arrivalAt && `Chegou dia ${format(arrivalDate, "dd/MM/yyyy")}`;
+
+            if(embarque.arrivalAt){
+              if (daysToCome < 0)
+                diaEsperado.setDate(diaEsperado.getDate() - daysToCome);
+              else if (daysToCome > 0)
+                diaEsperado.setDate(diaEsperado.getDate() + daysToCome);
+
+              if (arrivalDate.valueOf() < diaEsperado.valueOf()) {
+                // Verifica se a data real de chegada é anterior à data esperada
+                let atraso = Math.floor(
+                  (diaEsperado.valueOf() - new Date(embarque.arrivalAt).valueOf()) /
+                    (1000 * 60 * 60 * 24)
+                );
+                console.log(atraso)
+                arrivalMessage += ` ${atraso} dias adiantado.`
+              } 
+              if (arrivalDate.valueOf() > diaEsperado.valueOf()) {
+                // Verifica se a data real de chegada é posterior à data esperada
+                let atraso = -Math.floor(
+                  (new Date(embarque.arrivalAt).valueOf() - diaEsperado.valueOf()) /
+                    (1000 * 60 * 60 * 24)
+                );
+                console.log(atraso)
+                arrivalMessage += ` ${atraso} dias de atraso.`
+              }
+            }
+
             return (
               <Tr key={"embarque-" + embarque.id}>
-                <Td>
-                  <Checkbox
-                    onChange={() => handleSelectItem(embarque.id, isSelected)}
-                    isChecked={isSelected}
-                  />
-                </Td>
                 <Td>{embarque.product.code}</Td>
                 <Td>{embarque.quantityExpected}</Td>
                 <Td>{embarque.product.importer}</Td>
-                <Td>{embarque.containerId}</Td>
+                <Td>
+                  <EricaLink to={`./${embarque.containerId}`}>
+                    {embarque.containerId}
+                  </EricaLink>
+                </Td>
                 <Td>{format(dataDeEmbarque, "dd/MM/yyyy")}</Td>
                 <Td>{format(dayToCome, "dd/MM/yyyy")}</Td>
-                {daysToCome > 0 ? (
+                {embarque.arrivalAt ? (
+                  <Td>
+                    <p>
+                      {arrivalMessage}
+                    </p>
+                  </Td>
+                ) : daysToCome > 0 ? (
                   <Td className=" text-green-500 font-bold">{daysToCome}</Td>
                 ) : (
                   <Td className=" text-red-500 font-bold">{daysToCome}</Td>
@@ -281,29 +259,7 @@ export function Embarques() {
       />
 
       <Flex justify={"space-between"} wrap="wrap">
-        <ColorButton
-          color="green"
-          onClick={() => {
-            embarquesService
-              .embarquesToConference(selecteds)
-              .then(() => navigator("./conferencias"));
-          }}
-        >
-          Fazer conferência de itens
-        </ColorButton>
-
-        <Flex gap={4} wrap={"wrap"}>
-          <Link
-            as={RouterLink}
-            to={"./conferencias"}
-            textDecoration={"underline"}
-            textColor={"purple.400"}
-            fontWeight={"bold"}
-          >
-            Ir para as conferências
-          </Link>
-          <ExcelUploadButton onUpload={handleUploadFile} withTitle />
-        </Flex>
+        <ExcelUploadButton onUpload={handleUploadFile} withTitle />
       </Flex>
     </Stack>
   );
