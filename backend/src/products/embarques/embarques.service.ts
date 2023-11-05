@@ -12,7 +12,7 @@ export class GetEmbarquesDto extends PageableParamsEmpty {
   container: string | undefined;
   importer: Importer | undefined;
   codeOrEan: string | undefined;
-  status: any | undefined;
+  status: string;
 }
 
 class ConfirmEmbarque {
@@ -210,22 +210,33 @@ export class EmbarquesService {
 
     const where: any = {};
 
-    if (container) where.containerId = container;
+    if (container)
+      where.containerId = {
+        contains: container,
+      };
 
     if (codeOrEan) {
       where.product = {
         OR: [
           {
-            code: codeOrEan,
+            code: {
+              contains: codeOrEan,
+            },
           },
           {
-            ean: codeOrEan,
+            ean: {
+              contains: codeOrEan,
+            },
           },
         ],
       };
     }
 
     if (importer) where.product = { ...where.product, importer };
+
+    if (status) {
+      where.confirmed = status === "true";
+    }
 
     const containers = await this.prismaService.productsOnContainer.findMany({
       skip: (page - 1) * limit,

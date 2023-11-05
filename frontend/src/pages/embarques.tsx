@@ -32,7 +32,7 @@ export function Embarques() {
   );
   const [container, setContainer] = useState<string>("");
   const [code, setCode] = useState<string>("");
-  const [status, setStatus] = useState<string>("");
+  const [status, setStatus] = useState<string | undefined>(undefined);
 
   const [embarquesData, setEmbarquesData] = useState<EmbarquesResponse[]>([]);
 
@@ -51,7 +51,7 @@ export function Embarques() {
         limit: embarquesLimit,
         page,
         importer,
-        status
+        status: status === "true" || status === "false" ? status === "true" : undefined
       })
       .then((data) => {
         setEmbarquesData(data.data);
@@ -62,7 +62,7 @@ export function Embarques() {
 
   useEffect(() => {
     handleSearch();
-  }, [importer]);
+  }, [importer, status]);
 
   function handleChangeImporter(event: ChangeEvent<HTMLSelectElement>) {
     setImporter(event.currentTarget.value);
@@ -76,7 +76,7 @@ export function Embarques() {
     setCode(event.currentTarget.value);
   }
 
-  function handleChangeStatus(event: ChangeEvent<HTMLInputElement>) {
+  function handleChangeStatus(event: ChangeEvent<HTMLSelectElement>) {
     setStatus(event.currentTarget.value);
   }
 
@@ -152,11 +152,14 @@ export function Embarques() {
 
         <CustomFormControl>
           <CustomLabel>Filtrar por Status</CustomLabel>
-          <InputWithSearch
-            value={status}
+          <CustomSelect
             onChange={handleChangeStatus}
-            onSearch={handleSearch}
-          />
+            value={status}
+            placeholder="Selecione um Status"
+          >
+            <option value={"false"}>A Caminho</option>
+            <option value={"true"}>Em Estoque</option>
+          </CustomSelect>
         </CustomFormControl>
       </Flex>
 
@@ -188,9 +191,11 @@ export function Embarques() {
 
             const arrivalDate = new Date(embarque.arrivalAt);
             const diaEsperado = new Date();
-            let arrivalMessage = embarque.arrivalAt && `Chegou dia ${format(arrivalDate, "dd/MM/yyyy")}`;
+            let arrivalMessage =
+              embarque.arrivalAt &&
+              `Chegou dia ${format(arrivalDate, "dd/MM/yyyy")}`;
 
-            if(embarque.arrivalAt){
+            if (embarque.arrivalAt) {
               if (daysToCome < 0)
                 diaEsperado.setDate(diaEsperado.getDate() - daysToCome);
               else if (daysToCome > 0)
@@ -199,20 +204,21 @@ export function Embarques() {
               if (arrivalDate.valueOf() < diaEsperado.valueOf()) {
                 // Verifica se a data real de chegada é anterior à data esperada
                 let atraso = Math.floor(
-                  (diaEsperado.valueOf() - new Date(embarque.arrivalAt).valueOf()) /
+                  (diaEsperado.valueOf() -
+                    new Date(embarque.arrivalAt).valueOf()) /
                     (1000 * 60 * 60 * 24)
                 );
-                console.log(atraso)
-                arrivalMessage += ` ${atraso} dias adiantado.`
-              } 
+                arrivalMessage += ` ${atraso} dias adiantado.`;
+              }
               if (arrivalDate.valueOf() > diaEsperado.valueOf()) {
                 // Verifica se a data real de chegada é posterior à data esperada
                 let atraso = -Math.floor(
-                  (new Date(embarque.arrivalAt).valueOf() - diaEsperado.valueOf()) /
+                  (new Date(embarque.arrivalAt).valueOf() -
+                    diaEsperado.valueOf()) /
                     (1000 * 60 * 60 * 24)
                 );
-                console.log(atraso)
-                arrivalMessage += ` ${atraso} dias de atraso.`
+                console.log(atraso);
+                arrivalMessage += ` ${atraso} dias de atraso.`;
               }
             }
 
@@ -230,16 +236,16 @@ export function Embarques() {
                 <Td>{format(dayToCome, "dd/MM/yyyy")}</Td>
                 {embarque.arrivalAt ? (
                   <Td>
-                    <p>
-                      {arrivalMessage}
-                    </p>
+                    <p>{arrivalMessage}</p>
                   </Td>
                 ) : daysToCome > 0 ? (
                   <Td className=" text-green-500 font-bold">{daysToCome}</Td>
                 ) : (
                   <Td className=" text-red-500 font-bold">{daysToCome}</Td>
                 )}
-                <Td></Td>
+                <Td>
+                  {embarque.confirmed ? "Em Estoque" : "A Caminho"}
+                </Td>
                 <Td>{embarque.product.ean}</Td>
               </Tr>
             );
