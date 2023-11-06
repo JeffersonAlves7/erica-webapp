@@ -51,7 +51,10 @@ export function Embarques() {
         limit: embarquesLimit,
         page,
         importer,
-        status: status === "true" || status === "false" ? status === "true" : undefined
+        status:
+          status === "true" || status === "false"
+            ? status === "true"
+            : undefined
       })
       .then((data) => {
         setEmbarquesData(data.data);
@@ -236,16 +239,22 @@ export function Embarques() {
                 <Td>{format(dayToCome, "dd/MM/yyyy")}</Td>
                 {embarque.arrivalAt ? (
                   <Td>
-                    <p>{arrivalMessage}</p>
+                    <p
+                      className={
+                        arrivalMessage.includes("atraso")
+                          ? " text-yellow-600"
+                          : ""
+                      }
+                    >
+                      {arrivalMessage}
+                    </p>
                   </Td>
                 ) : daysToCome > 0 ? (
                   <Td className=" text-green-500 font-bold">{daysToCome}</Td>
                 ) : (
                   <Td className=" text-red-500 font-bold">{daysToCome}</Td>
                 )}
-                <Td>
-                  {embarque.confirmed ? "Em Estoque" : "A Caminho"}
-                </Td>
+                <Td>{embarque.confirmed ? "Em Estoque" : "A Caminho"}</Td>
                 <Td>{embarque.product.ean}</Td>
               </Tr>
             );
