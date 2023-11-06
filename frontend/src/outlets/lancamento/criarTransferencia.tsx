@@ -1,6 +1,6 @@
 import { EricaLink } from "@/components/ericaLink";
 import { CodeOrEanInput } from "@/components/inputs/codeInput";
-import { DestinyInput } from "@/components/inputs/destiny.input";
+import { LojaInput } from "@/components/inputs/lojaInput";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
@@ -28,7 +28,7 @@ export function CriarTransferencia() {
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
   const observacaoRef = useRef<HTMLInputElement>(null);
-  const locationRef = useRef<HTMLInputElement>(null);
+  const locationRef = useRef<HTMLSelectElement>(null);
   const operatorRef = useRef<HTMLSelectElement>(null);
 
   function handleConfirm(e: React.FormEvent<HTMLFormElement>) {
@@ -90,7 +90,7 @@ export function CriarTransferencia() {
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleConfirm}>
         <CardHeader>
-          <Flex justify={'space-between'}>
+          <Flex justify={"space-between"}>
             <Heading size={"md"}>Criar Transferência</Heading>
 
             <EricaLink to="./historico">Histórico de Transferências</EricaLink>
@@ -108,7 +108,7 @@ export function CriarTransferencia() {
             <CodeOrEanInput ref={codigoRef} />
             <QuantityInput ref={quantidadeRef} />
             <OperatorInput ref={operatorRef} />
-            <DestinyInput ref={locationRef} />
+            <LojaInput ref={locationRef} />
             <GridItem colSpan={2}>
               <ObservacaoInput ref={observacaoRef} />
             </GridItem>

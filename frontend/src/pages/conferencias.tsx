@@ -1,4 +1,5 @@
 import { ModalConfirm } from "@/components/modalConfirm";
+import { LojaSelector } from "@/components/selectors/importerSelector copy";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
@@ -175,12 +176,10 @@ export function Conferencias() {
                     />
                   </Td>
                   <Td backgroundColor={color}>
-                    <Input
-                      maxW={40}
+                    <LojaSelector
                       border={"1px"}
                       borderColor={"black"}
                       textAlign={"center"}
-                      type="text"
                       defaultValue={conferencia.localizacao ?? ""}
                       onChange={(e) => {
                         handleChangeLocalizacao(conferencia.id, e.target.value);
