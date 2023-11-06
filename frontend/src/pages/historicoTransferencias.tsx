@@ -118,11 +118,15 @@ export function HistoricoTransferencias() {
       <Flex justify={"space-between"} gap={2}>
         <Flex flexWrap={"wrap"} gap={2} align={"center"} flex={1}>
           <Box
-            position={"relative"}
-            w={"full"}
+            w="full"
             maxW={300}
             display="flex"
             alignItems="center"
+            border="1px solid #CBD5E0"
+            rounded="md"
+            transition="border 0.3s" // Adicione uma transição suave para a borda
+            _focus={{ border: "1px solid blue" }} // Estilo do Box quando o input está em foco
+            className="group"
           >
             <InputWithSearch
               onSearch={handleSearch}
@@ -131,21 +135,24 @@ export function HistoricoTransferencias() {
                 setCodeOrEan(e.target.value);
               }}
               placeholder="Buscar por EAN ou Código"
-              w={"full"}
+              border="none"
+              outline="none"
+              _focusVisible={{
+                border: "none"
+              }}
             />
             <Button
               onClick={handleSearch}
-              position={"absolute"}
-              backgroundColor={"transparent"}
-              right={0}
-              p={1}
+              backgroundColor="transparent"
+              p={2}
               m={0}
-              w={"min-content"}
-              h={"min-content"}
+              w="min-content"
+              h="min-content"
             >
               <BsSearch className="p-0 m-0" />
             </Button>
           </Box>
+
           <CustomInput
             maxW={150}
             type="date"

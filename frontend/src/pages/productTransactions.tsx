@@ -175,7 +175,7 @@ export function ProductTransactions() {
       });
   }
 
-   function handleDelete(id: number) {
+  function handleDelete(id: number) {
     setTransactionToDelete(id);
     deleteTransactionDisclosure.onOpen();
   }
@@ -200,7 +200,6 @@ export function ProductTransactions() {
       });
   }
 
-
   return (
     <Stack h={"full"} gap={5}>
       <Heading>
@@ -222,6 +221,7 @@ export function ProductTransactions() {
         reservado={
           product?.galpaoQuantityReserve + product?.lojaQuantityReserve ?? 0
         }
+        location={product?.lojaLocation}
       />
       <Box overflow={"auto"} minH={200}>
         <Table>
@@ -279,6 +279,7 @@ function ProductInfo(props: {
   galpaoQuantity: number;
   lojaQuantity: number;
   reservado: number;
+  location: string;
 }) {
   const saldoTotal = props.galpaoQuantity + props.lojaQuantity;
   const totalDisponivel = saldoTotal - props.reservado;
@@ -298,6 +299,9 @@ function ProductInfo(props: {
       </Box>
       <Box>
         <Text>Disponível para venda: {totalDisponivel}</Text>
+      </Box>
+      <Box>
+        <Text>Localização: {props.location}</Text>
       </Box>
     </Grid>
   );

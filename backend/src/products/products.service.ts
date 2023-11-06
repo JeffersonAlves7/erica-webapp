@@ -223,24 +223,28 @@ export class ProductsService {
     importer = getImporterIdOrUndefined(importer);
     stock = getStockIdOrUndefined(stock);
 
-    const where: any = {
-      importer: importer,
-      isActive: true,
-    };
-
-    if (code) where.code = { contains: code ?? '' };
+    const w: any = {};
+    if (code) w.code = { contains: code ?? '' };
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      where,
+      where: {
+        importer: importer,
+        isActive: true,
+        productsOnContainer: {
+          some: {
+            confirmed: true,
+          },
+        },
+      },
       orderBy: {
         updatedAt: 'desc',
       },
     });
 
     const total = await this.prismaService.product.count({
-      where,
+      where: w,
     });
 
     const productsToSend = [];

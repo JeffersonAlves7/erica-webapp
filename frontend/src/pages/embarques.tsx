@@ -169,6 +169,7 @@ export function Embarques() {
       <CustomTable>
         <Thead>
           <Tr>
+            <Th>Ean</Th>
             <Th>Código</Th>
             <Th>Quantidade de caixas</Th>
             <Th>Importadora</Th>
@@ -177,7 +178,6 @@ export function Embarques() {
             <Th>Previsão de chegada</Th>
             <Th>Dias para chegar</Th>
             <Th>Status</Th>
-            <Th>Ean</Th>
           </Tr>
         </Thead>
 
@@ -220,13 +220,14 @@ export function Embarques() {
                     diaEsperado.valueOf()) /
                     (1000 * 60 * 60 * 24)
                 );
-                console.log(atraso);
+
                 arrivalMessage += ` ${atraso} dias de atraso.`;
               }
             }
 
             return (
               <Tr key={"embarque-" + embarque.id}>
+                <Td>{embarque.product.ean}</Td>
                 <Td>{embarque.product.code}</Td>
                 <Td>{embarque.quantityExpected}</Td>
                 <Td>{embarque.product.importer}</Td>
@@ -255,7 +256,6 @@ export function Embarques() {
                   <Td className=" text-red-500 font-bold">{daysToCome}</Td>
                 )}
                 <Td>{embarque.confirmed ? "Em Estoque" : "A Caminho"}</Td>
-                <Td>{embarque.product.ean}</Td>
               </Tr>
             );
           })}

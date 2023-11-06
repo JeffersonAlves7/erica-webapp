@@ -12,12 +12,28 @@ export class ExcelService {
       const buffer = Buffer.from(file.buffer);
       const loaded = await workbook.xlsx.load(buffer);
 
-      const data = loaded.worksheets[0]
-        .getSheetValues()
-        .map((row: any) => row.slice(1));
+      const rows = loaded.worksheets[0].getSheetValues();
+      const data = [];
+
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i] as any[] | undefined;
+        if (!row) continue;
+        if (row.every((value) => !value)) break;
+
+        const columns = row
+          .slice(1)
+          .map((col) =>
+            typeof col === 'object' && Object.keys(col).includes('result')
+              ? col.result
+              : col,
+          );
+
+        data.push(columns);
+      }
 
       return data;
-    } catch {
+    } catch (e) {
+      console.log(e);
       throw new HttpException(
         'Não foi possível ler o arquivo, tente novamente',
         HttpStatus.BAD_REQUEST,
@@ -49,11 +65,14 @@ export class ExcelService {
       const observation = row.at(6);
       const codeOrEan = code ? code : ean;
 
-      if (!quantity || typeof quantity !== 'number')
+      if (!quantity || typeof quantity !== 'number') {
+        console.log(row);
+
         throw new HttpException(
           `Quantidade não encontrada na linha ${rowIndex}`,
           HttpStatus.BAD_REQUEST,
         );
+      }
 
       if (!importer || typeof importer !== 'string')
         throw new HttpException(
