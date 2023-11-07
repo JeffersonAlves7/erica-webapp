@@ -215,7 +215,7 @@ export function EmbarqueConferencia() {
       ) : (
         <>
           <p>Todos os itens já foram conferidos!</p>
-          <EricaLink to="/embarques">Ir ara Embarques.</EricaLink>
+          <EricaLink to="/embarques">Ir para Embarques.</EricaLink>
         </>
       )}
     </Stack>
