@@ -1,5 +1,6 @@
 import { ColorButton } from "@/components/buttons/colorButton";
 import { CustomTable } from "@/components/customTable";
+import { EricaLink } from "@/components/ericaLink";
 import { OperatorSelector } from "@/components/selectors/operatorSelector";
 import {
   EmbarquesResponse,
@@ -117,11 +118,18 @@ export function EmbarqueConferencia() {
             observation: v.observation
           }))
         )
-        .then(() =>
+        .then(() => {
           setEmbarquesData(
             embarquesData.filter((embarque) => !selecteds.includes(embarque.id))
-          )
-        );
+          );
+
+          toast({
+            title: "Conferência feita com sucesso!",
+            status: "success",
+            duration: 3000,
+            isClosable: true
+          });
+        });
     }
   }
 
@@ -205,7 +213,10 @@ export function EmbarqueConferencia() {
           </Flex>
         </>
       ) : (
-        <p>Nenhum item encontrado...</p>
+        <>
+          <p>Todos os itens já foram conferidos!</p>
+          <EricaLink to="/embarques">Ir ara Embarques.</EricaLink>
+        </>
       )}
     </Stack>
   );
