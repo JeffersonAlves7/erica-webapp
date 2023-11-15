@@ -173,8 +173,6 @@ export function HistoricoTransferencias() {
             <Th>Código</Th>
             <Th>Quantidade Entrada</Th>
             <Th>Quantidade Saída</Th>
-            <Th>Origem</Th>
-            <Th>Destino</Th>
             <Th>Operador</Th>
             <Th>Observação</Th>
             <Th roundedTopRight={"2xl"}>Data e Hora</Th>
@@ -188,20 +186,17 @@ export function HistoricoTransferencias() {
               product: { ean, code },
               entryAmount,
               exitAmount,
-              fromStock,
-              toStock,
               operator,
               observation,
               createdAt
             } = conferencia;
+
             return (
               <Tr key={"transference-list-" + id}>
                 <Td>{ean}</Td>
                 <Td>{code}</Td>
                 <Td>{entryAmount}</Td>
                 <Td>{exitAmount}</Td>
-                <Td>{fromStock}</Td>
-                <Td>{toStock}</Td>
                 <Td>{operator}</Td>
                 <Td>{observation}</Td>
                 <Td>{format(new Date(createdAt), "dd/MM/yyy hh:mm:ss")}</Td>
