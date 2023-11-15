@@ -20,14 +20,17 @@ import {
   useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
+import { CodeInputForStock } from "@/components/inputs/codeInput";
 
 export function ItensArquivados() {
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [importer, setImporter] = useState("");
+  const codeRef = useRef<HTMLInputElement>(null);
+
   const [idToUnarchive, setIdToUnarchive] = useState<number | undefined>(
     undefined
   );
@@ -44,7 +47,8 @@ export function ItensArquivados() {
       .getArchivedProducts({
         limit: limitPerPage,
         page,
-        importer
+        importer,
+        code: codeRef.current?.value || ""
       })
       .then((response) => {
         setItems(response.data);
@@ -104,9 +108,10 @@ export function ItensArquivados() {
         </EricaLink>
       </Flex>
 
-      <Box w={"max-content"}>
+      <Flex wrap={'wrap'} gap={2}>
         <ImporterInputForStock onChange={setImporter} />
-      </Box>
+        <CodeInputForStock ref={codeRef} onSearch={search} />
+      </Flex>
 
       <CustomTable>
         <Thead>
@@ -125,7 +130,7 @@ export function ItensArquivados() {
             let date: Date | undefined;
             let containerId: string | undefined;
 
-            if(item.transactions.length){
+            if (item.transactions.length) {
               date = new Date(item.transactions[0].createdAt);
               containerId = item.transactions[0].containerId;
             }
@@ -139,9 +144,11 @@ export function ItensArquivados() {
                     item.lojaQuantity +
                     item.lojaQuantityReserve}
                 </Td>
-                <Td>{containerId ?? 'Não possuí entradas.'}</Td>
+                <Td>{containerId ?? "Não possuí entradas."}</Td>
                 <Td>{item.importer}</Td>
-                <Td>{date ? format(date, "dd/MM/yyyy"): 'Não possuí entradas.'}</Td>
+                <Td>
+                  {date ? format(date, "dd/MM/yyyy") : "Não possuí entradas."}
+                </Td>
                 <Td>
                   <ReturnButton
                     onClick={() => {

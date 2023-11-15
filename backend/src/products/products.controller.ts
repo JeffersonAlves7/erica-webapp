@@ -69,6 +69,7 @@ export class ProductsController {
       limit: parseInt(query.limit),
       page: parseInt(query.page),
       importer: query.importer,
+      code: query.code,
     });
   }
 

@@ -253,7 +253,7 @@ class ProductService {
   }
 
   async getArchivedProducts(
-    query: { importer?: Importer | string } & PageableParams
+    query: { importer?: Importer | string; code?: string } & PageableParams
   ): Promise<Pageable<any>> {
     const { data } = await api.get("/products/archive", {
       params: query

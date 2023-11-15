@@ -74,12 +74,15 @@ export class ProductsService {
   }
 
   async getArchivedProducts(
-    query: PageableParams & { importer?: string },
+    query: PageableParams & { importer?: string; code?: string },
   ): Promise<Pageable<any>> {
     if (!query.page) query.page = 1;
     if (!query.limit || query.limit > 100) query.limit = 100;
 
-    const { page, limit, importer } = query;
+    let { page, limit, importer, code } = query;
+    if (!code) {
+      code = '';
+    }
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
@@ -87,6 +90,9 @@ export class ProductsService {
       where: {
         isActive: false,
         importer: importer ? importer : undefined,
+        code: {
+          contains: code,
+        },
       },
       include: {
         transactions: {
