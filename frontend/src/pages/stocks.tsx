@@ -115,7 +115,7 @@ export function Stocks() {
           </EricaLink>
         </Flex>
 
-        <Stack direction={"row"} gap={4} align={"center"}>
+        <Flex gap={4} align={"center"}>
           <ImporterInputForStock onChange={setImporter} />
           <CodeInputForStock onSearch={handleSearchPedidos} ref={codigoRef} />
           {!stock && (
@@ -130,7 +130,7 @@ export function Stocks() {
             </Box>
           )}
           <SearchButton onSearch={handleSearchPedidos} />
-        </Stack>
+        </Flex>
 
         <Box overflow={"auto"} minH={200}>
           <Table>

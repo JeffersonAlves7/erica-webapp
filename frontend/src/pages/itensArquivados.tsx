@@ -7,7 +7,6 @@ import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { productService } from "@/services/product.service";
 import {
-  Box,
   Flex,
   Heading,
   Stack,
@@ -23,6 +22,7 @@ import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
+import { SearchButton } from "@/components/buttons/searchButton";
 
 export function ItensArquivados() {
   const [items, setItems] = useState<any[]>([]);
@@ -111,6 +111,7 @@ export function ItensArquivados() {
       <Flex wrap={'wrap'} gap={2}>
         <ImporterInputForStock onChange={setImporter} />
         <CodeInputForStock ref={codeRef} onSearch={search} />
+        <SearchButton onSearch={search} />
       </Flex>
 
       <CustomTable>
