@@ -31,13 +31,17 @@ import { Link } from "react-router-dom";
 export function Stocks() {
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [qntDeCaixas, setQntDeCaixas] = useState(0);
   const [items, setItems] = useState<ProductsWithStock[]>([]);
   const [importer, setImporter] = useState<Importer | undefined>(undefined);
   const [stock, setStock] = useState<Stock | undefined>(undefined);
   const [code, setCode] = useState<string | undefined>(undefined);
-  const [alertaPorcentagem, setAlertaPorcentagem] = useLocalStorage('alerta-porcentagem', 50);
+  const [alertaPorcentagem, setAlertaPorcentagem] = useLocalStorage(
+    "alerta-porcentagem",
+    50
+  );
 
-  const productsLimit = 10;
+  const productsLimit = 100;
   const codigoRef = useRef<HTMLInputElement>(null);
   const pageLimmit = Math.ceil(totalItems / productsLimit);
 
@@ -52,8 +56,12 @@ export function Stocks() {
       })
       .then((data) => {
         setItems(data.data);
-        setTotalItems(data.total);
         setPage(1);
+        return productService.getProductsinfo();
+      })
+      .then((data) => {
+        setQntDeCaixas(data.boxQuantity);
+        setTotalItems(data.productsQuantity);
       })
       .catch((error) => {
         handleError401(error);
@@ -93,14 +101,6 @@ export function Stocks() {
         : Stock.LOJA
     );
   }
-
-  const qntDeCaixas = items.reduce<number | ProductsWithStock>(
-    (previous, current) =>
-      typeof previous !== "number"
-        ? previous.saldo + current.saldo
-        : previous + current.saldo,
-    0
-  ) as number;
 
   return (
     <>
@@ -185,22 +185,22 @@ export function Stocks() {
           </Table>
         </Box>
 
-        <PaginationSelector
-          page={page}
-          increasePage={() => {
-            if (page <= pageLimmit) handleChangePage(page + 1);
-          }}
-          decreasePage={() => {
-            if (page > 1) handleChangePage(page - 1);
-          }}
-          pageQuantity={pageLimmit}
-        />
-
-        <Box justifySelf={"flex-end"}>
+        <Flex justifySelf={"flex-end"} justify={"space-between"}>
           <span>
-            {items.length} Produto(s) | Total de {qntDeCaixas} caixas.
+            {totalItems} Produto(s) | Total de {qntDeCaixas} caixas.
           </span>
-        </Box>
+
+          <PaginationSelector
+            page={page}
+            increasePage={() => {
+              if (page <= pageLimmit) handleChangePage(page + 1);
+            }}
+            decreasePage={() => {
+              if (page > 1) handleChangePage(page - 1);
+            }}
+            pageQuantity={pageLimmit}
+          />
+        </Flex>
       </Stack>
     </>
   );

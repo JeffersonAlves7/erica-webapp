@@ -267,7 +267,12 @@ class ProductService {
   }
 
   async archiveProduct(id: number) {
-    const { data } = await api.patch("products/archive/" + id);
+    const { data } = await api.patch("/products/archive/" + id);
+    return data;
+  }
+
+  async getProductsinfo() {
+    const { data } = await api.get("/products/info");
     return data;
   }
 }

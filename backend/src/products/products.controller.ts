@@ -50,6 +50,13 @@ export class ProductsController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('info')
+  getProductsInfo(@Query() query: Record<string, string>){
+    return this.productsService.getProductsInfo(query);
+  }
+
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Patch('archive/:id')
   archiveProduct(@Param('id') id: string) {

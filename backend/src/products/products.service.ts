@@ -121,6 +121,24 @@ export class ProductsService {
     };
   }
 
+  async getProductsInfo(params: {}) {
+    const productsQuantity = await this.prismaService.product.count({
+      where: {
+        isActive: true,
+      },
+    });
+
+    const totalQuantity = await this.prismaService.$queryRaw`
+      SELECT SUM(galpao_quantity + galpao_quantity_reserve + loja_quantity + loja_quantity_reserve) as total FROM products 
+      WHERE is_active = 1
+    `;
+
+    return {
+      productsQuantity,
+      boxQuantity: Number(totalQuantity[0].total),
+    };
+  }
+
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
     return this.prismaService.product.findFirst({
       where: {

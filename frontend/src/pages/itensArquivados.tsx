@@ -108,7 +108,7 @@ export function ItensArquivados() {
         </EricaLink>
       </Flex>
 
-      <Flex wrap={'wrap'} gap={2}>
+      <Flex wrap={"wrap"} gap={2}>
         <ImporterInputForStock onChange={setImporter} />
         <CodeInputForStock ref={codeRef} onSearch={search} />
         <SearchButton onSearch={search} />

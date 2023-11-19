@@ -6,8 +6,9 @@ export const LojaSelector = forwardRef<
   PropsWithRef<SelectProps>
 >((props, ref) => {
   const options = [
-    "Loja 38 1º Andar",
     "Loja 38 2º Andar",
+    "Loja 38 3º Andar",
+    "Loja 38 4º Andar",
     "Loja 40 1º Andar",
     "Loja 40 2º Andar",
     "Loja 40 3º Andar",

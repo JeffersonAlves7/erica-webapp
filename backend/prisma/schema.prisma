@@ -60,7 +60,7 @@ model ProductsOnContainer {
   confirmed        Boolean   @default(true)
   observation      String?
 
-  embarqueAt DateTime? @map("embarque_at")
+  embarqueAt DateTime  @default(now()) @map("embarque_at")
   arrivalAt  DateTime? @map("arrival_at")
 
   createdAt DateTime @default(now()) @map("created_at")

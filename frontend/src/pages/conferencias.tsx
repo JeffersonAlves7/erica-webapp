@@ -1,5 +1,5 @@
 import { ModalConfirm } from "@/components/modalConfirm";
-import { LojaSelector } from "@/components/selectors/importerSelector copy";
+import { LojaSelector } from "@/components/selectors/lojaSelector";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";

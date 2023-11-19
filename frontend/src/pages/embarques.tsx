@@ -25,6 +25,7 @@ import {
 import { format } from "date-fns";
 import { ChangeEvent, useEffect, useState } from "react";
 import { EricaLink } from "@/components/ericaLink";
+import { productService } from "@/services/product.service";
 
 export function Embarques() {
   const [importer, setImporter] = useState<Importer | string | undefined>(
@@ -38,8 +39,12 @@ export function Embarques() {
 
   const [page, setPage] = useState<number>(1);
   const [embarquesTotal, setEmbarquesTotal] = useState<number>(0);
+  const [productsInfo, setProudctsInfo] = useState({
+    productsQuantity: 0,
+    boxQuantity: 0
+  });
 
-  const embarquesLimit = 50;
+  const embarquesLimit = 100;
 
   const pageLimit = Math.ceil(embarquesTotal / embarquesLimit);
 
@@ -60,6 +65,10 @@ export function Embarques() {
         setEmbarquesData(data.data);
         setPage(data.page);
         setEmbarquesTotal(data.total);
+        return productService.getProductsinfo();
+      })
+      .then((data) => {
+        setProudctsInfo(data);
       });
   }
 
@@ -262,19 +271,26 @@ export function Embarques() {
         </Tbody>
       </CustomTable>
 
-      <PaginationSelector
-        page={page}
-        pageQuantity={pageLimit}
-        decreasePage={() => {
-          handleChangePage(page - 1);
-        }}
-        increasePage={() => {
-          handleChangePage(page + 1);
-        }}
-      />
-
       <Flex justify={"space-between"} wrap="wrap">
         <ExcelUploadButton onUpload={handleUploadFile} withTitle />
+      </Flex>
+
+      <Flex justifySelf={"flex-end"}>
+        <span>
+          {productsInfo.productsQuantity} Produto(s) | Total de{" "}
+          {productsInfo.boxQuantity} caixas.
+        </span>
+
+        <PaginationSelector
+          page={page}
+          pageQuantity={pageLimit}
+          decreasePage={() => {
+            handleChangePage(page - 1);
+          }}
+          increasePage={() => {
+            handleChangePage(page + 1);
+          }}
+        />
       </Flex>
     </Stack>
   );

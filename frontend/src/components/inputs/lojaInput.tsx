@@ -1,6 +1,6 @@
 import { FormControl, FormLabel, SelectProps } from "@chakra-ui/react";
 import { PropsWithRef, forwardRef } from "react";
-import { LojaSelector } from "../selectors/importerSelector copy";
+import { LojaSelector } from "../selectors/lojaSelector";
 
 export const LojaInput = forwardRef<
   HTMLSelectElement,

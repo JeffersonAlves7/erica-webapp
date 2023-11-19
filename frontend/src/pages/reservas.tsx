@@ -25,6 +25,9 @@ import {
   useToast
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
+import { ModalConfirm } from "@/components/modalConfirm";
+import { transactionService } from "@/services/transactionService";
+import { CloseButton } from "@/components/buttons/closeButton";
 
 export function Reservas() {
   const [stock, setStock] = useState<Stock | undefined>(undefined);
@@ -36,14 +39,17 @@ export function Reservas() {
   const [allSelected, setAllSelected] = useState(false);
   const [page, setPage] = useState(1);
   const [pageLimit, setPageLimit] = useState(0);
+  const [reserveIdToCancel, setReserveIdToCancel] = useState<
+    undefined | number
+  >(undefined);
 
   const toast = useToast();
 
   const reserversPerPage = 20;
   const pageQuantity = Math.ceil(pageLimit / reserversPerPage);
 
-  useEffect(() => {
-    reservesService
+  async function getAllReserves() {
+    return reservesService
       .getReserves({
         page: page,
         limit: reserversPerPage,
@@ -63,6 +69,10 @@ export function Reservas() {
         handleError401(error);
         console.log(error);
       });
+  }
+
+  useEffect(() => {
+    getAllReserves();
   }, [stock]);
 
   const reservesSelected = reserves.filter((reserve) =>
@@ -114,23 +124,10 @@ export function Reservas() {
           isClosable: true
         });
 
-        return reservesService.getReserves({
-          page: page,
-          limit: reserversPerPage,
-          stock: stock
-        });
-      })
-      .then((reserves) => {
         setSelecteds([]);
         setAllSelected(false);
-        setReserves(reserves.data);
-        setPageLimit(reserves.total);
-        setPage(1);
-        setReserveSummary({
-          galpao: reserves.summary.galpaoQuantity as number,
-          loja: reserves.summary.lojaQuantity as number,
-          products: reserves.summary.products as number
-        });
+
+        return getAllReserves()
       })
       .catch((error) => {
         handleError401(error);
@@ -171,98 +168,115 @@ export function Reservas() {
 
         <Box overflow={"auto"}>
           <Table>
-            <TableHead />
+            <Thead>
+              <Tr>
+                <Th></Th>
+                <Th>Código</Th>
+                <Th>
+                  Quantidade <br /> de Reserva
+                </Th>
+                <Th>Estoque</Th>
+                <Th>Cliente</Th>
+                <Th>
+                  Previsão de <br /> retirada
+                </Th>
+                <Th>Operador</Th>
+                <Th>Observação</Th>
+                <Th>Cancelar</Th>
+              </Tr>
+            </Thead>
             <Tbody>
               {reserves.map((reserve) => (
-                <TableItem
-                  key={reserve.id}
-                  reserve={reserve}
-                  isSelected={selecteds.includes(reserve.id)}
-                  handleSelect={handleSelect}
-                  handleUnselect={handleUnselect}
-                />
+                <Tr key={`reservers-${reserve.id}`}>
+                  <Td>
+                    <Checkbox
+                      isChecked={selecteds.includes(reserve.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) handleSelect(reserve.id);
+                        else handleUnselect(reserve.id);
+                      }}
+                    />
+                  </Td>
+                  <Td>{reserve.code}</Td>
+                  <Td>{reserve.quantity}</Td>
+                  <Td>{reserve.stock}</Td>
+                  <Td>{reserve.client}</Td>
+                  <Td>{format(new Date(reserve.date), "dd/MM/yyyy")}</Td>
+                  <Td>{reserve.operator}</Td>
+                  <Td>{reserve.observation}</Td>
+                  <Td>
+                    <CloseButton
+                      onClick={() => setReserveIdToCancel(reserve.id)}
+                    />
+                  </Td>
+                </Tr>
               ))}
             </Tbody>
           </Table>
         </Box>
 
-        <Flex>
-          <ColorButton onClick={handleConfirmItems} color="green">
-            Confirmar itens
-          </ColorButton>
+        <Stack gap={4}>
+          <Flex justify={"space-between"}>
+            <ColorButton onClick={handleConfirmItems} color="green">
+              Confirmar saídas
+            </ColorButton>
 
-          <PaginationSelector
-            decreasePage={() => {
-              if (page > 1) setPage(page - 1);
-            }}
-            increasePage={() => {
-              if (page < pageQuantity) setPage(page + 1);
-            }}
-            page={page}
-            pageQuantity={pageQuantity}
-          />
-        </Flex>
+            <PaginationSelector
+              decreasePage={() => {
+                if (page > 1) setPage(page - 1);
+              }}
+              increasePage={() => {
+                if (page < pageQuantity) setPage(page + 1);
+              }}
+              page={page}
+              pageQuantity={pageQuantity}
+            />
+          </Flex>
+
+          {reserveSummary && (
+            <p className="">
+              {reserveSummary.products} Produto(s) | Total de{" "}
+              {reserveSummary.galpao + reserveSummary.loja} Caixas Reservadas |
+              Galpão: {reserveSummary.galpao} Caixas | Loja:{" "}
+              {reserveSummary.loja} Caixas
+            </p>
+          )}
+        </Stack>
       </Stack>
 
-      {reserveSummary && (
-        <p className="">
-          {reserveSummary.products} Produto(s) | Total de{" "}
-          {reserveSummary.galpao + reserveSummary.loja} Caixas Reservadas |
-          Galpão: {reserveSummary.galpao} Caixas | Loja: {reserveSummary.loja}{" "}
-          Caixas
-        </p>
-      )}
+      <ModalConfirm
+        isOpen={reserveIdToCancel !== undefined}
+        handleConfirm={() => {
+          transactionService
+            .delete(reserveIdToCancel as number)
+            .then(() => {
+              getAllReserves();
+
+              toast({
+                title: "Reserva cancelada com sucesso!",
+                status: "success",
+                duration: 5000,
+                isClosable: true
+              });
+            })
+            .catch(() => {
+              toast({
+                title: "Erro ao cancelar a reserva!",
+                status: "error",
+                duration: 5000,
+                isClosable: true
+              });
+            })
+            .finally(() => {
+              setReserveIdToCancel(undefined);
+            });
+        }}
+        onClose={() => {
+          setReserveIdToCancel(undefined);
+        }}
+      >
+        Tem certeza que deseja cancelar essa reserva?
+      </ModalConfirm>
     </Stack>
-  );
-}
-
-function TableHead() {
-  return (
-    <Thead>
-      <Tr>
-        <Th></Th>
-        <Th>Código</Th>
-        <Th>
-          Quantidade <br /> de Reserva
-        </Th>
-        <Th>Estoque</Th>
-        <Th>Cliente</Th>
-        <Th>
-          Previsão de <br /> retirada
-        </Th>
-        <Th>Operador</Th>
-        <Th>Observação</Th>
-      </Tr>
-    </Thead>
-  );
-}
-
-function TableItem(props: {
-  reserve: Reserve;
-  isSelected: boolean;
-  handleSelect: (id: Reserve["id"]) => void;
-  handleUnselect: (id: Reserve["id"]) => void;
-}) {
-  const { reserve, isSelected } = props;
-
-  return (
-    <Tr>
-      <Td>
-        <Checkbox
-          isChecked={isSelected}
-          onChange={(e) => {
-            if (e.target.checked) props.handleSelect(reserve.id);
-            else props.handleUnselect(reserve.id);
-          }}
-        />
-      </Td>
-      <Td>{reserve.code}</Td>
-      <Td>{reserve.quantity}</Td>
-      <Td>{reserve.stock}</Td>
-      <Td>{reserve.client}</Td>
-      <Td>{format(new Date(reserve.date), "dd/MM/yyyy")}</Td>
-      <Td>{reserve.operator}</Td>
-      <Td>{reserve.observation}</Td>
-    </Tr>
   );
 }

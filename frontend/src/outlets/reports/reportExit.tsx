@@ -128,7 +128,11 @@ export function ReportExit() {
       });
     }
 
-    excelService.downloadDataAsSheet("Relatório de saídas diárias", headers, rows);
+    excelService.downloadDataAsSheet(
+      "Relatório de saídas diárias",
+      headers,
+      rows
+    );
   }
 
   async function handleChangePage(page: number) {
@@ -195,10 +199,6 @@ export function ReportExit() {
             <Tr>
               <Td roundedBottomLeft={"xl"} backgroundColor={"erica.green"}>
                 Total de {exitInfo.productsAmount} Produtos
-              </Td>
-              <Td backgroundColor={"erica.green"}>
-                Total de {exitInfo.exitAmount + exitInfo.devolutionAmount}{" "}
-                Movimentações
               </Td>
               <Td backgroundColor={"erica.green"}>
                 Total de {exitInfo.exitAmount} Saídas

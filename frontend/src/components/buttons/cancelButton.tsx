@@ -1,10 +1,10 @@
 import { Button } from "@chakra-ui/react";
 
-interface CanvelButtonProps {
+interface CancelButtonProps {
   onClick?: () => void;
 }
 
-export function CancelButton(props: CanvelButtonProps) {
+export function CancelButton(props: CancelButtonProps) {
   return (
     <Button
       _hover={{
