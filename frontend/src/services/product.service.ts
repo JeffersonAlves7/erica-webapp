@@ -271,8 +271,13 @@ class ProductService {
     return data;
   }
 
-  async getProductsinfo() {
-    const { data } = await api.get("/products/info");
+  async getProductsinfo(stock?: Stock) {
+    const { data } = await api.get("/products/info", {
+      params: {
+        stock
+      }
+    });
+
     return data;
   }
 }

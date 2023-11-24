@@ -200,11 +200,17 @@ export function ProductTransactions() {
       });
   }
 
+  const saldoGalpao = (product?.galpaoQuantity + product?.galpaoQuantityReserve) || 0
+  const saldoLoja = (product?.lojaQuantity + product?.lojaQuantityReserve) || 0
+  const saldoReservado = (product?.galpaoQuantityReserve + product?.lojaQuantityReserve) || 0
+  const saldoTotal = saldoGalpao + saldoLoja
+
   return (
     <Stack h={"full"} gap={5}>
       <Heading>
-        {product?.description || "Rotação"} - {code}
+        {code} - {product?.description || "Não possuí transações"}
       </Heading>
+
       <Flex gap={4}>
         <StockButtonSelector onClick={handleChangeStock} />
 
@@ -212,17 +218,35 @@ export function ProductTransactions() {
 
         <TrashButton onClick={deleteProductDisclusure.onOpen} />
       </Flex>
-      `
-      <ProductInfo
-        galpaoQuantity={
-          product?.galpaoQuantity + product?.galpaoQuantityReserve ?? 0
+
+      <Grid gridTemplateColumns={"200px 200px"}>
+        <Box>
+          <Text>Saldo total: {saldoTotal}</Text>
+        </Box>
+        <Box>
+          <Text>Saldo Galpão: {saldoGalpao}</Text>
+        </Box>
+        <Box>
+          <Text>Saldo Loja: {saldoLoja}</Text>
+        </Box>
+        <Box>
+          <Text>Reservado: {}</Text>
+        </Box>
+        <Box>
+          <Text>Disponível para venda: {
+            (((product?.galpaoQuantity + product?.galpaoQuantityReserve) || 0)
+              + ((product?.lojaQuantity + product?.lojaQuantityReserve) || 0)) - (product?.galpaoQuantityReserve + product?.lojaQuantityReserve) || 0
+          }</Text>
+        </Box>
+        {
+          stock == Stock.LOJA && (
+            <Box>
+              <Text>Localização: {product.location}</Text>
+            </Box>
+          )
         }
-        lojaQuantity={product?.lojaQuantity + product?.lojaQuantityReserve ?? 0}
-        reservado={
-          product?.galpaoQuantityReserve + product?.lojaQuantityReserve ?? 0
-        }
-        location={product?.lojaLocation}
-      />
+      </Grid>
+
       <Box overflow={"auto"} minH={200}>
         <Table>
           <ProductTableHead />
@@ -272,38 +296,6 @@ export function ProductTransactions() {
         Tem certeza que deseja arquivar o produto?
       </ModalConfirm>
     </Stack>
-  );
-}
-
-function ProductInfo(props: {
-  galpaoQuantity: number;
-  lojaQuantity: number;
-  reservado: number;
-  location: string;
-}) {
-  const saldoTotal = props.galpaoQuantity + props.lojaQuantity;
-  const totalDisponivel = saldoTotal - props.reservado;
-  return (
-    <Grid gridTemplateColumns={"200px 200px"}>
-      <Box>
-        <Text>Saldo total: {saldoTotal}</Text>
-      </Box>
-      <Box>
-        <Text>Saldo Galpão: {props.galpaoQuantity}</Text>
-      </Box>
-      <Box>
-        <Text>Saldo Loja: {props.lojaQuantity}</Text>
-      </Box>
-      <Box>
-        <Text>Reservado: {props.reservado}</Text>
-      </Box>
-      <Box>
-        <Text>Disponível para venda: {totalDisponivel}</Text>
-      </Box>
-      <Box>
-        <Text>Localização: {props.location}</Text>
-      </Box>
-    </Grid>
   );
 }
 

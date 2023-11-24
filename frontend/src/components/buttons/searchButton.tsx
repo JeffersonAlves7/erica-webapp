@@ -14,7 +14,7 @@ export function SearchButton(props: SearchButtonProps) {
       backgroundColor={"erica.green"}
       marginTop={6}
       {...p}
-      onClick={() => onSearch}
+      onClick={() => onSearch()}
     >
       <BsSearch />
     </Button>

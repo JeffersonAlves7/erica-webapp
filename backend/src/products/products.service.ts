@@ -121,17 +121,46 @@ export class ProductsService {
     };
   }
 
-  async getProductsInfo(params: {}) {
-    const productsQuantity = await this.prismaService.product.count({
+  async getProductsInfo({ stock }: { stock?: Stock }) {
+    const where: any= {}
+
+    if (stock == Stock.LOJA) {
+      where.transactions = {
+        some: {
+          type: TransactionType.TRANSFERENCE,
+          fromStock: Stock.GALPAO,
+          toStock: Stock.LOJA
+        }
+      }
+    }
+
+    var productsQuantity = await this.prismaService.product.count({
       where: {
         isActive: true,
+        ...where
       },
     });
 
-    const totalQuantity = await this.prismaService.$queryRaw`
-      SELECT SUM(galpao_quantity + galpao_quantity_reserve + loja_quantity + loja_quantity_reserve) as total FROM products 
-      WHERE is_active = 1
-    `;
+    switch(stock){
+      case Stock.GALPAO:
+        var totalQuantity = await this.prismaService.$queryRaw`
+          SELECT SUM(galpao_quantity + galpao_quantity_reserve) as total FROM products 
+          WHERE is_active = 1
+        `;
+        break
+      case Stock.LOJA:
+        var totalQuantity = await this.prismaService.$queryRaw`
+          SELECT SUM(loja_quantity + loja_quantity_reserve) as total FROM products 
+          WHERE is_active = 1
+        `;
+        break
+      default:
+        var totalQuantity = await this.prismaService.$queryRaw`
+          SELECT SUM(galpao_quantity + galpao_quantity_reserve + loja_quantity + loja_quantity_reserve) as total FROM products 
+          WHERE is_active = 1
+        `;
+        break
+    }
 
     return {
       productsQuantity,
@@ -247,13 +276,7 @@ export class ProductsService {
     importer = getImporterIdOrUndefined(importer);
     stock = getStockIdOrUndefined(stock);
 
-    const w: any = {};
-    if (code) w.code = { contains: code ?? '' };
-
-    const products = await this.prismaService.product.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-      where: {
+    const where: any = {
         importer: importer,
         isActive: true,
         productsOnContainer: {
@@ -261,14 +284,29 @@ export class ProductsService {
             confirmed: true,
           },
         },
-      },
+    };
+
+    if (stock == Stock.LOJA) where.transactions = {
+      some: {
+        type: TransactionType.TRANSFERENCE,
+        fromStock: Stock.GALPAO,
+        toStock: Stock.LOJA
+      }
+    }
+
+    if (code) where.code = { contains: code ?? '' };
+
+    const products = await this.prismaService.product.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where: where, 
       orderBy: {
         updatedAt: 'desc',
       },
     });
 
     const total = await this.prismaService.product.count({
-      where: w,
+      where: where,
     });
 
     const productsToSend = [];

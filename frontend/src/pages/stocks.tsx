@@ -45,7 +45,7 @@ export function Stocks() {
   const codigoRef = useRef<HTMLInputElement>(null);
   const pageLimmit = Math.ceil(totalItems / productsLimit);
 
-  useEffect(() => {
+  function search() {
     productService
       .getAllProductsStock({
         page,
@@ -57,7 +57,7 @@ export function Stocks() {
       .then((data) => {
         setItems(data.data);
         setPage(1);
-        return productService.getProductsinfo();
+        return productService.getProductsinfo(stock);
       })
       .then((data) => {
         setQntDeCaixas(data.boxQuantity);
@@ -66,6 +66,10 @@ export function Stocks() {
       .catch((error) => {
         handleError401(error);
       });
+  }
+
+  useEffect(() => {
+    search()
   }, [importer, code, stock]);
 
   function handleChangePage(page: number) {
@@ -90,6 +94,7 @@ export function Stocks() {
   function handleSearchPedidos() {
     const codigo = codigoRef.current?.value;
     setCode(codigo);
+    search()
   }
 
   function handleChangeStock(stock: string) {
@@ -97,8 +102,8 @@ export function Stocks() {
       stock === "Geral"
         ? undefined
         : stock === "Galpão"
-        ? Stock.GALPAO
-        : Stock.LOJA
+          ? Stock.GALPAO
+          : Stock.LOJA
     );
   }
 
@@ -223,8 +228,8 @@ function StockItem({
     ? item.saldo > quantidadeParaAlerta
       ? "erica.green"
       : item.saldo < quantidadeParaAlerta
-      ? "red.500"
-      : "yellow.500"
+        ? "red.500"
+        : "yellow.500"
     : "";
 
   const date = item.dataDeEntrada
