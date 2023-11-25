@@ -53,17 +53,17 @@ export class ProductsController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Put(':id')
-  updateProduct(@Param('id') id: string, @Body() body: Record<string, any>){
-     return this.productsService.update({
-        id,
-        ...body
-     })
+  updateProduct(@Param('id') id: string, @Body() body: Record<string, any>) {
+    return this.productsService.update({
+      id,
+      ...body,
+    });
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('info')
-  getProductsInfo(@Query() query: Record<string, string>){
+  getProductsInfo(@Query() query: Record<string, string>) {
     return this.productsService.getProductsInfo(query);
   }
 
@@ -108,6 +108,16 @@ export class ProductsController {
       importer: query.importer,
       code: query.code,
       stock: query.stock,
+    });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Put('stock/:id')
+  updateStock(@Param('id') id: string, @Body() body: Record<string, any>) {
+    return this.productsService.updateStock({
+      id,
+      ...body,
     });
   }
 

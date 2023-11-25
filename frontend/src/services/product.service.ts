@@ -81,8 +81,31 @@ class ProductService {
     return response.data as Pageable<any>;
   }
 
-  async updateProduct(params: {id: string | number, location?: string}){
+  async updateStock({
+    id,
+    observation
+  }: {
+    id: string | number;
+    observation?: string;
+  }) {
+    const response = await api.put(`/products/stock/${id}`, {
+      observation
+    });
+    return response.data;
+  }
 
+  async updateProduct({
+    id,
+    location
+  }: {
+    id: string | number;
+    location?: string;
+  }) {
+    const response = await api.put(`/products/${id}`, {
+      location
+    });
+
+    return response.data;
   }
 
   async deleteProduct(id: number) {
@@ -209,7 +232,8 @@ class ProductService {
         dataDeEntrada: lastDate,
         giro,
         lojaLocation: item.lojaLocation,
-        observacao
+        observacao,
+        firstContainerId: entriesLength > 0 ? item.entries[0].id : undefined
       };
     });
 

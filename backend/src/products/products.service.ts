@@ -52,32 +52,66 @@ export class ProductsService {
     return fileReaded;
   }
 
-  async update({ id, localizacao }: { id: string; localizacao?: string }) {
-    let data: any = { }
+  async update({ id, location }: { id: string; location?: string }) {
+    let data: any = {};
 
-    if(localizacao){
-      data.localizacao = localizacao;
-    }
-    else {
-      throw new HttpException('Nenhuma informacao para alterar', HttpStatus.BAD_REQUEST)
+    if (location) {
+      data.lojaLocation = location;
+    } else {
+      throw new HttpException(
+        'Nenhuma informacao para alterar',
+        HttpStatus.BAD_REQUEST,
+      );
     }
 
     const product = await this.prismaService.product.findUnique({
       where: {
-        id: Number(id)
-      }
-    })
+        id: Number(id),
+      },
+    });
 
-    if(!product) throw new ProductNotFoundError();
+    if (!product) throw new ProductNotFoundError();
 
     const newProduct = await this.prismaService.product.update({
       where: {
         id: product.id,
       },
-      data
+      data,
     });
 
     return newProduct;
+  }
+
+  async updateStock({ id, observation }: { id: string; observation?: string }) {
+    let data: any = {};
+
+    if (observation) {
+      data.observation = observation;
+    } else {
+      throw new HttpException(
+        'Nenhuma informacao para alterar',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const productOnContainer =
+      await this.prismaService.productsOnContainer.findUnique({
+        where: {
+          id: Number(id),
+        },
+      });
+
+    if (!productOnContainer) throw new ProductNotFoundError();
+
+    const newProductOnContainer =
+      await this.prismaService.productsOnContainer.update({
+        where: {
+          id: productOnContainer.id,
+        },
+        data,
+      });
+
+    return newProductOnContainer;
   }
 
   async toggleArchiveProduct(id: number) {

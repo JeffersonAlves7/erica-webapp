@@ -129,7 +129,11 @@ export function CriarEntrada() {
 
             <FormControl>
               <FormLabel>Ean</FormLabel>
-              <Input placeholder="Optional para criação" ref={eanRef} />
+              <Input
+                type="number"
+                placeholder="Optional para criação"
+                ref={eanRef}
+              />
             </FormControl>
 
             <QuantityInput ref={quantidadeRef} />

@@ -3,9 +3,11 @@ import { SearchButton } from "@/components/buttons/searchButton";
 import { EricaLink } from "@/components/ericaLink";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
+import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import { PercentageInput } from "@/components/inputs/percentageInput";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
+import { TableLojaLocation } from "@/components/tableLojaLocation";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
@@ -22,7 +24,8 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
+  useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
@@ -69,7 +72,7 @@ export function Stocks() {
   }
 
   useEffect(() => {
-    search()
+    search();
   }, [importer, code, stock]);
 
   function handleChangePage(page: number) {
@@ -94,7 +97,7 @@ export function Stocks() {
   function handleSearchPedidos() {
     const codigo = codigoRef.current?.value;
     setCode(codigo);
-    search()
+    search();
   }
 
   function handleChangeStock(stock: string) {
@@ -102,8 +105,8 @@ export function Stocks() {
       stock === "Geral"
         ? undefined
         : stock === "Galpão"
-          ? Stock.GALPAO
-          : Stock.LOJA
+        ? Stock.GALPAO
+        : Stock.LOJA
     );
   }
 
@@ -220,6 +223,12 @@ function StockItem({
   alertaPorcentagem: number;
   stock: Stock | undefined;
 }) {
+  const [observation, setObservation] = useState(
+    item.observacao?.toString() ?? ""
+  );
+
+  const toast = useToast();
+
   const quantidadeParaAlerta = Math.floor(
     item.quantidadeEntrada * (alertaPorcentagem / 100)
   );
@@ -228,8 +237,8 @@ function StockItem({
     ? item.saldo > quantidadeParaAlerta
       ? "erica.green"
       : item.saldo < quantidadeParaAlerta
-        ? "red.500"
-        : "yellow.500"
+      ? "red.500"
+      : "yellow.500"
     : "";
 
   const date = item.dataDeEntrada
@@ -258,8 +267,38 @@ function StockItem({
           <Td>{quantidadeParaAlerta}</Td>
         </>
       )}
-      {stock == Stock.LOJA && <Td>{item.lojaLocation}</Td>}
-      <Td>{item.observacao}</Td>
+      {stock == Stock.LOJA && (
+        <TableLojaLocation itemId={item.id} location={item.lojaLocation} />
+      )}
+      <Td>
+        <InputWithSearch
+          onSearch={async function () {
+            if (!item.firstContainerId) return;
+
+            try {
+              await productService.updateStock({
+                id: item.firstContainerId,
+                observation: observation
+              });
+
+              toast({
+                title: "Sucesso ao alterar a observação",
+                status: "success",
+                duration: 3000,
+                isClosable: true
+              });
+            } catch {
+              toast({
+                title: "Erro ao alterar a observação",
+                status: "error",
+                duration: 3000,
+                isClosable: true
+              });
+            }
+          }}
+          onChange={(e) => setObservation(e.target.value)}
+        />
+      </Td>
     </Tr>
   );
 }
