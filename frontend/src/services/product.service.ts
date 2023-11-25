@@ -81,6 +81,10 @@ class ProductService {
     return response.data as Pageable<any>;
   }
 
+  async updateProduct(params: {id: string | number, location?: string}){
+
+  }
+
   async deleteProduct(id: number) {
     const response = await api.delete(`/products/${id}`);
     return response.data;

@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UploadedFile,
   UseGuards,
@@ -47,6 +48,16 @@ export class ProductsController {
       ean: productCreation.ean,
       importer: productCreation.importer,
     });
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Put(':id')
+  updateProduct(@Param('id') id: string, @Body() body: Record<string, any>){
+     return this.productsService.update({
+        id,
+        ...body
+     })
   }
 
   @UseGuards(AuthGuard)

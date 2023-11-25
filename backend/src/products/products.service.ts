@@ -52,6 +52,34 @@ export class ProductsService {
     return fileReaded;
   }
 
+  async update({ id, localizacao }: { id: string; localizacao?: string }) {
+    let data: any = { }
+
+    if(localizacao){
+      data.localizacao = localizacao;
+    }
+    else {
+      throw new HttpException('Nenhuma informacao para alterar', HttpStatus.BAD_REQUEST)
+    }
+
+    const product = await this.prismaService.product.findUnique({
+      where: {
+        id: Number(id)
+      }
+    })
+
+    if(!product) throw new ProductNotFoundError();
+
+    const newProduct = await this.prismaService.product.update({
+      where: {
+        id: product.id,
+      },
+      data
+    });
+
+    return newProduct;
+  }
+
   async toggleArchiveProduct(id: number) {
     const product = await this.prismaService.product.findUnique({
       where: {
@@ -122,44 +150,44 @@ export class ProductsService {
   }
 
   async getProductsInfo({ stock }: { stock?: Stock }) {
-    const where: any= {}
+    const where: any = {};
 
     if (stock == Stock.LOJA) {
       where.transactions = {
         some: {
           type: TransactionType.TRANSFERENCE,
           fromStock: Stock.GALPAO,
-          toStock: Stock.LOJA
-        }
-      }
+          toStock: Stock.LOJA,
+        },
+      };
     }
 
     var productsQuantity = await this.prismaService.product.count({
       where: {
         isActive: true,
-        ...where
+        ...where,
       },
     });
 
-    switch(stock){
+    switch (stock) {
       case Stock.GALPAO:
         var totalQuantity = await this.prismaService.$queryRaw`
           SELECT SUM(galpao_quantity + galpao_quantity_reserve) as total FROM products 
           WHERE is_active = 1
         `;
-        break
+        break;
       case Stock.LOJA:
         var totalQuantity = await this.prismaService.$queryRaw`
           SELECT SUM(loja_quantity + loja_quantity_reserve) as total FROM products 
           WHERE is_active = 1
         `;
-        break
+        break;
       default:
         var totalQuantity = await this.prismaService.$queryRaw`
           SELECT SUM(galpao_quantity + galpao_quantity_reserve + loja_quantity + loja_quantity_reserve) as total FROM products 
           WHERE is_active = 1
         `;
-        break
+        break;
     }
 
     return {
@@ -277,29 +305,30 @@ export class ProductsService {
     stock = getStockIdOrUndefined(stock);
 
     const where: any = {
-        importer: importer,
-        isActive: true,
-        productsOnContainer: {
-          some: {
-            confirmed: true,
-          },
+      importer: importer,
+      isActive: true,
+      productsOnContainer: {
+        some: {
+          confirmed: true,
         },
+      },
     };
 
-    if (stock == Stock.LOJA) where.transactions = {
-      some: {
-        type: TransactionType.TRANSFERENCE,
-        fromStock: Stock.GALPAO,
-        toStock: Stock.LOJA
-      }
-    }
+    if (stock == Stock.LOJA)
+      where.transactions = {
+        some: {
+          type: TransactionType.TRANSFERENCE,
+          fromStock: Stock.GALPAO,
+          toStock: Stock.LOJA,
+        },
+      };
 
     if (code) where.code = { contains: code ?? '' };
 
     const products = await this.prismaService.product.findMany({
       skip: (page - 1) * limit,
       take: limit,
-      where: where, 
+      where: where,
       orderBy: {
         updatedAt: 'desc',
       },
