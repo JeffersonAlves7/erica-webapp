@@ -51,7 +51,7 @@ export function CriarEntrada() {
     const operator = operatorRef.current?.value;
     const importer = importerRef.current?.value as Importer;
     const description = descricaoRef.current?.value;
-    const ean = descricaoRef.current?.value;
+    const ean = eanRef.current?.value;
 
     if (
       !code ||
