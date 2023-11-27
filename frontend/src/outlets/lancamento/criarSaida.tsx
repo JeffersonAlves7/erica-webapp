@@ -85,6 +85,9 @@ export function CriarSaida() {
   }
 
   function handleUpload(file: any) {
+    setStatus("loading");
+    setError("");
+
     excelService
       .uploadProductsExit(file)
       .then(() => {

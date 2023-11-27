@@ -20,7 +20,8 @@ import {
   Td,
   Th,
   Thead,
-  Tr
+  Tr,
+  useToast
 } from "@chakra-ui/react";
 import { format } from "date-fns";
 import { ChangeEvent, useEffect, useState } from "react";
@@ -44,6 +45,7 @@ export function Embarques() {
     boxQuantity: 0
   });
 
+  const toast = useToast();
   const embarquesLimit = 100;
 
   const pageLimit = Math.ceil(embarquesTotal / embarquesLimit);
@@ -95,6 +97,12 @@ export function Embarques() {
   async function handleUploadFile(file: File) {
     try {
       await excelService.uploadProductEmbarques(file);
+      toast({
+        title: "Sucesso ao importar os embarques",
+        isClosable: true,
+        duration: 3000,
+        status: "success"
+      })
       embarquesService
         .getEmbarques({
           container,
@@ -110,6 +118,13 @@ export function Embarques() {
           setEmbarquesTotal(data.total);
         });
     } catch (e) {
+      toast({
+        title: "Falha ao importar os embarques",
+        isClosable: true,
+        duration: 3000,
+        status: "error"
+      });
+
       handleError401(e);
     }
   }

@@ -78,6 +78,9 @@ export function CriarReserva() {
   }
 
   function handleUploadReserve(file: File) {
+    setStatus("loading");
+    setError("");
+
     excelService
       .uploadProductReserve(file)
       .then(() => {
