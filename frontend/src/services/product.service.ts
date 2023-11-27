@@ -174,16 +174,15 @@ class ProductService {
       const entradaSum =
         entriesLength > 0
           ? pageableParams.stock != Stock.LOJA
-            ? item.entries.reduce((previous: any, current: any) => {
-                if (typeof previous == "number")
-                  return previous + current.quantityReceived;
-                return previous.quantityReceived + current.quantityReceived;
-              }, 0)
-            : item.entries.reduce((previous: any, current: any) => {
-                if (typeof previous == "number")
-                  return previous + current.exitAmount;
-                return previous.exitAmount + current.exitAmount;
-              }, 0)
+            ? item.entries.reduce(
+                (previous: any, current: any) =>
+                  previous + current.quantityReceived,
+                0
+              )
+            : item.entries.reduce(
+                (previous: any, current: any) => previous + current.entryAmount,
+                0
+              )
           : 0;
 
       const containerNames =
@@ -219,8 +218,6 @@ class ProductService {
 
       if (!isFinite(giro)) giro = 0;
 
-      const observacao = entriesLength > 0 ? item.entries[0].observation : "";
-
       return {
         id: item.id,
         sku: item.code,
@@ -232,8 +229,8 @@ class ProductService {
         dataDeEntrada: lastDate,
         giro,
         lojaLocation: item.lojaLocation,
-        observacao,
-        firstContainerId: entriesLength > 0 ? item.entries[0].id : undefined
+        observacao: entriesLength > 0 ? item.entries[0].observation : "",
+        firstEntryId: entriesLength > 0 ? item.entries[0].id : undefined
       };
     });
 

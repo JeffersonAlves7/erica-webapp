@@ -173,6 +173,34 @@ export class TransactionsService {
     return transactionToDelete;
   }
 
+  async update({id, observation}: {id: string, observation?: string}){
+    const data: any = {} 
+
+    if(observation){
+      data.observation = observation;
+    }
+    else{
+      throw new HttpException('Nenhum parâmetro para alterar na transação.', HttpStatus.BAD_REQUEST)
+    }
+
+    const transactionToChange = await this.prismaService.transaction.findUnique({
+      where: {
+        id: Number(id)
+      }
+    })
+
+    if(!transactionToChange){
+      throw new TransactionNotFoundError()
+    }
+    
+    await this.prismaService.transaction.update({
+      where: {
+        id: transactionToChange.id
+      },
+      data
+    })
+  }
+
   private async deleteEntry(id: number, prisma: LocalPrisma) {
     const deleted = await this.prismaService.transaction.delete({
       where: {

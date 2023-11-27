@@ -1,4 +1,15 @@
-import { Controller, Delete, Get, HttpCode, HttpStatus, Param, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { TransactionsService } from './transactions.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 
@@ -6,12 +17,21 @@ import { AuthGuard } from 'src/auth/auth.guard';
 export class TransactionsController {
   constructor(private transactionService: TransactionsService) {}
 
-
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Delete(':id')
   deleteTransaction(@Param('id') id: string) {
     return this.transactionService.delete(parseInt(id));
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Put(':id')
+  update(@Param('id') id: string, @Body() body: Record<string, string>) {
+    return this.transactionService.update({
+      id,
+      ...body,
+    });
   }
 
   @UseGuards(AuthGuard)
@@ -27,7 +47,7 @@ export class TransactionsController {
       orderBy,
       code,
       stock,
-      day
+      day,
     });
   }
 }

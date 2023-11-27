@@ -11,6 +11,7 @@ import { TableLojaLocation } from "@/components/tableLojaLocation";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/product.service";
+import { transactionService } from "@/services/transactionService";
 import { Importer } from "@/types/importer.enum";
 import { ProductsWithStock } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
@@ -223,9 +224,11 @@ function StockItem({
   alertaPorcentagem: number;
   stock: Stock | undefined;
 }) {
-  const [observation, setObservation] = useState(
-    item.observacao?.toString() ?? ""
-  );
+  const [observation, setObservation] = useState("");
+
+  useEffect(() => {
+    setObservation(item.observacao ?? "");
+  }, [item.observacao])
 
   const toast = useToast();
 
@@ -273,13 +276,22 @@ function StockItem({
       <Td>
         <InputWithSearch
           onSearch={async function () {
-            if (!item.firstContainerId) return;
+            console.log(item.firstEntryId)
+
+            if (!item.firstEntryId) return;
 
             try {
-              await productService.updateStock({
-                id: item.firstContainerId,
-                observation: observation
-              });
+              if (stock === Stock.GALPAO || !stock) {
+                await productService.updateStock({
+                  id: item.firstEntryId,
+                  observation: observation
+                });
+              } else {
+                await transactionService.update({
+                  id: item.firstEntryId,
+                  observation: observation
+                });
+              }
 
               toast({
                 title: "Sucesso ao alterar a observação",
@@ -297,6 +309,7 @@ function StockItem({
             }
           }}
           onChange={(e) => setObservation(e.target.value)}
+          value={observation}
         />
       </Td>
     </Tr>
