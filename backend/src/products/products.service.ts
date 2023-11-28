@@ -638,11 +638,9 @@ export class ProductsService {
         const importer = getImporterId(importerName);
         let product = await prisma.product.findFirst({
           where: {
-            code: code
-          }
+            code: code,
+          },
         });
-
-        console.log(importer, product)
 
         if (!importer)
           throw new HttpException(
@@ -651,11 +649,6 @@ export class ProductsService {
           );
 
         if (!product) {
-          // throw new HttpException(
-          //   `Produto não encontrado na linha ${rowIndex}`,
-          //   HttpStatus.BAD_REQUEST,
-          // );
-
           product = await prisma.product.create({
             data: {
               code,
@@ -665,26 +658,36 @@ export class ProductsService {
           });
         }
 
-        if (product.importer !== importer)
+        if (product?.importer !== importer)
           throw new HttpException(
             `Produto, com essa importadora, não encontrado na linha ${rowIndex}`,
             HttpStatus.BAD_REQUEST,
           );
 
-        const productsContainer =
-          await this.containerService.findOrCreateContainer(container);
+        const productsContainer = await prisma.container.upsert({
+          where: {
+            id: container,
+          },
+          include: {
+            productsOnContainer: true,
+          },
+          update: {},
+          create: {
+            id: container,
+          },
+        });
 
         const productsOnContainerFound =
-          await this.containerService.getProductOnContainer(
-            product,
-            productsContainer,
+          productsContainer.productsOnContainer.find(
+            (v) => v.productId == product.id,
           );
 
-        if (productsOnContainerFound)
+        if (productsOnContainerFound){
           throw new HttpException(
             `Produto ${product.code} já está no container ${container}, linha ${row}`,
             HttpStatus.BAD_REQUEST,
           );
+        }
 
         await prisma.productsOnContainer.create({
           data: {
@@ -741,10 +744,6 @@ export class ProductsService {
         });
       }
     });
-
-    console.log({
-      entriesData
-    })
 
     return entriesData;
   }
