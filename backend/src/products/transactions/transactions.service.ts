@@ -176,11 +176,8 @@ export class TransactionsService {
   async update({id, observation}: {id: string, observation?: string}){
     const data: any = {} 
 
-    if(observation){
-      data.observation = observation;
-    }
-    else{
-      throw new HttpException('Nenhum parâmetro para alterar na transação.', HttpStatus.BAD_REQUEST)
+    if(observation != undefined){
+      data.observation = observation || '';
     }
 
     const transactionToChange = await this.prismaService.transaction.findUnique({
@@ -189,9 +186,7 @@ export class TransactionsService {
       }
     })
 
-    if(!transactionToChange){
-      throw new TransactionNotFoundError()
-    }
+    if(!transactionToChange) throw new TransactionNotFoundError()
     
     await this.prismaService.transaction.update({
       where: {

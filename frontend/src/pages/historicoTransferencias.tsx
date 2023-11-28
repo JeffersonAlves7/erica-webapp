@@ -172,7 +172,6 @@ export function HistoricoTransferencias() {
             <Th roundedTopLeft={"2xl"}>EAN</Th>
             <Th>Código</Th>
             <Th>Quantidade Entrada</Th>
-            <Th>Quantidade Saída</Th>
             <Th>Operador</Th>
             <Th>Observação</Th>
             <Th roundedTopRight={"2xl"}>Data e Hora</Th>
@@ -185,7 +184,6 @@ export function HistoricoTransferencias() {
               id,
               product: { ean, code },
               entryAmount,
-              exitAmount,
               operator,
               observation,
               createdAt
@@ -196,7 +194,6 @@ export function HistoricoTransferencias() {
                 <Td>{ean}</Td>
                 <Td>{code}</Td>
                 <Td>{entryAmount}</Td>
-                <Td>{exitAmount}</Td>
                 <Td>{operator}</Td>
                 <Td>{observation}</Td>
                 <Td>{format(new Date(createdAt), "dd/MM/yyy hh:mm:ss")}</Td>

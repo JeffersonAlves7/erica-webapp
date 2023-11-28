@@ -145,14 +145,16 @@ export class ReportsService {
       p.id AS product_id,
       p.code AS product_code,
       p.galpao_quantity,
+      p.galpao_quantity_reserve,
       p.loja_quantity,
+      p.loja_quantity_reserve,
       pc.quantity_received AS container_quantity_received
     FROM
       products p
       INNER JOIN LatestContainer lc ON p.id = lc.product_id
       INNER JOIN products_on_container pc ON lc.product_id = pc.product_id
     WHERE
-      (p.galpao_quantity + p.loja_quantity) < (${percentage} * pc.quantity_received)
+      (p.galpao_quantity + p.loja_quantity + p.galpao_quantity_reserve + p.loja_quantity_reserve) < (${percentage} * pc.quantity_received)
     LIMIT ${limit} OFFSET ${offset}
     `;
 
@@ -174,7 +176,7 @@ export class ReportsService {
       INNER JOIN LatestContainer lc ON p.id = lc.product_id
       INNER JOIN products_on_container pc ON lc.product_id = pc.product_id
     WHERE
-      (p.galpao_quantity + p.loja_quantity) < (${percentage} * pc.quantity_received)
+      (p.galpao_quantity + p.loja_quantity + p.galpao_quantity_reserve + p.loja_quantity_reserve) < (${percentage} * pc.quantity_received)
     `;
 
     return {

@@ -21,7 +21,7 @@ interface StockMinimumReport {
   code: string;
   entryAmount: number;
   currentAmount: number;
-  alertQuantity: number | string;
+  alertQuantity: number;
 }
 
 export function ReportStockMinimum() {
@@ -42,13 +42,15 @@ export function ReportStockMinimum() {
       ({
         product_code,
         galpao_quantity,
+        galpao_quantity_reserve,
         loja_quantity,
+        loja_quantity_reserve,
         container_quantity_received
       }) => ({
-        alertQuantity: Number(container_quantity_received * (percentage / 100)).toFixed(1),
+        alertQuantity: Number(container_quantity_received * (percentage / 100)),
         code: product_code,
         entryAmount: container_quantity_received,
-        currentAmount: galpao_quantity + loja_quantity
+        currentAmount: galpao_quantity + loja_quantity + galpao_quantity_reserve + loja_quantity_reserve
       })
     );
 
@@ -132,7 +134,7 @@ export function ReportStockMinimum() {
                   <Td>{row.code}</Td>
                   <Td>{row.entryAmount}</Td>
                   <Td>{row.currentAmount}</Td>
-                  <Td>{row.alertQuantity}</Td>
+                  <Td>{Math.floor(row.alertQuantity)}</Td>
                 </Tr>
               );
             })}

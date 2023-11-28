@@ -11,6 +11,7 @@ import { TableLojaLocation } from "@/components/tableLojaLocation";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { handleError401 } from "@/services/api";
 import { productService } from "@/services/productService";
+import { transactionService } from "@/services/transactionService";
 import { Importer } from "@/types/importer.enum";
 import { ProductsWithStock } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
@@ -227,7 +228,7 @@ function StockItem({
 
   useEffect(() => {
     setObservation(item.observacao ?? "");
-  }, [item.observacao])
+  }, [item.observacao]);
 
   const toast = useToast();
 
@@ -275,8 +276,6 @@ function StockItem({
       <Td>
         <InputWithSearch
           onSearch={async function () {
-            console.log(item.firstEntryId)
-
             if (!item.firstEntryId) return;
 
             try {

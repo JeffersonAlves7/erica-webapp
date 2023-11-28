@@ -55,14 +55,9 @@ export class ProductsService {
   async update({ id, location }: { id: string; location?: string }) {
     let data: any = {};
 
-    if (location) {
-      data.lojaLocation = location;
-    } else {
-      throw new HttpException(
-        'Nenhuma informacao para alterar',
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+    if (location != undefined) {
+      data.lojaLocation = location || '';
+    } 
 
     const product = await this.prismaService.product.findUnique({
       where: {
@@ -85,13 +80,8 @@ export class ProductsService {
   async updateStock({ id, observation }: { id: string; observation?: string }) {
     let data: any = {};
 
-    if (observation) {
-      data.observation = observation;
-    } else {
-      throw new HttpException(
-        'Nenhuma informacao para alterar',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (observation != undefined) {
+      data.observation = observation || '';
     }
 
     const productOnContainer =
@@ -682,7 +672,7 @@ export class ProductsService {
             (v) => v.productId == product.id,
           );
 
-        if (productsOnContainerFound){
+        if (productsOnContainerFound) {
           throw new HttpException(
             `Produto ${product.code} já está no container ${container}, linha ${row}`,
             HttpStatus.BAD_REQUEST,

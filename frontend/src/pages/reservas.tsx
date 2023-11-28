@@ -28,6 +28,7 @@ import { useEffect, useState } from "react";
 import { ModalConfirm } from "@/components/modalConfirm";
 import { transactionService } from "@/services/transactionService";
 import { CloseButton } from "@/components/buttons/closeButton";
+import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 
 export function Reservas() {
   const [stock, setStock] = useState<Stock | undefined>(undefined);
@@ -135,6 +136,10 @@ export function Reservas() {
       });
   }
 
+  function handleSearchProductOrClient(value: string){
+
+  }
+
   return (
     <Stack h={"full"} justifyContent={"space-between"}>
       <Stack gap={6}>
@@ -142,7 +147,13 @@ export function Reservas() {
 
         <StockButtonSelector onClick={handleChangeStock} />
 
-        <Input type="search" placeholder="Buscar por Código, Cliente" />
+        <Input
+          type="search"
+          placeholder="Buscar por Código, Cliente"
+          onChange={(e) => {
+            handleSearchProductOrClient(e.target.value || "");
+          }}
+        />
 
         <Flex justify={"start"} align={"start"} gap={10} wrap={"wrap"}>
           <FormControl
