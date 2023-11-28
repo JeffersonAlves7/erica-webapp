@@ -26,6 +26,13 @@ class TransactionService {
     const response = await api.delete(`/transactions/${id}`);
     return response.data;
   }
+
+  async update({id, observation}: {id: number | string, observation?: string}){
+    const response = await api.put(`/transactions/${id}`, {
+      observation
+    });
+    return response.data;
+  }
 }
 
 export const transactionService = new TransactionService();

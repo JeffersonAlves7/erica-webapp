@@ -10,7 +10,7 @@ export interface ProductsWithStock {
   giro: number;
   observacao?: string;
   lojaLocation?: string;
-  firstContainerId?: string | number
+  firstEntryId?: string | number
 }
 
 export interface ProductTransaction {

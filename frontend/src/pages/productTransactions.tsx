@@ -1,6 +1,7 @@
 import { ArchiveButton } from "@/components/buttons/archiveButton";
 import { CloseButton } from "@/components/buttons/closeButton";
 import { TrashButton } from "@/components/buttons/trashButton";
+import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import { ModalConfirm } from "@/components/modalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
@@ -200,10 +201,25 @@ export function ProductTransactions() {
       });
   }
 
-  const saldoGalpao = (product?.galpaoQuantity + product?.galpaoQuantityReserve) || 0
-  const saldoLoja = (product?.lojaQuantity + product?.lojaQuantityReserve) || 0
-  const saldoReservado = (product?.galpaoQuantityReserve + product?.lojaQuantityReserve) || 0
-  const saldoTotal = saldoGalpao + saldoLoja
+  const saldoGalpao =
+    product?.galpaoQuantity + product?.galpaoQuantityReserve || 0;
+  const saldoLoja = product?.lojaQuantity + product?.lojaQuantityReserve || 0;
+  const saldoReservado =
+    stock == Stock.GALPAO
+      ? product?.galpaoQuantityReserve || 0
+      : stock == Stock.LOJA
+      ? product?.lojaQuantityReserve || 0
+      : (product?.galpaoQuantityReserve || 0) +
+        (product?.lojaQuantityReserve || 0);
+  const saldoTotal = saldoGalpao + saldoLoja;
+  const disponivelParaVenda = !stock
+    ? product?.galpaoQuantity +
+      product?.lojaQuantity -
+      (product?.galpaoQuantityReserve + product?.lojaQuantityReserve || 0)
+    : stock == Stock.GALPAO
+    ? product?.galpaoQuantity - product?.galpaoQuantityReserve
+    : product?.lojaQuantity - product?.lojaQuantityReserve;
+      
 
   return (
     <Stack h={"full"} gap={5}>
@@ -220,31 +236,37 @@ export function ProductTransactions() {
       </Flex>
 
       <Grid gridTemplateColumns={"200px 200px"}>
-        <Box>
-          <Text>Saldo total: {saldoTotal}</Text>
-        </Box>
-        <Box>
-          <Text>Saldo Galpão: {saldoGalpao}</Text>
-        </Box>
-        <Box>
-          <Text>Saldo Loja: {saldoLoja}</Text>
-        </Box>
-        <Box>
-          <Text>Reservado: {}</Text>
-        </Box>
-        <Box>
-          <Text>Disponível para venda: {
-            (((product?.galpaoQuantity + product?.galpaoQuantityReserve) || 0)
-              + ((product?.lojaQuantity + product?.lojaQuantityReserve) || 0)) - (product?.galpaoQuantityReserve + product?.lojaQuantityReserve) || 0
-          }</Text>
-        </Box>
-        {
-          stock == Stock.LOJA && (
+        {!stock ? (
+          <>
+          <Box>
+            <Text>Saldo total: {saldoTotal}</Text>
+          </Box>
             <Box>
-              <Text>Localização: {product.location}</Text>
+              <Text>Saldo Galpão: {saldoGalpao}</Text>
             </Box>
-          )
-        }
+            <Box>
+              <Text>Saldo Loja: {saldoLoja}</Text>
+            </Box>
+          </>
+        ) : (
+          <Box>
+            <Text>Saldo: {stock == Stock.LOJA ? saldoLoja : saldoGalpao}</Text>
+          </Box>
+        )}
+        <Box>
+          <Text>Reservado: {saldoReservado}</Text>
+        </Box>
+        <Box>
+          <Text>
+            Disponível para venda:{" "}
+            {disponivelParaVenda}
+          </Text>
+        </Box>
+        {stock == Stock.LOJA && (
+          <Box>
+            <Text>Localização: {product.location}</Text>
+          </Box>
+        )}
       </Grid>
 
       <Box overflow={"auto"} minH={200}>
@@ -332,6 +354,14 @@ function ProductTableItem({
   transaction: ProductTransaction;
   handleDelete?: (id: number) => void;
 }) {
+  const toast = useToast()
+
+  const [observation, setObservation] = useState('');
+
+  useEffect(() => {
+    setObservation(transaction.observation ?? "");
+  }, [transaction.observation]);
+
   const date = transaction.createdAt
     ? format(new Date(transaction.createdAt), "dd/MM/yyyy")
     : "";
@@ -349,7 +379,34 @@ function ProductTableItem({
       <Td>{transaction.client}</Td>
       <Td>{transaction.operator}</Td>
       <Td>{date}</Td>
-      <Td>{transaction.observation}</Td>
+      <Td>
+        <InputWithSearch
+          onSearch={async function () {
+            try {
+              await transactionService.update({
+                id: transaction.id,
+                observation
+              });
+
+              toast({
+                title: "Sucesso ao alterar a observação",
+                status: "success",
+                duration: 3000,
+                isClosable: true
+              });
+            } catch {
+              toast({
+                title: "Erro ao alterar a observação",
+                status: "error",
+                duration: 3000,
+                isClosable: true
+              });
+            }
+          }}
+          onChange={(e) => setObservation(e.target.value)}
+          value={observation}
+        />
+      </Td>
       <Td>
         <CloseButton
           onClick={() => handleDelete && handleDelete(transaction.id)}
