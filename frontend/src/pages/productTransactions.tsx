@@ -5,7 +5,7 @@ import { ModalConfirm } from "@/components/modalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import { transactionService } from "@/services/transactionService";
 import { ProductTransaction } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";

@@ -2,7 +2,7 @@ import { ModalConfirm } from "@/components/modalConfirm";
 import { LojaSelector } from "@/components/selectors/lojaSelector";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 import {
   Button,

@@ -9,8 +9,8 @@ import { handleError401 } from "@/services/api";
 import {
   EmbarquesResponse,
   embarquesService
-} from "@/services/embarques.service";
-import { excelService } from "@/services/excel.service";
+} from "@/services/embarquesService";
+import { excelService } from "@/services/excelService";
 import { Importer } from "@/types/importer.enum";
 import {
   Flex,
@@ -26,7 +26,7 @@ import {
 import { format } from "date-fns";
 import { ChangeEvent, useEffect, useState } from "react";
 import { EricaLink } from "@/components/ericaLink";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 
 export function Embarques() {
   const [importer, setImporter] = useState<Importer | string | undefined>(

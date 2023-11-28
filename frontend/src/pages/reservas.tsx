@@ -2,7 +2,7 @@ import { ColorButton } from "@/components/buttons/colorButton";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { StockButtonSelector } from "@/components/selectors/stockSelector";
 import { handleError401 } from "@/services/api";
-import { reservesService } from "@/services/reserves.service";
+import { reservesService } from "@/services/reservesService";
 import { Reserve, ReserveSummary } from "@/types/reserves.interface";
 import { Stock } from "@/types/stock.enum";
 import { format } from "date-fns";

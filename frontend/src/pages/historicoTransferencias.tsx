@@ -3,7 +3,7 @@ import { CustomTable } from "@/components/customTable";
 import { CustomInput } from "@/components/form/CustomInput";
 import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 import { transactionService } from "@/services/transactionService";
 import { TransactionType } from "@/types/transaction-type.enum";
 import {

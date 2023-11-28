@@ -1,6 +1,6 @@
 import { ButtonSelector } from "@/components/selectors/buttonSelector";
 import { handleError401 } from "@/services/api";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import {
   Box,
   Heading,

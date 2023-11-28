@@ -1,4 +1,4 @@
-import { authService } from "@/services/auth.service";
+import { authService } from "@/services/authService";
 import {
   Alert,
   AlertTitle,

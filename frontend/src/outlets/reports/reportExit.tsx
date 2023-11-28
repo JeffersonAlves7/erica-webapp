@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { ExcelDownloadButton } from "../../components/buttons/excelButtons";
-import { reportsService } from "@/services/reports.service";
+import { reportsService } from "@/services/reportsService";
 import { PaginationSelector } from "../../components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import {
@@ -24,7 +24,7 @@ import {
   TransactionTypePT
 } from "@/types/transaction-type.enum";
 import { CustomTable } from "@/components/customTable";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 
 interface ExitReport {
   code: string;

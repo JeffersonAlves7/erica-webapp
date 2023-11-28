@@ -1,5 +1,5 @@
 import axios from "axios";
-import { tokenService } from "./token.service";
+import { tokenService } from "./tokenService";
 
 const BASE_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3000/api";

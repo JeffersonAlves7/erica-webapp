@@ -16,9 +16,9 @@ import { StockInput } from "@/components/inputs/stock.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import { handleError401 } from "@/services/api";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 
 export function CriarDevolucao() {
   const [error, setError] = useState<string>("");

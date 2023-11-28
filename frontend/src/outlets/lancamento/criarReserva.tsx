@@ -6,9 +6,9 @@ import { OperatorInput } from "@/components/inputs/operator.input";
 import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { StockInput } from "@/components/inputs/stock.input";
 import { LancamentoFooter } from "@/components/lancamentoFooter";
-import { reservesService } from "@/services/reserves.service";
+import { reservesService } from "@/services/reservesService";
 import { DateInput } from "@/components/inputs/dateInput";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 
 export function CriarReserva() {
   const [error, setError] = useState<string>("");

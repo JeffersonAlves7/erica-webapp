@@ -11,10 +11,10 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { ExcelDownloadButton } from "../../components/buttons/excelButtons";
-import { reportsService } from "@/services/reports.service";
+import { reportsService } from "@/services/reportsService";
 import { PaginationSelector } from "../../components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 import { CustomTable } from "@/components/customTable";
 
 interface StockMinimumReport {

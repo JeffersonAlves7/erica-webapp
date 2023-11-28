@@ -43,7 +43,8 @@ export class ExcelService {
 
   async readEntryProductExcelFile(file: any): Promise<
     {
-      codeOrEan: string;
+      code: string;
+      ean?: string;
       observation?: string;
       quantity: number;
       operator: string;
@@ -53,7 +54,7 @@ export class ExcelService {
   > {
     const data = await this.readExcelFile(file);
 
-    const products = data.slice(2).map((row: any, index) => {
+    const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
 
       const ean = row.at(0);
@@ -63,7 +64,6 @@ export class ExcelService {
       const importer = row.at(4);
       const operator = row.at(5);
       const observation = row.at(6);
-      const codeOrEan = code ? code : ean;
 
       if (!quantity || typeof quantity !== 'number') {
         console.log(row);
@@ -80,12 +80,6 @@ export class ExcelService {
           HttpStatus.BAD_REQUEST,
         );
 
-      if (!codeOrEan || typeof codeOrEan !== 'string')
-        throw new HttpException(
-          `Codigo ou ean não encontrado na linha ${rowIndex}`,
-          HttpStatus.BAD_REQUEST,
-        );
-
       if (!container || typeof container !== 'string')
         throw new HttpException(
           `Container não encontrado na linha ${rowIndex}`,
@@ -99,7 +93,8 @@ export class ExcelService {
         );
 
       return {
-        codeOrEan,
+        code,
+        ean,
         quantity,
         container,
         importer,
@@ -123,7 +118,7 @@ export class ExcelService {
   > {
     const data = await this.readExcelFile(file);
 
-    const products = data.slice(2).map((row: any, index) => {
+    const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
       const ean = row.at(0);
       const code = row.at(1);
@@ -190,7 +185,7 @@ export class ExcelService {
   > {
     const data = await this.readExcelFile(file);
 
-    const products = data.slice(2).map((row: any, index) => {
+    const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
 
       const ean = row.at(0);
@@ -281,7 +276,7 @@ export class ExcelService {
   > {
     const data = await this.readExcelFile(file);
 
-    const products = data.slice(2).map((row: any, index) => {
+    const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
 
       const ean = row.at(0);
@@ -366,7 +361,7 @@ export class ExcelService {
 
     const products = [];
 
-    data.slice(2).forEach((row: any, index) => {
+    data.slice(1).forEach((row: any, index) => {
       if (row.length == 0) return;
 
       const rowIndex = index + 2;
@@ -495,7 +490,7 @@ export class ExcelService {
 
     const products = [];
 
-    data.slice(2).forEach((row: any, index) => {
+    data.slice(1).forEach((row: any, index) => {
       if (row.length == 0) return;
 
       const rowIndex = index + 2;

@@ -1,5 +1,5 @@
-import { productService } from "@/services/product.service";
-import { tokenService } from "@/services/token.service";
+import { productService } from "@/services/productService";
+import { tokenService } from "@/services/tokenService";
 import { PropsWithChildren, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 

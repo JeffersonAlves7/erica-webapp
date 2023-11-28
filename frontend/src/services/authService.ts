@@ -1,5 +1,5 @@
 import api from "./api";
-import { tokenService } from "./token.service";
+import { tokenService } from "./tokenService";
 
 class AuthService {
   async login(email: string, password: string) {

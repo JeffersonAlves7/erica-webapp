@@ -1,7 +1,7 @@
 import { Td, useToast } from "@chakra-ui/react";
 import { InputWithSearch } from "./inputs/inputWithSearch";
 import { useState } from "react";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 
 interface TableLojaLocationProps {
   itemId: string | number;

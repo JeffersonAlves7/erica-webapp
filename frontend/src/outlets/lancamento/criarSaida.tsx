@@ -16,10 +16,10 @@ import {
   Input
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import { Operator } from "@/types/operator.enum";
 import { Stock } from "@/types/stock.enum";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 import { handleError401 } from "@/services/api";
 
 export function CriarSaida() {

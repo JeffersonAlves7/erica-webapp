@@ -5,7 +5,7 @@ import { OperatorSelector } from "@/components/selectors/operatorSelector";
 import {
   EmbarquesResponse,
   embarquesService
-} from "@/services/embarques.service";
+} from "@/services/embarquesService";
 import {
   Box,
   Checkbox,

@@ -5,7 +5,7 @@ import { CustomTable } from "@/components/customTable";
 import { EricaLink } from "@/components/ericaLink";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import {
   Flex,
   Heading,

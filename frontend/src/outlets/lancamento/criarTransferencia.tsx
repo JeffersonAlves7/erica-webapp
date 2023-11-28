@@ -5,8 +5,8 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { OperatorInput } from "@/components/inputs/operator.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { LancamentoFooterWithLink } from "@/components/lancamentoFooterWithLink";
-import { excelService } from "@/services/excel.service";
-import { productService } from "@/services/product.service";
+import { excelService } from "@/services/excelService";
+import { productService } from "@/services/productService";
 import { Operator } from "@/types/operator.enum";
 import {
   Card,

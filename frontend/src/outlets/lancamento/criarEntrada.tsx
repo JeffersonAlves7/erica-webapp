@@ -1,5 +1,5 @@
 import { Importer } from "@/types/importer.enum";
-import { productService } from "@/services/product.service";
+import { productService } from "@/services/productService";
 import {
   Card,
   CardBody,
@@ -20,7 +20,7 @@ import { ObservacaoInput } from "@/components/inputs/observacao.input";
 import { QuantityInput } from "@/components/inputs/quantity.input";
 import { ContainerInput } from "@/components/inputs/container.input";
 import { ImporterInput } from "@/components/inputs/importerInput";
-import { excelService } from "@/services/excel.service";
+import { excelService } from "@/services/excelService";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");

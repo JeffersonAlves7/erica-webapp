@@ -626,7 +626,8 @@ export class ProductsService {
         let rowIndex = index + 2;
         const row = entriesData[index];
         const {
-          codeOrEan,
+          code,
+          ean,
           container,
           importer: importerName,
           operator,
@@ -635,13 +636,34 @@ export class ProductsService {
         } = row;
 
         const importer = getImporterId(importerName);
-        const product = await this.getProductByCodeOrEan(codeOrEan);
+        let product = await prisma.product.findFirst({
+          where: {
+            code: code
+          }
+        });
 
-        if (!product)
+        console.log(importer, product)
+
+        if (!importer)
           throw new HttpException(
-            `Produto não encontrado na linha ${rowIndex}`,
+            `Importadora '${importer}' inválida na linha ${rowIndex}`,
             HttpStatus.BAD_REQUEST,
           );
+
+        if (!product) {
+          // throw new HttpException(
+          //   `Produto não encontrado na linha ${rowIndex}`,
+          //   HttpStatus.BAD_REQUEST,
+          // );
+
+          product = await prisma.product.create({
+            data: {
+              code,
+              ean: ean?.toString() || '',
+              importer,
+            },
+          });
+        }
 
         if (product.importer !== importer)
           throw new HttpException(
@@ -719,6 +741,10 @@ export class ProductsService {
         });
       }
     });
+
+    console.log({
+      entriesData
+    })
 
     return entriesData;
   }
