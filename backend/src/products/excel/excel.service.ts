@@ -6,13 +6,16 @@ import { getImporterId } from '../utils/importer.utils';
 
 @Injectable()
 export class ExcelService {
-  async readExcelFile(file: any): Promise<any[]> {
+  async readExcelFile(file: any, worksheetName?: string): Promise<any[]> {
     try {
       const workbook = new ExcelJS.Workbook();
       const buffer = Buffer.from(file.buffer);
       const loaded = await workbook.xlsx.load(buffer);
 
-      const rows = loaded.worksheets[0].getSheetValues();
+      const rows = worksheetName
+        ? loaded.getWorksheet(worksheetName).getSheetValues()
+        : loaded.worksheets[0].getSheetValues();
+
       const data = [];
 
       for (let i = 0; i < rows.length; i++) {
@@ -52,7 +55,7 @@ export class ExcelService {
       container: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Entrada");
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -116,7 +119,7 @@ export class ExcelService {
       observation?: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Saída");
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -183,7 +186,7 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Transferência");
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -274,7 +277,7 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Devolução");
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -357,7 +360,7 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Reserva");
 
     const products = [];
 
@@ -486,7 +489,7 @@ export class ExcelService {
       status: string;
     }[]
   > {
-    const data = await this.readExcelFile(file);
+    const data = await this.readExcelFile(file, "Embarques");
 
     const products = [];
 
