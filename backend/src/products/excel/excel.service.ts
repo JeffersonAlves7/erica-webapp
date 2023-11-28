@@ -55,7 +55,7 @@ export class ExcelService {
       container: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Entrada");
+    const data = await this.readExcelFile(file, 'Entrada');
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -119,7 +119,7 @@ export class ExcelService {
       observation?: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Saída");
+    const data = await this.readExcelFile(file, 'Saída');
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -186,21 +186,22 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Transferência");
+    const data = await this.readExcelFile(file, 'Transferência');
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
 
-      const ean = row.at(0);
-      const code = row.at(1);
+      const ean = row.at(0)?.text || row.at(0);
+      const code = row.at(1)?.text || row.at(1);
       const quantity = row.at(2);
-      const from = row.at(3);
+      let from = row.at(3);
       const to = row.at(4);
       const location = row.at(5);
       const operator = row.at(6);
       const observation = row.at(7);
 
       const codeOrEan = code ? code : ean;
+      console.log(codeOrEan);
 
       if (!quantity || typeof quantity !== 'number')
         throw new HttpException(
@@ -222,12 +223,13 @@ export class ExcelService {
 
       if (
         from.toUpperCase() !== Stock.LOJA &&
-        from.toUpperCase() !== Stock.GALPAO
-      )
+        from.toUpperCase() == Stock.GALPAO
+      ) {
         throw new HttpException(
           `Estoque de origem inválido [${from}] na linha ${rowIndex}`,
           HttpStatus.BAD_REQUEST,
         );
+      }
 
       if (!to || typeof to !== 'string')
         throw new HttpException(
@@ -277,7 +279,7 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Devolução");
+    const data = await this.readExcelFile(file, 'Devolução');
 
     const products = data.slice(1).map((row: any, index) => {
       const rowIndex = index + 2;
@@ -360,7 +362,7 @@ export class ExcelService {
       observation: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Reserva");
+    const data = await this.readExcelFile(file, 'Reserva');
 
     const products = [];
 
@@ -489,7 +491,7 @@ export class ExcelService {
       status: string;
     }[]
   > {
-    const data = await this.readExcelFile(file, "Embarques");
+    const data = await this.readExcelFile(file, 'Embarques');
 
     const products = [];
 
