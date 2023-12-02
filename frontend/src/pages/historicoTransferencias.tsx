@@ -5,6 +5,7 @@ import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
 import { excelService } from "@/services/excelService";
 import { transactionService } from "@/services/transactionService";
+import { Stock } from "@/types/stock.enum";
 import { TransactionType } from "@/types/transaction-type.enum";
 import {
   Box,
@@ -45,7 +46,8 @@ export function HistoricoTransferencias() {
         orderBy: "desc",
         code: codeOrEan,
         type: TransactionType.TRANSFERENCE,
-        day: date
+        day: date,
+        stock: Stock.GALPAO
       })
       .then((data) => {
         setConferencias(data.data);
