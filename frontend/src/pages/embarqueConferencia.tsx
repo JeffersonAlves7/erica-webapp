@@ -1,6 +1,7 @@
 import { ColorButton } from "@/components/buttons/colorButton";
 import { CustomTable } from "@/components/customTable";
 import { EricaLink } from "@/components/ericaLink";
+import { CustomInput } from "@/components/form/CustomInput";
 import { OperatorSelector } from "@/components/selectors/operatorSelector";
 import {
   EmbarquesResponse,
@@ -11,7 +12,6 @@ import {
   Checkbox,
   Flex,
   Heading,
-  Input,
   Stack,
   Tbody,
   Td,
@@ -24,6 +24,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 
 export function EmbarqueConferencia() {
+  const [requisitou, setRequisitou] = useState(false);
   const [embarquesData, setEmbarquesData] = useState<
     (EmbarquesResponse & { quantity: number; observation: string })[]
   >([]);
@@ -44,7 +45,8 @@ export function EmbarqueConferencia() {
         setEmbarquesData(
           data.map((d) => ({ ...d, quantity: 0, observation: "" }))
         )
-      );
+      )
+      .finally(() => setRequisitou(true));
   }, []);
 
   function handleSelectItem(id: number, isSelected: boolean) {
@@ -133,90 +135,110 @@ export function EmbarqueConferencia() {
     }
   }
 
+  if (!requisitou) return <></>;
+
   return (
     <Stack gap={4}>
       <Heading>Conferência de Container</Heading>
+      {requisitou ? (
+        embarquesData.length > 0 ? (
+          <>
+            <p>
+              Caixas selecionadas:{" "}
+              {embarquesData
+                .filter((embarque) => selecteds.includes(embarque.id))
+                .reduce(
+                  (previous, current) => previous + current.quantity,
+                  0
+                ) || 0}
+            </p>
+            <CustomTable>
+              <Thead>
+                <Tr>
+                  <Th>Selecionar Produto</Th>
+                  <Th>Código</Th>
+                  <Th>Importadora</Th>
+                  <Th>Container</Th>
+                  <Th>Quantidade Esperada</Th>
+                  <Th>Quantidade Verificada</Th>
+                  <Th>Observação</Th>
+                </Tr>
+              </Thead>
 
-      {embarquesData.length > 0 ? (
-        <>
-          <CustomTable>
-            <Thead>
-              <Tr>
-                <Th>Código</Th>
-                <Th>Importadora</Th>
-                <Th>Container</Th>
-                <Th>Quantidade Esperada</Th>
-                <Th>Quantidade Verificada</Th>
-                <Th>Observação</Th>
-                <Th>Confirmar Entrada</Th>
-              </Tr>
-            </Thead>
+              <Tbody>
+                {embarquesData.map((embarque) => {
+                  const isChecked = selecteds.includes(embarque.id);
+                  const color =
+                    embarque.quantity == 0 || !embarque.quantity
+                      ? ""
+                      : embarque.quantityExpected > embarque.quantity
+                      ? "red.200"
+                      : "erica.green";
 
-            <Tbody>
-              {embarquesData.map((embarque) => {
-                const isChecked = selecteds.includes(embarque.id);
-                const color =
-                  embarque.quantity == 0 || !embarque.quantity
-                    ? ""
-                    : embarque.quantityExpected > embarque.quantity
-                    ? "red.200"
-                    : "erica.green";
+                  return (
+                    <Tr key={"embarque-conferencia-" + embarque.id}>
+                      <Td backgroundColor={color}>
+                        <Checkbox
+                          isChecked={isChecked}
+                          onChange={() =>
+                            handleSelectItem(embarque.id, isChecked)
+                          }
+                        />
+                      </Td>
+                      <Td backgroundColor={color}>{embarque.product.code}</Td>
+                      <Td backgroundColor={color}>
+                        {embarque.product.importer}
+                      </Td>
+                      <Td backgroundColor={color}>{embarque.containerId}</Td>
+                      <Td backgroundColor={color}>
+                        {embarque.quantityExpected}
+                      </Td>
+                      <Td backgroundColor={color}>
+                        <CustomInput
+                          type="number"
+                          min={0}
+                          max={embarque.quantityExpected}
+                          value={embarque.quantity}
+                          onChange={(e) =>
+                            handleChangeQuantity(
+                              embarque.id,
+                              parseInt(e.target.value)
+                            )
+                          }
+                        />
+                      </Td>
+                      <Td backgroundColor={color}>
+                        <CustomInput
+                          type="text"
+                          onChange={(e) =>
+                            handleChangeObservation(embarque.id, e.target.value)
+                          }
+                        />
+                      </Td>
+                    </Tr>
+                  );
+                })}
+              </Tbody>
+            </CustomTable>
 
-                return (
-                  <Tr key={"embarque-conferencia-" + embarque.id}>
-                    <Td backgroundColor={color}>{embarque.product.code}</Td>
-                    <Td backgroundColor={color}>{embarque.product.importer}</Td>
-                    <Td backgroundColor={color}>{embarque.containerId}</Td>
-                    <Td backgroundColor={color}>{embarque.quantityExpected}</Td>
-                    <Td backgroundColor={color}>
-                      <Input
-                        type="number"
-                        value={embarque.quantity}
-                        onChange={(e) =>
-                          handleChangeQuantity(
-                            embarque.id,
-                            parseInt(e.target.value)
-                          )
-                        }
-                      />
-                    </Td>
-                    <Td backgroundColor={color}>
-                      <Input
-                        type="text"
-                        onChange={(e) =>
-                          handleChangeObservation(embarque.id, e.target.value)
-                        }
-                      />
-                    </Td>
-                    <Td backgroundColor={color}>
-                      <Checkbox
-                        isChecked={isChecked}
-                        onChange={() =>
-                          handleSelectItem(embarque.id, isChecked)
-                        }
-                      />
-                    </Td>
-                  </Tr>
-                );
-              })}
-            </Tbody>
-          </CustomTable>
+            <Flex gap={4}>
+              <ColorButton color="green" onClick={handleConfirmConference}>
+                Mudar Status para Em Estoque
+              </ColorButton>
 
-          <Flex gap={4}>
-            <ColorButton color="green" onClick={handleConfirmConference}>
-              Mudar Status para Em Estoque
-            </ColorButton>
-
-            <Box>
-              <OperatorSelector ref={operatorRef} />
-            </Box>
-          </Flex>
-        </>
+              <Box>
+                <OperatorSelector ref={operatorRef} />
+              </Box>
+            </Flex>
+          </>
+        ) : (
+          <>
+            <p>Todos os itens já foram conferidos!</p>
+            <EricaLink to="/embarques">Ir para Embarques.</EricaLink>
+          </>
+        )
       ) : (
-        <>
-          <p>Todos os itens já foram conferidos!</p>
-          <EricaLink to="/embarques">Ir para Embarques.</EricaLink>
-        </>
+        <></>
       )}
     </Stack>
   );
