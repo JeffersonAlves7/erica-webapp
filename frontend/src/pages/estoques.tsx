@@ -1,5 +1,6 @@
 import { ArchiveButton } from "@/components/buttons/archiveButton";
 import { SearchButton } from "@/components/buttons/searchButton";
+import { CustomTable } from "@/components/customTable";
 import { EricaLink } from "@/components/ericaLink";
 import { CodeInputForStock } from "@/components/inputs/codeInput";
 import { ImporterInputForStock } from "@/components/inputs/importerInput";
@@ -20,7 +21,6 @@ import {
   Flex,
   Heading,
   Stack,
-  Table,
   Tbody,
   Td,
   Th,
@@ -32,7 +32,7 @@ import { format } from "date-fns";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-export function Stocks() {
+export function Estoques() {
   const [page, setPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [qntDeCaixas, setQntDeCaixas] = useState(0);
@@ -72,9 +72,7 @@ export function Stocks() {
       });
   }
 
-  useEffect(() => {
-    search();
-  }, [importer, code, stock]);
+  useEffect(() => search(), [importer, code, stock]);
 
   function handleChangePage(page: number) {
     setPage(page);
@@ -101,23 +99,23 @@ export function Stocks() {
     search();
   }
 
-  function handleChangeStock(stock: string) {
-    setStock(
-      stock === "Geral"
-        ? undefined
-        : stock === "Galpão"
-        ? Stock.GALPAO
-        : Stock.LOJA
-    );
-  }
-
   return (
     <>
       <Stack gap={10} overflowY={"auto"}>
         <Heading>Estoques</Heading>
 
         <Flex gap={6}>
-          <StockButtonSelector onClick={handleChangeStock} />
+          <StockButtonSelector
+            onClick={(stock) =>
+              setStock(
+                stock === "Geral"
+                  ? undefined
+                  : stock === "Galpão"
+                  ? Stock.GALPAO
+                  : Stock.LOJA
+              )
+            }
+          />
 
           <EricaLink to="./arquivados">
             <ArchiveButton />
@@ -141,60 +139,62 @@ export function Stocks() {
           <SearchButton onSearch={handleSearchPedidos} />
         </Flex>
 
-        <Box overflow={"auto"} minH={200}>
-          <Table>
-            <Thead>
-              <Tr>
-                <Th>Código</Th>
+        <CustomTable>
+          <Thead>
+            <Tr>
+              <Th>Código</Th>
+              <Th>
+                Quantidade <br /> de entrada
+              </Th>
+              <Th>
+                Saldo <br />
+                Atual
+              </Th>
+              {stock != Stock.LOJA && (
                 <Th>
-                  Quantidade <br /> de entrada
+                  Container <br /> de Origem
                 </Th>
-                <Th>
-                  Saldo <br />
-                  Atual
-                </Th>
-                {stock != Stock.LOJA && (
+              )}
+              <Th>Importadora</Th>
+              <Th>
+                Data <br />
+                de Entrada
+              </Th>
+              <Th>
+                Dias <br />
+                em Estoque
+              </Th>
+              {!stock && (
+                <>
+                  <Th>Giro</Th>
                   <Th>
-                    Container <br /> de Origem
+                    Quantidade
+                    <br /> para alerta
                   </Th>
-                )}
-                <Th>Importadora</Th>
-                <Th>
-                  Data <br />
-                  de Entrada
-                </Th>
-                <Th>
-                  Dias <br />
-                  em Estoque
-                </Th>
-                {!stock && (
-                  <>
-                    <Th>Giro</Th>
-                    <Th>
-                      Quantidade
-                      <br /> para alerta
-                    </Th>
-                  </>
-                )}
-                {stock == Stock.LOJA && <Th>Localização</Th>}
-                <Th>Observação</Th>
-              </Tr>
-            </Thead>
+                </>
+              )}
+              {stock == Stock.LOJA && <Th>Localização</Th>}
+              <Th>Observação</Th>
+            </Tr>
+          </Thead>
 
-            <Tbody>
-              {items.map((item) => (
-                <StockItem
-                  key={item.sku}
-                  item={item}
-                  alertaPorcentagem={alertaPorcentagem}
-                  stock={stock}
-                />
-              ))}
-            </Tbody>
-          </Table>
-        </Box>
+          <Tbody>
+            {items.map((item) => (
+              <StockItem
+                key={item.sku}
+                item={item}
+                alertaPorcentagem={alertaPorcentagem}
+                stock={stock}
+              />
+            ))}
+          </Tbody>
+        </CustomTable>
 
-        <Flex justifySelf={"flex-end"} justify={"space-between"}>
+        <Flex
+          justifySelf={"flex-end"}
+          alignItems={"center"}
+          justify={"space-between"}
+        >
           <span>
             {totalItems} Produto(s) | Total de {qntDeCaixas} caixas.
           </span>

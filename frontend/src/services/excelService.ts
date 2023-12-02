@@ -1,4 +1,4 @@
-import api from "./api";
+import api, { apiWithoutInterceptor, refreshToken } from "./api";
 import * as ExcelJS from "exceljs";
 
 class ExcelService {
@@ -6,81 +6,196 @@ class ExcelService {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/products/entry/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await api.post("/products/entry/sheet", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await api.post("/products/entry/sheet", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
   async uploadProductsExit(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/products/exit/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await api.post("/products/exit/sheet", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await api.post("/products/exit/sheet", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
   async uploadProductTransfer(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/products/transference/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await api.post(
+        "/products/transference/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await api.post(
+          "/products/transference/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        );
+
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
   async uploadProductDevolution(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/products/devolution/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await api.post("/products/devolution/sheet", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await api.post(
+          "/products/devolution/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        );
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
   async uploadProductReserve(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/reserves/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await api.post("/reserves/sheet", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      });
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await api.post("/reserves/sheet", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        });
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
   async uploadProductEmbarques(file: File) {
     const formData = new FormData();
     formData.append("file", file);
 
-    const response = await api.post("/embarques/sheet", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data"
-      }
-    });
+    try {
+      const response = await apiWithoutInterceptor.post(
+        "/embarques/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
+        }
+      );
 
-    return response.data;
+      return response.data;
+    } catch (e: any) {
+      if (e.response.status === 401) {
+        await refreshToken();
+
+        const response = await apiWithoutInterceptor.post(
+          "/embarques/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
+          }
+        );
+        return response.data;
+      }
+
+      throw e;
+    }
   }
 
-  async downloadDataAsSheet(tableName: string, header: string[], rows: any[][]) {
+  async downloadDataAsSheet(
+    tableName: string,
+    header: string[],
+    rows: any[][]
+  ) {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet(tableName);
 
@@ -89,9 +204,7 @@ class ExcelService {
       key: h
     }));
 
-    rows.forEach(row => {
-      worksheet.addRow(row);
-    })
+    rows.forEach((row) => worksheet.addRow(row));
 
     const buffer = await workbook.xlsx.writeBuffer();
 

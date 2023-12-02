@@ -1,3 +1,4 @@
+import { CustomInput } from "@/components/form/CustomInput";
 import { ModalConfirm } from "@/components/modalConfirm";
 import { LojaSelector } from "@/components/selectors/lojaSelector";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
@@ -7,7 +8,6 @@ import { TransferenceConfirmation } from "@/types/transaction.interface";
 import {
   Button,
   Heading,
-  Input,
   Stack,
   Table,
   Tbody,
@@ -160,12 +160,14 @@ export function Conferencias() {
                     {conferencia.quantidadeEsperada}
                   </Td>
                   <Td backgroundColor={color}>
-                    <Input
+                    <CustomInput
                       maxW={20}
                       border={"1px"}
                       borderColor={"black"}
                       textAlign={"center"}
                       type="number"
+                      min={0}
+                      max={conferencia.quantidadeEsperada}
                       value={"" + conferencia.quantidadeVerificada ?? ""}
                       onChange={(e) => {
                         handleChangeQuantidadeVerificada(

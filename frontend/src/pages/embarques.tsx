@@ -71,6 +71,9 @@ export function Embarques() {
       })
       .then((data) => {
         setProudctsInfo(data);
+      })
+      .catch((e) => {
+        handleError401(e);
       });
   }
 
@@ -97,26 +100,15 @@ export function Embarques() {
   async function handleUploadFile(file: File) {
     try {
       await excelService.uploadProductEmbarques(file);
+
       toast({
         title: "Sucesso ao importar os embarques",
         isClosable: true,
         duration: 3000,
         status: "success"
-      })
-      embarquesService
-        .getEmbarques({
-          container,
-          codeOrEan: code,
-          limit: embarquesLimit,
-          page,
-          importer,
-          status
-        })
-        .then((data) => {
-          setEmbarquesData(data.data);
-          setPage(data.page);
-          setEmbarquesTotal(data.total);
-        });
+      });
+
+      handleSearch();
     } catch (e) {
       toast({
         title: "Falha ao importar os embarques",
@@ -209,7 +201,10 @@ export function Embarques() {
           {embarquesData.map((embarque) => {
             const dataDeEmbarque = new Date(embarque.embarqueAt);
             const dayToCome = new Date(dataDeEmbarque);
-            dayToCome.setDate(dayToCome.getDate() + 30);
+            const mediaDeDias =
+              embarque.product.importer == Importer.ALPHA_YNFINITY ? 35 : 30;
+
+            dayToCome.setDate(dayToCome.getDate() + mediaDeDias);
 
             const daysToCome = Math.floor(
               (dayToCome.valueOf() - new Date().valueOf()) /
@@ -286,16 +281,7 @@ export function Embarques() {
         </Tbody>
       </CustomTable>
 
-      <Flex justify={"space-between"} wrap="wrap">
-        <ExcelUploadButton onUpload={handleUploadFile} withTitle />
-      </Flex>
-
       <Flex justifySelf={"flex-end"}>
-        <span>
-          {productsInfo.productsQuantity} Produto(s) | Total de{" "}
-          {productsInfo.boxQuantity} caixas.
-        </span>
-
         <PaginationSelector
           page={page}
           pageQuantity={pageLimit}
@@ -306,6 +292,15 @@ export function Embarques() {
             handleChangePage(page + 1);
           }}
         />
+      </Flex>
+
+      <Flex justify={"space-between"} wrap="wrap">
+        <ExcelUploadButton onUpload={handleUploadFile} withTitle />
+
+        <span>
+          {productsInfo.productsQuantity} Produto(s) | Total de{" "}
+          {productsInfo.boxQuantity} caixas.
+        </span>
       </Flex>
     </Stack>
   );

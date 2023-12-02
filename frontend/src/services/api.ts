@@ -4,6 +4,26 @@ import { tokenService } from "./tokenService";
 const BASE_URL =
   process.env.NODE_ENV === "production" ? "/api" : "http://localhost:3000/api";
 
+export const apiWithoutInterceptor = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json"
+  }
+});
+
+apiWithoutInterceptor.interceptors.request.use(
+  (config) => {
+    const token = tokenService.getLocalAccessToken();
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const api = axios.create({
   baseURL: BASE_URL,
   headers: {
@@ -63,12 +83,32 @@ api.interceptors.response.use(
   }
 );
 
+export async function refreshToken() {
+  const rs = await axios.post(
+    "/auth/refresh",
+    {
+      refresh_token: tokenService.getLocalRefreshToken()
+    },
+    {
+      baseURL: BASE_URL,
+      headers: {
+        "Content-Type": "application/json"
+      }
+    }
+  );
+
+  const { access_token } = rs.data;
+  tokenService.updateLocalAccessToken(access_token);
+}
+
 export const handleError401 = (err: any): void => {
-  if (err?.response?.status === 401) {
-    tokenService.removeLocalAccessToken();
-    tokenService.removeLocalRefreshToken();
-    window.location.reload();
-  }
+  try {
+    if (err?.response?.status === 401) {
+      tokenService.removeLocalAccessToken();
+      tokenService.removeLocalRefreshToken();
+      window.location.reload();
+    }
+  } catch {}
 };
 
 export default api;
