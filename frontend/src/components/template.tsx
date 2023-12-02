@@ -1,6 +1,7 @@
+import { tokenService } from "@/services/tokenService";
 import { Grid, Heading, Stack } from "@chakra-ui/react";
 import { PropsWithChildren, useEffect, useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const NavLinks = [
   {
@@ -33,10 +34,16 @@ export function Template(props: PropsWithChildren) {
   // verifying if the user is authenticated
   const [isAuthorized, setIsAuthorized] = useState(false);
   const location = useLocation();
+  const navigator = useNavigate();
 
   useEffect(() => {
-    if (location.pathname !== "/" && !isAuthorized) setIsAuthorized(true);
-    else if (location.pathname === "/") setIsAuthorized(false);
+    if (location.pathname !== "/" && !isAuthorized) {
+      if (!tokenService.getLocalRefreshToken()) {
+        navigator("/");
+      } else {
+        setIsAuthorized(true);
+      }
+    } else if (location.pathname === "/") setIsAuthorized(false);
   }, [location]);
 
   if (!isAuthorized) return <>{props.children}</>;
