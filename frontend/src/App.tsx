@@ -1,6 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { Login } from "./pages/login";
-import { Stocks } from "./pages/stocks";
+import { Estoques } from "./pages/estoques";
 import { Template } from "./components/template";
 import { Relatorio } from "./pages/relatorio";
 import { IncluirLancamento } from "./pages/incluirLancamento";
@@ -32,7 +32,7 @@ function App() {
             path="/estoques"
             element={
               <ProtectedRoute>
-                <Stocks />
+                <Estoques />
               </ProtectedRoute>
             }
           />
