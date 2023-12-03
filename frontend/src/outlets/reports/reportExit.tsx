@@ -6,6 +6,7 @@ import {
   Heading,
   Input,
   Stack,
+  Table,
   TableContainer,
   Tbody,
   Td,
@@ -23,7 +24,6 @@ import {
   TransactionType,
   TransactionTypePT
 } from "@/types/transaction-type.enum";
-import { CustomTable } from "@/components/customTable";
 import { excelService } from "@/services/excelService";
 
 interface ExitReport {
@@ -164,7 +164,7 @@ export function ReportExit() {
       </Flex>
 
       <TableContainer>
-        <CustomTable id="saidas-diarias">
+        <Table overflow={"auto"} id="saidas-diarias">
           <Thead>
             <Tr>
               <Th roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
@@ -208,7 +208,7 @@ export function ReportExit() {
               </Td>
             </Tr>
           </Tfoot>
-        </CustomTable>
+        </Table>
       </TableContainer>
 
       <PaginationSelector

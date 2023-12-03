@@ -14,7 +14,6 @@ import { TransactionTypePT } from "@/types/transaction-type.enum";
 import {
   Box,
   Flex,
-  Grid,
   Heading,
   Stack,
   Table,
@@ -212,14 +211,23 @@ export function ProductTransactions() {
       : (product?.galpaoQuantityReserve || 0) +
         (product?.lojaQuantityReserve || 0);
   const saldoTotal = saldoGalpao + saldoLoja;
-  const disponivelParaVenda = !stock
-    ? product?.galpaoQuantity +
-      product?.lojaQuantity -
-      (product?.galpaoQuantityReserve + product?.lojaQuantityReserve || 0)
-    : stock == Stock.GALPAO
-    ? product?.galpaoQuantity - product?.galpaoQuantityReserve
-    : product?.lojaQuantity - product?.lojaQuantityReserve;
-      
+
+  let disponivelParaVenda = 0;
+
+  if (!stock) {
+    disponivelParaVenda =
+      product.galpaoQuantity +
+      product.lojaQuantity -
+      (product.galpaoQuantityReserve ?? 0 + product?.lojaQuantityReserve);
+  } else if (stock == Stock.GALPAO) {
+    disponivelParaVenda =
+      product.galpaoQuantity - (product?.galpaoQuantityReserve ?? 0);
+  } else {
+    disponivelParaVenda =
+      product.lojaQuantity - (product?.lojaQuantityReserve ?? 0);
+  }
+
+  console.log({ product });
 
   return (
     <Stack h={"full"} gap={5}>
@@ -229,45 +237,26 @@ export function ProductTransactions() {
 
       <Flex gap={4}>
         <StockButtonSelector onClick={handleChangeStock} />
-
         <ArchiveButton onClick={archiveProductDisclusure.onOpen} />
-
         <TrashButton onClick={deleteProductDisclusure.onOpen} />
       </Flex>
 
-      <Grid gridTemplateColumns={"200px 200px"}>
+      <div className="max-w-[600px] grid md:grid-cols-2 grid-cols-1">
         {!stock ? (
           <>
-          <Box>
             <Text>Saldo total: {saldoTotal}</Text>
-          </Box>
-            <Box>
-              <Text>Saldo Galpão: {saldoGalpao}</Text>
-            </Box>
-            <Box>
-              <Text>Saldo Loja: {saldoLoja}</Text>
-            </Box>
+            <Text>Saldo Galpão: {saldoGalpao}</Text>
+            <Text>Saldo Loja: {saldoLoja}</Text>
           </>
         ) : (
-          <Box>
-            <Text>Saldo: {stock == Stock.LOJA ? saldoLoja : saldoGalpao}</Text>
-          </Box>
+          <Text>Saldo: {stock == Stock.LOJA ? saldoLoja : saldoGalpao}</Text>
         )}
-        <Box>
-          <Text>Reservado: {saldoReservado}</Text>
-        </Box>
-        <Box>
-          <Text>
-            Disponível para venda:{" "}
-            {disponivelParaVenda}
-          </Text>
-        </Box>
+        <Text>Reservado: {saldoReservado}</Text>
+        <Text>Disponível para venda: {disponivelParaVenda}</Text>
         {stock == Stock.LOJA && (
-          <Box>
-            <Text>Localização: {product.location}</Text>
-          </Box>
+          <Text>Localização: {product?.lojaLocation}</Text>
         )}
-      </Grid>
+      </div>
 
       <Box overflow={"auto"} minH={200}>
         <Table>
@@ -354,9 +343,9 @@ function ProductTableItem({
   transaction: ProductTransaction;
   handleDelete?: (id: number) => void;
 }) {
-  const toast = useToast()
+  const toast = useToast();
 
-  const [observation, setObservation] = useState('');
+  const [observation, setObservation] = useState("");
 
   useEffect(() => {
     setObservation(transaction.observation ?? "");

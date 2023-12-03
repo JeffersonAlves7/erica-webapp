@@ -79,7 +79,7 @@ export function Embarques() {
 
   useEffect(() => {
     handleSearch();
-  }, [importer, status]);
+  }, [importer, status, page]);
 
   function handleChangeImporter(event: ChangeEvent<HTMLSelectElement>) {
     setImporter(event.currentTarget.value);
@@ -122,7 +122,7 @@ export function Embarques() {
   }
 
   function handleChangePage(page: number) {
-    if (!(page > 0 && page < pageLimit)) return;
+    if (page <= 0 && page > pageLimit) return;
     setPage(page);
   }
 
@@ -281,26 +281,25 @@ export function Embarques() {
         </Tbody>
       </CustomTable>
 
-      <Flex justifySelf={"flex-end"}>
-        <PaginationSelector
-          page={page}
-          pageQuantity={pageLimit}
-          decreasePage={() => {
-            handleChangePage(page - 1);
-          }}
-          increasePage={() => {
-            handleChangePage(page + 1);
-          }}
-        />
-      </Flex>
-
-      <Flex justify={"space-between"} wrap="wrap">
+      <Flex justify={"space-between"} wrap="wrap" align={'center'}>
         <ExcelUploadButton onUpload={handleUploadFile} withTitle />
 
-        <span>
-          {productsInfo.productsQuantity} Produto(s) | Total de{" "}
-          {productsInfo.boxQuantity} caixas.
-        </span>
+        <Flex align={'center'} gap={10}>
+          <span>
+            {productsInfo.productsQuantity} Produto(s) | Total de{" "}
+            {productsInfo.boxQuantity} caixas.
+          </span>
+          <PaginationSelector
+            page={page}
+            pageQuantity={pageLimit}
+            decreasePage={() => {
+              handleChangePage(page - 1);
+            }}
+            increasePage={() => {
+              handleChangePage(page + 1);
+            }}
+          />
+        </Flex>
       </Flex>
     </Stack>
   );

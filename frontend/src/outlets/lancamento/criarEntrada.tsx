@@ -10,7 +10,6 @@ import {
   GridItem,
   Heading,
   Input,
-  useToast
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
@@ -36,8 +35,6 @@ export function CriarEntrada() {
   const importerRef = useRef<HTMLSelectElement>(null);
   const descricaoRef = useRef<HTMLInputElement>(null);
   const eanRef = useRef<HTMLInputElement>(null);
-
-  const toast = useToast();
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();

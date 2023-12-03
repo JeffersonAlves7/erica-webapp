@@ -2,6 +2,7 @@ import {
   Flex,
   Heading,
   Stack,
+  Table,
   TableContainer,
   Tbody,
   Td,
@@ -15,7 +16,6 @@ import { reportsService } from "@/services/reportsService";
 import { PaginationSelector } from "../../components/selectors/paginationSelector";
 import { handleError401 } from "@/services/api";
 import { excelService } from "@/services/excelService";
-import { CustomTable } from "@/components/customTable";
 
 interface StockMinimumReport {
   code: string;
@@ -113,7 +113,7 @@ export function ReportStockMinimum() {
       <p>Porcentagem para alerta: {percentage}%</p>
 
       <TableContainer>
-        <CustomTable id="relatorio-estoque-minimo">
+        <Table id="relatorio-estoque-minimo">
           <Thead>
             <Tr>
               <Th roundedTopLeft={"xl"} backgroundColor={"erica.green"}>
@@ -139,7 +139,7 @@ export function ReportStockMinimum() {
               );
             })}
           </Tbody>
-        </CustomTable>
+        </Table>
       </TableContainer>
 
       <PaginationSelector

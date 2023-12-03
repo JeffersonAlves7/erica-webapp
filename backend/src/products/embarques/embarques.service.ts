@@ -235,7 +235,7 @@ export class EmbarquesService {
     if (importer) where.product = { ...where.product, importer };
 
     if (status) {
-      where.confirmed = status === "true";
+      where.confirmed = status === 'true';
     }
 
     const containers = await this.prismaService.productsOnContainer.findMany({
@@ -268,7 +268,6 @@ export class EmbarquesService {
     const total = await this.prismaService.productsOnContainer.count({
       where: {
         ...where,
-        confirmed: false,
       },
     });
 

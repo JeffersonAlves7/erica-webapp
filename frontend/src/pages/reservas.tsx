@@ -13,9 +13,7 @@ import {
   FormControl,
   FormLabel,
   Heading,
-  Input,
   Stack,
-  Table,
   Tbody,
   Td,
   Text,
@@ -28,6 +26,7 @@ import { useEffect, useState } from "react";
 import { ModalConfirm } from "@/components/modalConfirm";
 import { transactionService } from "@/services/transactionService";
 import { CloseButton } from "@/components/buttons/closeButton";
+import { CustomTable } from "@/components/customTable";
 import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 
 export function Reservas() {
@@ -35,6 +34,7 @@ export function Reservas() {
   const [reserveSummary, setReserveSummary] = useState<
     ReserveSummary | undefined
   >();
+  const [search, setSearch] = useState<string>("");
   const [reserves, setReserves] = useState<Reserve[]>([]);
   const [selecteds, setSelecteds] = useState<Reserve["id"][]>([]);
   const [allSelected, setAllSelected] = useState(false);
@@ -46,20 +46,21 @@ export function Reservas() {
 
   const toast = useToast();
 
-  const reserversPerPage = 20;
+  const reserversPerPage = 100;
   const pageQuantity = Math.ceil(pageLimit / reserversPerPage);
 
   async function getAllReserves() {
     return reservesService
       .getReserves({
-        page: page,
+        page,
         limit: reserversPerPage,
-        stock: stock
+        stock,
+        search
       })
       .then((reserves) => {
         setReserves(reserves.data);
         setPageLimit(reserves.total);
-        setPage(1);
+        setPage(page);
         setReserveSummary({
           galpao: reserves.summary.galpaoQuantity as number,
           loja: reserves.summary.lojaQuantity as number,
@@ -74,7 +75,7 @@ export function Reservas() {
 
   useEffect(() => {
     getAllReserves();
-  }, [stock]);
+  }, [stock, page]);
 
   const reservesSelected = reserves.filter((reserve) =>
     selecteds.includes(reserve.id)
@@ -86,6 +87,7 @@ export function Reservas() {
   );
 
   function handleChangeStock(stock: string) {
+    setPage(1);
     if (stock == "Galpão") setStock(Stock.GALPAO);
     else if (stock == "Loja") setStock(Stock.LOJA);
     else setStock(undefined);
@@ -127,17 +129,12 @@ export function Reservas() {
 
         setSelecteds([]);
         setAllSelected(false);
-
-        return getAllReserves()
+        return getAllReserves();
       })
       .catch((error) => {
         handleError401(error);
         console.log(error);
       });
-  }
-
-  function handleSearchProductOrClient(value: string){
-
   }
 
   return (
@@ -147,12 +144,31 @@ export function Reservas() {
 
         <StockButtonSelector onClick={handleChangeStock} />
 
-        <Input
-          type="search"
-          placeholder="Buscar por Código, Cliente"
-          onChange={(e) => {
-            handleSearchProductOrClient(e.target.value || "");
+        <InputWithSearch
+          onSearch={async () => {
+            setPage(1);
+            try {
+              const reserves = await reservesService.getReserves({
+                page: 1,
+                limit: reserversPerPage,
+                stock,
+                search
+              });
+              setReserves(reserves.data);
+              setPageLimit(reserves.total);
+              setPage(page);
+              setReserveSummary({
+                galpao: reserves.summary.galpaoQuantity as number,
+                loja: reserves.summary.lojaQuantity as number,
+                products: reserves.summary.products as number
+              });
+            } catch (error) {
+              handleError401(error);
+              console.log(error);
+            }
           }}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por Código, Cliente"
         />
 
         <Flex justify={"start"} align={"start"} gap={10} wrap={"wrap"}>
@@ -178,7 +194,7 @@ export function Reservas() {
         </Flex>
 
         <Box overflow={"auto"}>
-          <Table>
+          <CustomTable>
             <Thead>
               <Tr>
                 <Th></Th>
@@ -223,7 +239,7 @@ export function Reservas() {
                 </Tr>
               ))}
             </Tbody>
-          </Table>
+          </CustomTable>
         </Box>
 
         <Stack gap={4}>

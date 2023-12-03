@@ -166,24 +166,10 @@ export class ReservesService {
           },
           data: {
             confirmed: true,
-            exitDate: new Date(),
-          },
-        });
-
-        await prisma.transaction.create({
-          data: {
-            product: {
-              connect: {
-                id: product.id,
-              },
-            },
-            fromStock: fromStock,
-            exitAmount: entryAmount,
             type: TransactionType.EXIT,
-            observation: transaction.observation,
-            operator: transaction.operator,
-            client: transaction.client,
-            confirmed: true,
+            exitDate: new Date(),
+            exitAmount: entryAmount,
+            fromStock: fromStock,
           },
         });
 

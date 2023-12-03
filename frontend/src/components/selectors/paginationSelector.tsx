@@ -11,7 +11,7 @@ interface PaginationSelectorProps {
 export function PaginationSelector(props: PaginationSelectorProps) {
   return (
     props.pageQuantity > 1 && (
-      <Stack direction="row" spacing={3} align="center" justify={"end"} mt={3}>
+      <Stack direction="row" spacing={3} align="center" justify={"end"}>
         <Button
           colorScheme="green"
           backgroundColor={"erica.green"}
