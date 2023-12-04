@@ -1118,7 +1118,7 @@ export class ProductsService {
 
     if (limit > pageLimit) throw new PageMaxLimitError(pageLimit);
 
-    const where = search
+    const where: any = search
       ? {
           AND: [
             {
@@ -1166,13 +1166,14 @@ export class ProductsService {
           },
         };
 
+    where.confirmed = true
+
     const productsOnContainer =
       await this.prismaService.productsOnContainer.findMany({
         skip: (page - 1) * limit,
         take: limit,
         where: {
           ...where,
-          confirmed: true,
         },
         orderBy: {
           createdAt: orderBy === 'asc' ? 'asc' : 'desc',

@@ -45,7 +45,7 @@ export function Embarques() {
   });
 
   const toast = useToast();
-  const embarquesLimit = 5;
+  const embarquesLimit = 100;
 
   const pageLimit = Math.ceil(embarquesTotal / embarquesLimit);
 
