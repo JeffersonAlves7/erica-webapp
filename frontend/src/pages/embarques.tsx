@@ -45,7 +45,7 @@ export function Embarques() {
   });
 
   const toast = useToast();
-  const embarquesLimit = 100;
+  const embarquesLimit = 5;
 
   const pageLimit = Math.ceil(embarquesTotal / embarquesLimit);
 
@@ -85,8 +85,39 @@ export function Embarques() {
   }
 
   useEffect(() => {
-    handleSearch();
-  }, [importer, status, page]);
+    embarquesService
+      .getEmbarques({
+        container,
+        codeOrEan: code,
+        limit: embarquesLimit,
+        page: 1,
+        importer,
+        status:
+          status === "true" || status === "false"
+            ? status === "true"
+            : undefined
+      })
+      .then((data) => {
+        setEmbarquesData(data.data);
+        setPage(1);
+        setEmbarquesTotal(data.total);
+        return embarquesService.getEmbarquesInfo({
+          importer,
+          code,
+          active: false,
+          status:
+            status === "true" || status === "false"
+              ? status === "true"
+              : undefined
+        });
+      })
+      .then((data) => {
+        setProudctsInfo(data);
+      })
+      .catch((e) => {
+        handleError401(e);
+      });
+  }, [importer, status]);
 
   function handleChangeImporter(event: ChangeEvent<HTMLSelectElement>) {
     setImporter(event.currentTarget.value);
@@ -129,8 +160,39 @@ export function Embarques() {
   }
 
   function handleChangePage(page: number) {
-    if (page <= 0 && page > pageLimit) return;
-    setPage(page);
+    if (page <= 0 || page > pageLimit) return;
+    embarquesService
+      .getEmbarques({
+        container,
+        codeOrEan: code,
+        limit: embarquesLimit,
+        page,
+        importer,
+        status:
+          status === "true" || status === "false"
+            ? status === "true"
+            : undefined
+      })
+      .then((data) => {
+        setEmbarquesData(data.data);
+        setPage(page);
+        setEmbarquesTotal(data.total);
+        return embarquesService.getEmbarquesInfo({
+          importer,
+          code,
+          active: false,
+          status:
+            status === "true" || status === "false"
+              ? status === "true"
+              : undefined
+        });
+      })
+      .then((data) => {
+        setProudctsInfo(data);
+      })
+      .catch((e) => {
+        handleError401(e);
+      });
   }
 
   return (
