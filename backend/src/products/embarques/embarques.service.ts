@@ -161,6 +161,7 @@ export class EmbarquesService {
 
         if (!isEntry) continue;
 
+        // CRIANDO UMA ENTRADA JA QUE ELE JA ESTA EM ESTOQUE
         await prisma.product.update({
           where: {
             id: product.id,
@@ -275,6 +276,87 @@ export class EmbarquesService {
       page,
       data: containers,
       total,
+    };
+  }
+
+  async getEmbarquesInfo(
+{
+    stock,
+    importer,
+    code,
+    active,
+  }: {
+    stock?: Stock;
+    importer?: Importer;
+    code?: string;
+    active?: 'true' | 'false';
+  }){
+    const where = {
+      active: '',
+      code: '',
+      importer: '',
+      stock: '',
+    };
+
+    if (importer) where.importer = `p.importer = '${importer}'`;
+    if (code) where.code = `p.code LIKE '${code}'`;
+
+    if (active === 'true' || active == undefined) {
+      where.active =
+        stock == Stock.GALPAO
+          ? `(p.galpao_quantity + p.galpao_quantity_reserve) <> 0`
+          : stock == Stock.LOJA
+          ? `(p.loja_quantity + p.loja_quantity_reserve) <> 0`
+          : `(p.galpao_quantity + p.galpao_quantity_reserve + p.loja_quantity_reserve + p.loja_quantity) <> 0`;
+    }
+    const whereString = ['', ...Object.values(where)]
+      .filter((v) => v.includes('is_active') || !!v)
+      .join(' AND ');
+
+    console.log({ whereString });
+    let totalQuantityQuery;
+    let productsQuantityQuery;
+
+    productsQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+      SELECT COUNT(*) as total
+      FROM products_on_container AS poc
+      INNER JOIN product AS p ON poc.product_id = p.id
+      WHERE poc.confirmed = false AND ${whereString};
+    `);
+
+    switch (stock) {
+      case Stock.GALPAO:
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT SUM(p.galpao_quantity + p.galpao_quantity_reserve) as total
+          FROM products_on_container AS poc
+          INNER JOIN product AS p ON poc.product_id = p.id
+          WHERE poc.confirmed = false AND ${whereString};
+        `);
+        break;
+      case Stock.LOJA:
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT SUM(p.loja_quantity + p.loja_quantity_reserve) as total
+          FROM products_on_container AS poc
+          INNER JOIN product AS p ON poc.product_id = p.id
+          WHERE poc.confirmed = false AND ${whereString};
+        `);
+        break;
+      default:
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT SUM(p.loja_quantity + p.loja_quantity_reserve + p.galpao_quantity + p.galpao_quantity_reserve) as total
+          FROM products_on_container AS poc
+          INNER JOIN product AS p ON poc.product_id = p.id
+          WHERE poc.confirmed = false AND ${whereString};
+        `);
+        break;
+    }
+
+    const productsQuantity = Number(productsQuantityQuery[0].count);
+    const boxQuantity = Number(totalQuantityQuery[0].total)
+
+    return {
+      productsQuantity,
+      boxQuantity,
     };
   }
 

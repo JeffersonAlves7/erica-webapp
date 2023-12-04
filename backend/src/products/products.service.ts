@@ -37,6 +37,7 @@ import { StockNotFoundError } from 'src/error/stock.errors';
 import { TransactionType } from 'src/types/transaction-type.enum';
 import { Stock } from 'src/types/stock.enum';
 import { ExcelService } from './excel/excel.service';
+import { Importer } from 'src/types/importer.enum';
 
 @Injectable()
 export class ProductsService {
@@ -57,7 +58,7 @@ export class ProductsService {
 
     if (location != undefined) {
       data.lojaLocation = location || '';
-    } 
+    }
 
     const product = await this.prismaService.product.findUnique({
       where: {
@@ -173,50 +174,81 @@ export class ProductsService {
     };
   }
 
-  async getProductsInfo({ stock }: { stock?: Stock }) {
-    const where: any = {};
+  async getProductsInfo({
+    stock,
+    importer,
+    code,
+    active,
+  }: {
+    stock?: Stock;
+    importer?: Importer;
+    code?: string;
+    active?: 'true' | 'false';
+  }) {
+    const where = {
+      active: '',
+      code: '',
+      importer: '',
+      stock: '',
+    };
 
-    if (stock == Stock.LOJA) {
-      where.transactions = {
-        some: {
-          type: TransactionType.TRANSFERENCE,
-          fromStock: Stock.GALPAO,
-          toStock: Stock.LOJA,
-        },
-      };
+    if (importer) where.importer = `importer = '${importer}'`;
+    if (code) where.code = `code LIKE '${code}'`;
+
+    if (active === 'true' || active == undefined) {
+      where.active =
+        stock == Stock.GALPAO
+          ? `(galpao_quantity + galpao_quantity_reserve) <> 0`
+          : stock == Stock.LOJA
+          ? `(loja_quantity + loja_quantity_reserve) <> 0`
+          : `(galpao_quantity + galpao_quantity_reserve + loja_quantity_reserve + loja_quantity) <> 0`;
     }
 
-    var productsQuantity = await this.prismaService.product.count({
-      where: {
-        isActive: true,
-        ...where,
-      },
-    });
+    const whereString = ['is_active = 1', ...Object.values(where)]
+      .filter((v) => v.includes('is_active') || !!v)
+      .join(' AND ');
+    console.log({ whereString });
+    let totalQuantityQuery;
+    let productsQuantityQuery;
 
     switch (stock) {
       case Stock.GALPAO:
-        var totalQuantity = await this.prismaService.$queryRaw`
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
           SELECT SUM(galpao_quantity + galpao_quantity_reserve) as total FROM products 
-          WHERE is_active = 1
-        `;
+          WHERE is_active = 1 AND ${whereString}
+        `);
+
+        productsQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT COUNT(*) as count FROM products WHERE ${whereString}
+        `);
         break;
       case Stock.LOJA:
-        var totalQuantity = await this.prismaService.$queryRaw`
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
           SELECT SUM(loja_quantity + loja_quantity_reserve) as total FROM products 
-          WHERE is_active = 1
-        `;
+          WHERE ${whereString}
+        `);
+
+        productsQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT COUNT(*) as count FROM products WHERE ${whereString}
+        `);
         break;
       default:
-        var totalQuantity = await this.prismaService.$queryRaw`
+        totalQuantityQuery = await this.prismaService.$queryRawUnsafe(`
           SELECT SUM(galpao_quantity + galpao_quantity_reserve + loja_quantity + loja_quantity_reserve) as total FROM products 
-          WHERE is_active = 1
-        `;
+          WHERE ${whereString}
+        `);
+
+        productsQuantityQuery = await this.prismaService.$queryRawUnsafe(`
+          SELECT COUNT(*) as count FROM products WHERE ${whereString}
+        `);
         break;
     }
 
+    const productsQuantity = Number(productsQuantityQuery[0].count);
+
     return {
       productsQuantity,
-      boxQuantity: Number(totalQuantity[0].total),
+      boxQuantity: Number(totalQuantityQuery[0].total),
     };
   }
 

@@ -296,11 +296,14 @@ class ProductService {
     return data;
   }
 
-  async getProductsinfo(stock?: Stock) {
+  async getProductsinfo(params: {
+    stock?: Stock | string;
+    code?: string;
+    active?: boolean;
+    importer?: Importer | string;
+  }) {
     const { data } = await api.get("/products/info", {
-      params: {
-        stock
-      }
+      params
     });
 
     return data;

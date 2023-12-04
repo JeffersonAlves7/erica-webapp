@@ -1,6 +1,7 @@
 import { ArchiveButton } from "@/components/buttons/archiveButton";
 import { CloseButton } from "@/components/buttons/closeButton";
 import { TrashButton } from "@/components/buttons/trashButton";
+import { CustomTable } from "@/components/customTable";
 import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import { ModalConfirm } from "@/components/modalConfirm";
 import { PaginationSelector } from "@/components/selectors/paginationSelector";
@@ -12,11 +13,9 @@ import { ProductTransaction } from "@/types/products.interface";
 import { Stock } from "@/types/stock.enum";
 import { TransactionTypePT } from "@/types/transaction-type.enum";
 import {
-  Box,
   Flex,
   Heading,
   Stack,
-  Table,
   Tbody,
   Td,
   Text,
@@ -53,7 +52,7 @@ export function ProductTransactions() {
   }>();
   const id = parseInt(idString as string);
 
-  const transactionsLimit = 10;
+  const transactionsLimit = 100;
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
 
   function formatTransactions(data: any): any {
@@ -216,9 +215,9 @@ export function ProductTransactions() {
 
   if (!stock) {
     disponivelParaVenda =
-      product.galpaoQuantity +
-      product.lojaQuantity -
-      (product.galpaoQuantityReserve ?? 0 + product?.lojaQuantityReserve);
+      product?.galpaoQuantity ||
+      0 + product?.lojaQuantity ||
+      0 - (product?.galpaoQuantityReserve ?? 0 + product?.lojaQuantityReserve);
   } else if (stock == Stock.GALPAO) {
     disponivelParaVenda =
       product.galpaoQuantity - (product?.galpaoQuantityReserve ?? 0);
@@ -258,32 +257,19 @@ export function ProductTransactions() {
         )}
       </div>
 
-      <Box overflow={"auto"} minH={200}>
-        <Table>
-          <ProductTableHead />
-          <Tbody>
-            {transactions.map((transaction) => (
-              <ProductTableItem
-                transaction={transaction}
-                key={transaction.id}
-                handleDelete={handleDelete}
-              />
-            ))}
-          </Tbody>
-        </Table>
-      </Box>
-      <PaginationSelector
-        page={page}
-        pageQuantity={pageLimit}
-        increasePage={() => {
-          if (page + 1 > pageLimit) return;
-          handleChangePage(page + 1);
-        }}
-        decreasePage={() => {
-          if (page - 1 < 1) return;
-          handleChangePage(page - 1);
-        }}
-      />
+      <CustomTable>
+        <ProductTableHead />
+        <Tbody>
+          {transactions.map((transaction) => (
+            <ProductTableItem
+              transaction={transaction}
+              key={transaction.id}
+              handleDelete={handleDelete}
+            />
+          ))}
+        </Tbody>
+      </CustomTable>
+
       <ModalConfirm
         isOpen={deleteTransactionDisclosure.isOpen}
         onClose={deleteTransactionDisclosure.onClose}
@@ -306,6 +292,19 @@ export function ProductTransactions() {
       >
         Tem certeza que deseja arquivar o produto?
       </ModalConfirm>
+
+      <PaginationSelector
+        page={page}
+        pageQuantity={pageLimit}
+        increasePage={() => {
+          if (page + 1 > pageLimit) return;
+          handleChangePage(page + 1);
+        }}
+        decreasePage={() => {
+          if (page - 1 < 1) return;
+          handleChangePage(page - 1);
+        }}
+      />
     </Stack>
   );
 }

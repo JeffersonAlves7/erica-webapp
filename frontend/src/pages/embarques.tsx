@@ -67,7 +67,11 @@ export function Embarques() {
         setEmbarquesData(data.data);
         setPage(data.page);
         setEmbarquesTotal(data.total);
-        return productService.getProductsinfo();
+        return productService.getProductsinfo({
+          importer,
+          code,
+          active: false,
+        });
       })
       .then((data) => {
         setProudctsInfo(data);

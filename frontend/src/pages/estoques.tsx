@@ -61,7 +61,7 @@ export function Estoques() {
       .then((data) => {
         setItems(data.data);
         setPage(1);
-        return productService.getProductsinfo(stock);
+        return productService.getProductsinfo({stock, active: true, importer});
       })
       .then((data) => {
         setQntDeCaixas(data.boxQuantity);
@@ -72,7 +72,7 @@ export function Estoques() {
       });
   }
 
-  useEffect(() => search(), [importer, code, stock]);
+  useEffect(() => search(), [importer, stock, code]);
 
   function handleChangePage(page: number) {
     setPage(page);
@@ -96,7 +96,6 @@ export function Estoques() {
   function handleSearchPedidos() {
     const codigo = codigoRef.current?.value;
     setCode(codigo);
-    search();
   }
 
   return (
