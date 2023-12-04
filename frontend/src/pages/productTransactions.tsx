@@ -167,7 +167,7 @@ export function ProductTransactions() {
           duration: 3000,
           isClosable: true
         });
-        navigator("/");
+        navigator("/estoques");
       })
       .catch(() => {
         toast({
