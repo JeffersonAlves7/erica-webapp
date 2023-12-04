@@ -670,13 +670,17 @@ export class ProductsService {
           );
 
         if (!product) {
-          product = await prisma.product.create({
-            data: {
-              code,
-              ean: ean?.toString() || '',
-              importer,
-            },
-          });
+          throw new HttpException(
+            `Produyto ${code} nao encontrado na linha ${rowIndex}`,
+            HttpStatus.BAD_REQUEST
+          )
+          // product = await prisma.product.create({
+          //   data: {
+          //     code,
+          //     ean: ean?.toString() || '',
+          //     importer,
+          //   },
+          // });
         }
 
         if (product?.importer !== importer)

@@ -35,6 +35,12 @@ export class EmbarquesController {
   }
 
   @UseGuards(AuthGuard)
+  @Get('info')
+  getEmbarquesInfo(@Query() getEmbarquesInfoDto: Record<string, any>) {
+    return this.embarquesService.getEmbarquesInfo(getEmbarquesInfoDto);
+  }
+
+  @UseGuards(AuthGuard)
   @Get('/conferences/:id')
   getConferences(@Param('id') id: string) {
     return this.embarquesService.getConferences(id);

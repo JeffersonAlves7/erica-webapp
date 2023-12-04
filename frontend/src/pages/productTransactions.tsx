@@ -220,16 +220,16 @@ export function ProductTransactions() {
       0 - (product?.galpaoQuantityReserve ?? 0 + product?.lojaQuantityReserve);
   } else if (stock == Stock.GALPAO) {
     disponivelParaVenda =
-      product.galpaoQuantity - (product?.galpaoQuantityReserve ?? 0);
+      (product?.galpaoQuantity ?? 0) - (product?.galpaoQuantityReserve ?? 0);
   } else {
     disponivelParaVenda =
-      product.lojaQuantity - (product?.lojaQuantityReserve ?? 0);
+      (product?.lojaQuantity ?? 0) - (product?.lojaQuantityReserve ?? 0);
   }
 
   return (
     <Stack h={"full"} gap={5}>
       <Heading>
-        {code} - {product?.description || "Não possuí transações"}
+        {code} - {product?.description || "Não possuí descrição"}
       </Heading>
 
       <Flex gap={4}>

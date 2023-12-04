@@ -26,7 +26,6 @@ import {
 import { format } from "date-fns";
 import { ChangeEvent, useEffect, useState } from "react";
 import { EricaLink } from "@/components/ericaLink";
-import { productService } from "@/services/productService";
 
 export function Embarques() {
   const [importer, setImporter] = useState<Importer | string | undefined>(
@@ -67,10 +66,14 @@ export function Embarques() {
         setEmbarquesData(data.data);
         setPage(data.page);
         setEmbarquesTotal(data.total);
-        return productService.getProductsinfo({
+        return embarquesService.getEmbarquesInfo({
           importer,
           code,
           active: false,
+          status:
+            status === "true" || status === "false"
+              ? status === "true"
+              : undefined
         });
       })
       .then((data) => {
@@ -290,7 +293,7 @@ export function Embarques() {
 
         <Flex align={'center'} gap={10}>
           <span>
-            {productsInfo.productsQuantity} Produto(s) | Total de{" "}
+            {productsInfo.productsQuantity} Embarques(s) | Total de{" "}
             {productsInfo.boxQuantity} caixas.
           </span>
           <PaginationSelector

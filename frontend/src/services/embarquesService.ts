@@ -1,6 +1,7 @@
 import { Pageable } from "@/types/pageable.interface";
 import api from "./api";
 import { Importer } from "@/types/importer.enum";
+import { Stock } from "@/types/stock.enum";
 
 export interface EmbarquesResponse {
   id: number;
@@ -21,7 +22,7 @@ class EmbarquesService {
   async getEmbarques(queryParams: {
     codeOrEan?: string;
     importer?: Importer | string;
-    status?: any;
+    status?: boolean;
     container?: string;
     page: number;
     limit: number;
@@ -41,6 +42,17 @@ class EmbarquesService {
     containerId: string
   ): Promise<EmbarquesResponse[]> {
     const { data } = await api.get("/embarques/conferences/" + containerId);
+    return data;
+  }
+
+  async getEmbarquesInfo(params: {
+    stock?: Stock | string;
+    code?: string;
+    active?: boolean;
+    importer?: Importer | string;
+    status?: boolean,
+  }) {
+    const { data } = await api.get("/embarques/info", { params });
     return data;
   }
 
