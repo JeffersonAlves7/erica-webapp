@@ -648,7 +648,6 @@ export class ProductsService {
         const row = entriesData[index];
         const {
           code,
-          ean,
           container,
           importer: importerName,
           operator,

@@ -4,7 +4,7 @@ import { BsFiletypeXlsx } from "react-icons/bs";
 
 interface ExcelUploadButtonProps {
   withTitle?: boolean;
-  onUpload?: (file: any) => Promise<void>;
+  onUpload?: (file: any) => Promise<void> | void;
 }
 
 export function ExcelUploadButton(props: ExcelUploadButtonProps) {
