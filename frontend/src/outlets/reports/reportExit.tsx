@@ -203,8 +203,11 @@ export function ReportExit() {
               <Td backgroundColor={"erica.green"}>
                 Total de {exitInfo.exitAmount} Saídas
               </Td>
-              <Td roundedBottomRight={"xl"} backgroundColor={"erica.green"}>
+              <Td backgroundColor={"erica.green"}>
                 Total de {exitInfo.devolutionAmount} Devoluções
+              </Td>
+              <Td backgroundColor={"erica.green"} roundedBottomRight={"xl"}>
+                Total de {exitInfo.exitAmount - exitInfo.devolutionAmount} movimentações
               </Td>
             </Tr>
           </Tfoot>
