@@ -1,4 +1,4 @@
-import api, { apiWithoutInterceptor, refreshToken } from "./api";
+import { apiWithoutInterceptor, refreshToken } from "./api";
 import * as ExcelJS from "exceljs";
 
 class ExcelService {
@@ -7,22 +7,30 @@ class ExcelService {
     formData.append("file", file);
 
     try {
-      const response = await api.post("/products/entry/sheet", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await apiWithoutInterceptor.post(
+        "/products/entry/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      });
+      );
 
       return response.data;
     } catch (e: any) {
       if (e.response.status === 401) {
         await refreshToken();
 
-        const response = await api.post("/products/entry/sheet", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
+        const response = await apiWithoutInterceptor.post(
+          "/products/entry/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
           }
-        });
+        );
         return response.data;
       }
 
@@ -35,22 +43,30 @@ class ExcelService {
     formData.append("file", file);
 
     try {
-      const response = await api.post("/products/exit/sheet", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await apiWithoutInterceptor.post(
+        "/products/exit/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      });
+      );
 
       return response.data;
     } catch (e: any) {
       if (e.response.status === 401) {
         await refreshToken();
 
-        const response = await api.post("/products/exit/sheet", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
+        const response = await apiWithoutInterceptor.post(
+          "/products/exit/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
           }
-        });
+        );
         return response.data;
       }
 
@@ -63,7 +79,7 @@ class ExcelService {
     formData.append("file", file);
 
     try {
-      const response = await api.post(
+      const response = await apiWithoutInterceptor.post(
         "/products/transference/sheet",
         formData,
         {
@@ -78,7 +94,7 @@ class ExcelService {
       if (e.response.status === 401) {
         await refreshToken();
 
-        const response = await api.post(
+        const response = await apiWithoutInterceptor.post(
           "/products/transference/sheet",
           formData,
           {
@@ -100,18 +116,22 @@ class ExcelService {
     formData.append("file", file);
 
     try {
-      const response = await api.post("/products/devolution/sheet", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await apiWithoutInterceptor.post(
+        "/products/devolution/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      });
+      );
 
       return response.data;
     } catch (e: any) {
       if (e.response.status === 401) {
         await refreshToken();
 
-        const response = await api.post(
+        const response = await apiWithoutInterceptor.post(
           "/products/devolution/sheet",
           formData,
           {
@@ -132,22 +152,30 @@ class ExcelService {
     formData.append("file", file);
 
     try {
-      const response = await api.post("/reserves/sheet", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data"
+      const response = await apiWithoutInterceptor.post(
+        "/reserves/sheet",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data"
+          }
         }
-      });
+      );
 
       return response.data;
     } catch (e: any) {
       if (e.response.status === 401) {
         await refreshToken();
 
-        const response = await api.post("/reserves/sheet", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data"
+        const response = await apiWithoutInterceptor.post(
+          "/reserves/sheet",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data"
+            }
           }
-        });
+        );
         return response.data;
       }
 
