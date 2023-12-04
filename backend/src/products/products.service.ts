@@ -207,7 +207,6 @@ export class ProductsService {
     const whereString = ['is_active = 1', ...Object.values(where)]
       .filter((v) => v.includes('is_active') || !!v)
       .join(' AND ');
-    console.log({ whereString });
     let totalQuantityQuery;
     let productsQuantityQuery;
 

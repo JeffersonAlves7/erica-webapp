@@ -226,8 +226,6 @@ export function ProductTransactions() {
       product.lojaQuantity - (product?.lojaQuantityReserve ?? 0);
   }
 
-  console.log({ product });
-
   return (
     <Stack h={"full"} gap={5}>
       <Heading>

@@ -69,8 +69,6 @@ export class ExcelService {
       const observation = row.at(6);
 
       if (!quantity || typeof quantity !== 'number') {
-        console.log(row);
-
         throw new HttpException(
           `Quantidade não encontrada na linha ${rowIndex}`,
           HttpStatus.BAD_REQUEST,
@@ -201,8 +199,6 @@ export class ExcelService {
       const observation = row.at(7);
 
       const codeOrEan = code ? code : ean;
-      console.log(codeOrEan);
-
       if (!quantity || typeof quantity !== 'number')
         throw new HttpException(
           `Quantidade não encontrada na linha ${rowIndex}`,

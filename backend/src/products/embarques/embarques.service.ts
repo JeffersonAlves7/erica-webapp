@@ -313,7 +313,6 @@ export class EmbarquesService {
       .filter((v) => v.includes('is_active') || !!v)
       .join(' AND ');
 
-    console.log({ whereString });
     let totalQuantityQuery;
     let productsQuantityQuery;
 
