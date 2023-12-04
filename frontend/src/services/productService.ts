@@ -81,6 +81,11 @@ class ProductService {
     return response.data as Pageable<any>;
   }
 
+  async getProductById(id: string) {
+    const response = await api.get(`/products/info/${id}`);
+    return response.data as any;
+  }
+
   async updateStock({
     id,
     observation

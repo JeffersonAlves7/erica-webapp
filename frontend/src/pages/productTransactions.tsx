@@ -56,7 +56,7 @@ export function ProductTransactions() {
   const pageLimit = Math.ceil(pageQuantity / transactionsLimit);
 
   function formatTransactions(data: any): any {
-    return data.map((transaction: any, index: number) => ({
+    return data.map((transaction: any) => ({
       id: transaction.id,
       code: transaction.product.code,
       entryAmount: transaction.entryAmount,
@@ -67,10 +67,20 @@ export function ProductTransactions() {
       client: transaction.client,
       operator: transaction.operator,
       createdAt: transaction.createdAt,
-      observation: transaction.observation,
-      product: index == 0 ? transaction.product : undefined
+      observation: transaction.observation
     }));
   }
+
+  useEffect(() => {
+    productService
+      .getProductById(idString as string)
+      .then((response) => {
+        setProduct(response);
+      })
+      .catch((e) => {
+        handleError401(e);
+      });
+  }, []);
 
   useEffect(() => {
     transactionService
@@ -83,7 +93,6 @@ export function ProductTransactions() {
       })
       .then((response) => {
         const transactions = formatTransactions(response.data);
-        setProduct(transactions[0]?.product);
         setPage(page);
         setPageQuantity(response.total);
         setTransactions(transactions);
@@ -104,7 +113,6 @@ export function ProductTransactions() {
       })
       .then((response) => {
         const transactions = formatTransactions(response.data);
-        setProduct(transactions[0]?.product);
         setPage(page);
         setPageQuantity(response.total);
         setTransactions(transactions);
@@ -225,6 +233,8 @@ export function ProductTransactions() {
     disponivelParaVenda =
       (product?.lojaQuantity ?? 0) - (product?.lojaQuantityReserve ?? 0);
   }
+
+  console.log({product});
 
   return (
     <Stack h={"full"} gap={5}>

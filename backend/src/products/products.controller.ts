@@ -68,6 +68,13 @@ export class ProductsController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('info/:id')
+  getProduct(@Param('id') id: string) {
+    return this.productsService.getProductById(id);
+  }
+
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Patch('archive/:id')
   archiveProduct(@Param('id') id: string) {

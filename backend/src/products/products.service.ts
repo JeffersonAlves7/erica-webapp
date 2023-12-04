@@ -174,6 +174,14 @@ export class ProductsService {
     };
   }
 
+  async getProductById(id: string) {
+    return this.prismaService.product.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+  }
+
   async getProductsInfo({
     stock,
     importer,
@@ -671,8 +679,8 @@ export class ProductsService {
         if (!product) {
           throw new HttpException(
             `Produyto ${code} nao encontrado na linha ${rowIndex}`,
-            HttpStatus.BAD_REQUEST
-          )
+            HttpStatus.BAD_REQUEST,
+          );
           // product = await prisma.product.create({
           //   data: {
           //     code,
@@ -1166,7 +1174,7 @@ export class ProductsService {
           },
         };
 
-    where.confirmed = true
+    where.confirmed = true;
 
     const productsOnContainer =
       await this.prismaService.productsOnContainer.findMany({
