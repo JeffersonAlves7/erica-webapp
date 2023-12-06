@@ -193,7 +193,7 @@ export class ExcelService {
       const code = row.at(1)?.text || row.at(1);
       const quantity = row.at(2);
       let from = row.at(3);
-      const to = row.at(4);
+      let to = row.at(4);
       const location = row.at(5);
       const operator = row.at(6);
       const observation = row.at(7);

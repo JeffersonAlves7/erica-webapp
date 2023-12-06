@@ -72,7 +72,7 @@ export function CriarDevolucao() {
       })
       .catch((err) => {
         handleError401(err);
-        setError(err.message);
+        setError(err?.response?.data?.message || err.message || "Erro inesperado ao criar devolucao");
         setStatus("error");
       });
   }
@@ -88,7 +88,7 @@ export function CriarDevolucao() {
       })
       .catch((err) => {
         handleError401(err);
-        setError(err.message);
+        setError(err?.response?.data?.message || err.message || "Erro inesperado ao importar em massa");
         setStatus("error");
       });
   }
