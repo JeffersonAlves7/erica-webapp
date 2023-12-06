@@ -259,6 +259,25 @@ export class ProductsService {
     };
   }
 
+  async searchProduct(search: string){
+    return this.prismaService.product.findFirst({
+      where: {
+        OR: [
+          {
+            ean: {
+              contains: search
+            }
+          },
+          {
+            code: {
+              contains: search
+            }
+          }
+        ]
+      }
+    })
+  }
+
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
     return this.prismaService.product.findFirst({
       where: {

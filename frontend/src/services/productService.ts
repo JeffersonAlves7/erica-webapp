@@ -313,6 +313,11 @@ class ProductService {
 
     return data;
   }
+
+  async searchProduct(search: string) {
+    const response = await api.get("/products/search/" + search);
+    return response.data;
+  }
 }
 
 export const productService = new ProductService();

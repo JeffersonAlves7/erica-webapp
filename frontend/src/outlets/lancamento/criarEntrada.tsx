@@ -20,12 +20,14 @@ import { QuantityInput } from "@/components/inputs/quantity.input";
 import { ContainerInput } from "@/components/inputs/container.input";
 import { ImporterInput } from "@/components/inputs/importerInput";
 import { excelService } from "@/services/excelService";
+import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 
 export function CriarEntrada() {
   const [error, setError] = useState<string>("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "error" | "success"
   >("idle");
+  const [ean, setEan] = useState<string>("");
 
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
@@ -110,6 +112,18 @@ export function CriarEntrada() {
       });
   }
 
+  function handleSearch() {
+    productService
+      .searchProduct(ean)
+      .then((product) => {
+        if (!product) return;
+        codigoRef.current!.value = product.code as string;
+      })
+      .catch((e) => {
+        handleError401(e);
+      });
+  }
+
   return (
     <Card maxW={"550px"} w={"90vw"}>
       <form onSubmit={handleSubmit}>
@@ -132,10 +146,14 @@ export function CriarEntrada() {
 
             <FormControl>
               <FormLabel>Ean</FormLabel>
-              <Input
+              <InputWithSearch
+                isRequired
+                value={ean}
+                onChange={(e) => setEan(e.target.value)}
                 type="number"
                 placeholder="Optional para criação"
-                ref={eanRef}
+                onSearch={handleSearch}
+                onBlur={handleSearch}
               />
             </FormControl>
 

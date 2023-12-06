@@ -75,6 +75,13 @@ export class ProductsController {
   }
 
   @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('search/:search')
+  searchProduct(@Param('search') search: string) {
+    return this.productsService.searchProduct(search);
+  }
+
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Patch('archive/:id')
   archiveProduct(@Param('id') id: string) {
