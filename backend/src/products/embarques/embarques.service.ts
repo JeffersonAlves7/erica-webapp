@@ -60,6 +60,15 @@ export class EmbarquesService {
           ean,
         } = row;
 
+        const produtoComEanIgual = embarquesData.find(
+          (v) => v.code !== code && v.ean === ean,
+        );
+        if (produtoComEanIgual)
+          throw new HttpException(
+            `Produto ${produtoComEanIgual.code} tem o ean igual ao produto ${code}`,
+            HttpStatus.BAD_REQUEST,
+          );
+
         let product = await this.prismaService.product.findFirst({
           where: {
             code,
