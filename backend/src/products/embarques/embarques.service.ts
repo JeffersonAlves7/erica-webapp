@@ -44,31 +44,6 @@ export class EmbarquesService {
 
   async uploadExcelFile(file: any) {
     const embarquesData = await this.excelService.readEmbarquesFile(file);
-    let productCodes = embarquesData.map((embarque) => embarque.code);
-
-    let productsWithCode = await this.prismaService.product.groupBy({
-      by: ['code'],
-      where: {
-        code: {
-          in: productCodes,
-        },
-      },
-      _count: {
-        code: true,
-      },
-      orderBy: {
-        _count: {
-          code: 'desc', // Ordene pela quantidade de aparições em ordem decrescente
-        },
-      },
-    });
-
-    const selectedProductCodes = productsWithCode.map(
-      (product) => product.code,
-    );
-
-    productCodes = null;
-    productsWithCode = null;
 
     await this.prismaService.$transaction(async (prisma) => {
       for (let index = 0; index < embarquesData.length; index++) {
@@ -85,8 +60,33 @@ export class EmbarquesService {
           ean,
         } = row;
 
-        if (!selectedProductCodes.includes(code)) {
-          var product = await prisma.product.create({
+        let product = await this.prismaService.product.findFirst({
+          where: {
+            code,
+          },
+          select: {
+            id: true,
+            code: true,
+            ean: true,
+          },
+        });
+
+        if (!product) {
+          if (ean) {
+            let productByEan = await this.prismaService.product.findFirst({
+              where: {
+                ean,
+              },
+            });
+
+            if (productByEan)
+              throw new HttpException(
+                `Ja existe um produto com o ean ${ean}, produto de código ${productByEan.code}`,
+                HttpStatus.BAD_REQUEST,
+              );
+          }
+
+          product = await prisma.product.create({
             data: {
               code,
               importer,
@@ -96,16 +96,7 @@ export class EmbarquesService {
             select: {
               id: true,
               code: true,
-            },
-          });
-        } else {
-          var product = await prisma.product.findFirst({
-            where: {
-              code,
-            },
-            select: {
-              id: true,
-              code: true,
+              ean: true,
             },
           });
         }
@@ -279,26 +270,25 @@ export class EmbarquesService {
     };
   }
 
-  async getEmbarquesInfo(
-{
+  async getEmbarquesInfo({
     stock,
     importer,
     code,
     active,
-    status
+    status,
   }: {
     stock?: Stock;
     importer?: Importer;
     code?: string;
     active?: 'true' | 'false';
     status?: 'true' | 'false';
-  }){
+  }) {
     const where = {
       active: '',
       code: '',
       importer: '',
       stock: '',
-      status: ''
+      status: '',
     };
 
     if (importer) where.importer = `p.importer = '${importer}'`;
@@ -319,7 +309,9 @@ export class EmbarquesService {
       where.status = `poc.confirmed = ${status == 'true' ? 1 : 0}`;
     }
 
-    const whereString = Object.values(where).filter((v) => !!v).join(' AND ');
+    const whereString = Object.values(where)
+      .filter((v) => !!v)
+      .join(' AND ');
 
     let totalQuantityQuery;
     let productsQuantityQuery;
@@ -339,7 +331,7 @@ export class EmbarquesService {
     `);
 
     const productsQuantity = Number(productsQuantityQuery[0].total);
-    const boxQuantity = Number(totalQuantityQuery[0].total)
+    const boxQuantity = Number(totalQuantityQuery[0].total);
 
     return {
       productsQuantity,

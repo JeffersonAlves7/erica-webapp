@@ -138,7 +138,6 @@ export function Embarques() {
   async function handleUploadFile(file: File) {
     try {
       await excelService.uploadProductEmbarques(file);
-
       toast({
         title: "Sucesso ao importar os embarques",
         isClosable: true,
@@ -147,9 +146,9 @@ export function Embarques() {
       });
 
       handleSearch();
-    } catch (e) {
+    } catch (e: any) {
       toast({
-        title: "Falha ao importar os embarques",
+        title: e?.response?.data?.message || "Falha ao importar os embarques",
         isClosable: true,
         duration: 3000,
         status: "error"
