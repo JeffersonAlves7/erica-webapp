@@ -77,40 +77,33 @@ export class TransactionsService {
       };
     }
 
-    if (stock) {
-      if (type == TransactionType.TRANSFERENCE && stock) {
-        where.OR = [
-          {
-            fromStock: stock,
-          },
-          {
-            toStock: stock,
-          },
-        ];
-      } else {
-        where.AND = [
-          {
-            OR: [
-              {
-                fromStock: stock,
-              },
-              {
-                toStock: stock,
-              },
-            ],
-          },
-          {
-            OR: [
-              {
-                confirmed: true,
-              },
-              {
-                type: TransactionType.RESERVE,
-              },
-            ],
-          },
-        ];
-      }
+    if (type == TransactionType.TRANSFERENCE) {
+      where.entryAmount = {
+        gt: 0,
+      };
+    } else if (stock) {
+      where.AND = [
+        {
+          OR: [
+            {
+              fromStock: stock,
+            },
+            {
+              toStock: stock,
+            },
+          ],
+        },
+        {
+          OR: [
+            {
+              confirmed: true,
+            },
+            {
+              type: TransactionType.RESERVE,
+            },
+          ],
+        },
+      ];
     }
 
     if (day) {
