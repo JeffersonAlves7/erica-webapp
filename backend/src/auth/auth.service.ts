@@ -6,6 +6,7 @@ import {
   AuthInvalidRefreshTokenError,
   AuthUserNotFoundError,
 } from 'src/error/auth.errors';
+import { compare } from 'src/utils/crypt-utils';
 
 interface Payload {
   sub: string;
@@ -21,12 +22,11 @@ export class AuthService {
 
   async signIn(email: string, pass: string) {
     const user = await this.usersService.findOne(email);
-
     if (!user) throw new AuthUserNotFoundError();
+    if(!user.isActive) throw new UnauthorizedException("Usuário não está ativo, fale com um técnico.")
 
-    if (user?.password !== pass) {
-      throw new UnauthorizedException();
-    }
+    const isPasswordEqual = await compare(pass, user.password);
+    if (isPasswordEqual) throw new UnauthorizedException();
 
     const payload: Payload = { sub: user.id, email: user.email };
 

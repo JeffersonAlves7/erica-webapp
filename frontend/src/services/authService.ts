@@ -25,6 +25,10 @@ class AuthService {
     return api
       .post("/auth/register", { username, email, password })
       .then((response) => {
+        if (response?.data.access_token) {
+          tokenService.updateLocalAccessToken(response.data.access_token);
+          tokenService.updateLocalRefreshToken(response.data.refresh_token);
+        }
         return response.data;
       });
   }

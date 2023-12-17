@@ -1,21 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { encrypt } from 'src/utils/crypt-utils';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
-
   constructor(private prismaService: PrismaService) {}
 
   async findOne(email: string) {
@@ -35,8 +23,13 @@ export class UsersService {
   }
 
   async create(data: { email: string; name: string; password: string }) {
+    const encyptedPassword = await encrypt(data.password);
+
     return this.prismaService.user.create({
-      data,
+      data: {
+        ...data,
+        password: encyptedPassword,
+      },
     });
   }
 }
