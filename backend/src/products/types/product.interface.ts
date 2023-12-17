@@ -16,6 +16,7 @@ export class ProductEntry {
   operator: string;
   observation?: string;
   description?: string;
+  chineseDescription?: string;
   ean?: string;
 }
 

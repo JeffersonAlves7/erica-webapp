@@ -22,6 +22,7 @@ model Product {
   ean         String?
   importer    String
   description String?
+  chineseDescription String?
 
   galpaoQuantity        Int @default(0) @map("galpao_quantity")
   galpaoQuantityReserve Int @default(0) @map("galpao_quantity_reserve")

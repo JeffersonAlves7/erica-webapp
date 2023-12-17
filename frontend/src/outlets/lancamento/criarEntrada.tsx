@@ -1,15 +1,17 @@
 import { Importer } from "@/types/importer.enum";
 import { productService } from "@/services/productService";
 import {
+  Button,
   Card,
   CardBody,
   CardHeader,
+  Flex,
   FormControl,
   FormLabel,
   Grid,
   GridItem,
   Heading,
-  Input,
+  Input
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { handleError401 } from "@/services/api";
@@ -28,6 +30,7 @@ export function CriarEntrada() {
     "idle" | "loading" | "error" | "success"
   >("idle");
   const [ean, setEan] = useState<string>("");
+  const [type, setType] = useState<"create" | "nocreate">("nocreate");
 
   const codigoRef = useRef<HTMLInputElement>(null);
   const quantidadeRef = useRef<HTMLInputElement>(null);
@@ -36,6 +39,7 @@ export function CriarEntrada() {
   const operatorRef = useRef<HTMLSelectElement>(null);
   const importerRef = useRef<HTMLSelectElement>(null);
   const descricaoRef = useRef<HTMLInputElement>(null);
+  const chineseDescriptionRef = useRef<HTMLInputElement>(null);
   const eanRef = useRef<HTMLInputElement>(null);
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -44,24 +48,32 @@ export function CriarEntrada() {
     setError("");
     setStatus("loading");
 
-    const code = codigoRef.current?.value;
-    const quantity = quantidadeRef.current?.value
+    let code,
+      quantity,
+      container,
+      observation,
+      operator,
+      importer,
+      description,
+      chineseDescription,
+      ean;
+
+    code = codigoRef.current?.value;
+    quantity = quantidadeRef.current?.value
       ? parseInt(quantidadeRef.current?.value)
       : 0;
-    const container = containerRef.current?.value;
-    const observation = observacaoRef.current?.value;
-    const operator = operatorRef.current?.value;
-    const importer = importerRef.current?.value as Importer;
-    const description = descricaoRef.current?.value;
-    const ean = eanRef.current?.value;
+    container = containerRef.current?.value;
+    observation = observacaoRef.current?.value;
+    operator = operatorRef.current?.value;
+    importer = importerRef.current?.value as Importer;
 
-    if (
-      !code ||
-      !quantity ||
-      !container ||
-      !importer ||
-      !operator
-    ) {
+    if (type == "create") {
+      description = descricaoRef.current?.value;
+      chineseDescription = chineseDescriptionRef.current?.value;
+      ean = eanRef.current?.value;
+    }
+
+    if (!code || !quantity || !container || !importer || !operator) {
       setError("Preencha todos os campos");
       setStatus("idle");
       return;
@@ -76,18 +88,13 @@ export function CriarEntrada() {
         operator,
         observation,
         description,
+        chineseDescription,
         ean
       })
       .then(() => {
         setStatus("success");
-        codigoRef.current!.value = "";
-        quantidadeRef.current!.value = "";
-        containerRef.current!.value = "";
-        observacaoRef.current!.value = "";
-        operatorRef.current!.value = "";
-        importerRef.current!.value = "";
-        eanRef.current!.value = "";
-        descricaoRef.current!.value = "";
+        document.querySelector("form")?.reset();
+        setEan("");
       })
       .catch((err) => {
         handleError401(err);
@@ -129,8 +136,25 @@ export function CriarEntrada() {
       <form onSubmit={handleSubmit}>
         <CardHeader>
           <Heading size={"md"}>Entrada</Heading>
+          <Flex gap={4} mt={4}>
+            <Button
+              onClick={() => setType("nocreate")}
+              color={type == "nocreate" ? "erica.green" : ""}
+              background={"none"}
+              className=" underline hover:opacity-75 bg-none"
+            >
+              Criar Lançamento
+            </Button>
+            <Button
+              onClick={() => setType("create")}
+              color={type == "create" ? "erica.green" : ""}
+              background={"none"}
+              className=" underline hover:opacity-75 bg-none"
+            >
+              Criar Lançamento e Produto
+            </Button>
+          </Flex>
         </CardHeader>
-
         <CardBody>
           <Grid
             templateColumns={{
@@ -140,22 +164,21 @@ export function CriarEntrada() {
             gap={6}
           >
             <FormControl>
-              <FormLabel>Código</FormLabel>
+              <FormLabel>{type == 'create' ? 'Código' : 'Código ou EAN'}</FormLabel>
               <Input required ref={codigoRef} />
             </FormControl>
-
-            <FormControl>
-              <FormLabel>Ean</FormLabel>
-              <InputWithSearch
-                isRequired
-                value={ean}
-                onChange={(e) => setEan(e.target.value)}
-                type="number"
-                placeholder="Optional para criação"
-                onSearch={handleSearch}
-                onBlur={handleSearch}
-              />
-            </FormControl>
+            {type == "create" && (
+              <FormControl>
+                <FormLabel>Ean</FormLabel>
+                <InputWithSearch
+                  value={ean}
+                  onChange={(e) => setEan(e.target.value)}
+                  type="number"
+                  onSearch={handleSearch}
+                  onBlur={handleSearch}
+                />
+              </FormControl>
+            )}
 
             <QuantityInput ref={quantidadeRef} />
             <ContainerInput ref={containerRef} />
@@ -166,12 +189,23 @@ export function CriarEntrada() {
               <ObservacaoInput ref={observacaoRef} />
             </GridItem>
 
-            <GridItem colSpan={2}>
-              <FormControl>
-                <FormLabel>Descrição</FormLabel>
-                <Input ref={descricaoRef} placeholder="Optional para criação" />
-              </FormControl>
-            </GridItem>
+            {type == "create" && (
+              <>
+                <GridItem colSpan={2}>
+                  <FormControl>
+                    <FormLabel>Descrição</FormLabel>
+                    <Input ref={descricaoRef} required />
+                  </FormControl>
+                </GridItem>
+
+                <GridItem colSpan={2}>
+                  <FormControl>
+                    <FormLabel>Descrição em Chinês</FormLabel>
+                    <Input ref={chineseDescriptionRef} required />
+                  </FormControl>
+                </GridItem>
+              </>
+            )}
           </Grid>
         </CardBody>
 
