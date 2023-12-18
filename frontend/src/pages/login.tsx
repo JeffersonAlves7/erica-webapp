@@ -1,9 +1,11 @@
+import { EricaLink } from "@/components/ericaLink";
 import { authService } from "@/services/authService";
 import {
   Alert,
   AlertTitle,
   Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -88,6 +90,7 @@ export function Login() {
           gap={"2rem"}
         >
           <Heading size={"lg"}>Faça seu Login!</Heading>
+
           <FormControl w={300}>
             <FormLabel>Email</FormLabel>
             <Input
@@ -97,6 +100,7 @@ export function Login() {
               required
             />
           </FormControl>
+
           <FormControl w={300}>
             <FormLabel>Senha</FormLabel>
             <Input
@@ -106,7 +110,8 @@ export function Login() {
               required
             />
           </FormControl>
-          <Stack w={300} align={"flex-end"}>
+
+          <Flex w={300} align={"center"} justify={"space-between"}>
             <Button
               backgroundColor={"#68D293"}
               _hover={{ backgroundColor: "#7BF9AD" }}
@@ -116,7 +121,10 @@ export function Login() {
             >
               Confirmar
             </Button>
-          </Stack>
+
+            <EricaLink to="/register">Faça seu registro</EricaLink>
+          </Flex>
+
           {error ?? (
             <Alert status="error" w={300}>
               <AlertTitle>{error}</AlertTitle>
