@@ -36,14 +36,27 @@ export function Template(props: PropsWithChildren) {
   const location = useLocation();
   const navigator = useNavigate();
 
+  console.log({
+    pathname: location.pathname
+  });
   useEffect(() => {
-    if (location.pathname !== "/" && !isAuthorized) {
+    if (
+      location.pathname !== "/" &&
+      location.pathname !== "/register" &&
+      location.pathname !== "/login" &&
+      !isAuthorized
+    ) {
       if (!tokenService.getLocalRefreshToken()) {
         navigator("/");
       } else {
         setIsAuthorized(true);
       }
-    } else if (location.pathname === "/") setIsAuthorized(false);
+    } else if (
+      location.pathname === "/" ||
+      location.pathname == "/login" ||
+      location.pathname == "/register"
+    )
+      setIsAuthorized(false);
   }, [location]);
 
   if (!isAuthorized) return <>{props.children}</>;

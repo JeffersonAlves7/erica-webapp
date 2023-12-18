@@ -12,6 +12,7 @@ model User {
   email    String @unique
   password String
   name     String
+  isActive Boolean @default(false) @map("is_active")
 
   @@map("users")
 }
@@ -22,6 +23,7 @@ model Product {
   ean         String?
   importer    String
   description String?
+  chineseDescription String?
 
   galpaoQuantity        Int @default(0) @map("galpao_quantity")
   galpaoQuantityReserve Int @default(0) @map("galpao_quantity_reserve")

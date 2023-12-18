@@ -555,6 +555,7 @@ export class ProductsService {
       observation,
       description,
       ean,
+      chineseDescription
     } = productEntry;
 
     const importer = getImporterId(productEntry.importer);
@@ -565,7 +566,7 @@ export class ProductsService {
             code,
           },
           {
-            ean,
+            ean: code
           },
         ],
       },
@@ -584,11 +585,14 @@ export class ProductsService {
           HttpStatus.BAD_REQUEST,
         );
 
-      product = await this.createProduct({
-        code,
-        importer,
-        description,
-        ean,
+      product = await this.prismaService.product.create({
+        data: {
+          code,
+          ean,
+          description,
+          importer,
+          chineseDescription
+        }
       });
     }
 

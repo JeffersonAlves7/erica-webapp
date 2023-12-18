@@ -18,6 +18,7 @@ import { Embarques } from "./pages/embarques";
 import { EmbarqueConferencia } from "./pages/embarqueConferencia";
 import { HistoricoTransferencias } from "./pages/historicoTransferencias";
 import { ItensArquivados } from "./pages/itensArquivados";
+import { Register } from "./pages/register";
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
       <Template>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
           <Route path="/" element={<Login />} />
 

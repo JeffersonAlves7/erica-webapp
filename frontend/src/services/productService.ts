@@ -6,16 +6,6 @@ import { Operator } from "@/types/operator.enum";
 import { ProductsWithStock } from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
-interface ProductEntry {
-  code: string;
-  container: string;
-  quantity: number;
-  importer: Importer;
-  operator: string;
-  observation?: string;
-  description?: string;
-  ean?: string;
-}
 
 interface Product {
   id: number;
@@ -137,7 +127,17 @@ class ProductService {
     return api.patch(`/products/transferences`, params);
   }
 
-  async createEntry(productEntry: ProductEntry): Promise<EntryResponse> {
+  async createEntry(productEntry: {
+    code: string;
+    container: string;
+    quantity: number;
+    importer: Importer;
+    operator: string;
+    observation?: string;
+    description?: string;
+    chineseDescription?: string;
+    ean?: string;
+  }): Promise<EntryResponse> {
     const response = await api.post("/products/entry", productEntry);
     return response.data as EntryResponse;
   }
