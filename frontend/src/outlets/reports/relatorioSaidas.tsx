@@ -36,7 +36,7 @@ interface ExitReport {
   observation: string;
 }
 
-export function ReportExit() {
+export function RelatorioSaida() {
   const [reports, setReports] = useState<ExitReport[]>([]);
   const [page, setPage] = useState(1);
   const [pageQuantity, setPageQuantity] = useState(0);
@@ -141,8 +141,8 @@ export function ReportExit() {
 
   return (
     <Stack w={"full"} maxW={"container.xl"}>
-      <Flex justify={"space-between"} align={"end"} w={"full"}>
-        <Flex align={"end"} gap={5}>
+      <Flex justify={"space-between"} align={"start"} w={"full"}>
+        <Flex align={"start"} gap={5}>
           <Box width={"200px"}>
             <FormControl>
               <FormLabel>Dia</FormLabel>
@@ -207,7 +207,8 @@ export function ReportExit() {
                 Total de {exitInfo.devolutionAmount} Devoluções
               </Td>
               <Td backgroundColor={"erica.green"} roundedBottomRight={"xl"}>
-                Total de {exitInfo.exitAmount - exitInfo.devolutionAmount} movimentações
+                Total de {exitInfo.exitAmount - exitInfo.devolutionAmount}{" "}
+                movimentações
               </Td>
             </Tr>
           </Tfoot>

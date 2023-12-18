@@ -24,7 +24,7 @@ interface StockMinimumReport {
   alertQuantity: number;
 }
 
-export function ReportStockMinimum() {
+export function RelatorioEstoqueMinimo() {
   const [reports, setReports] = useState<StockMinimumReport[]>([]);
   const [page, setPage] = useState(1);
   const [pageQuantity, setTotalReports] = useState(0);
@@ -50,7 +50,11 @@ export function ReportStockMinimum() {
         alertQuantity: Number(container_quantity_received * (percentage / 100)),
         code: product_code,
         entryAmount: container_quantity_received,
-        currentAmount: galpao_quantity + loja_quantity + galpao_quantity_reserve + loja_quantity_reserve
+        currentAmount:
+          galpao_quantity +
+          loja_quantity +
+          galpao_quantity_reserve +
+          loja_quantity_reserve
       })
     );
 
