@@ -280,35 +280,29 @@ export function Embarques() {
             );
 
             const arrivalDate = new Date(embarque.arrivalAt);
-            const diaEsperado = new Date();
             let arrivalMessage =
               embarque.arrivalAt &&
               `Chegou dia ${format(arrivalDate, "dd/MM/yyyy")}`;
 
             if (embarque.arrivalAt) {
-              if (daysToCome < 0)
-                diaEsperado.setDate(diaEsperado.getDate() - daysToCome);
-              else if (daysToCome > 0)
-                diaEsperado.setDate(diaEsperado.getDate() + daysToCome);
-
-              if (arrivalDate.valueOf() < diaEsperado.valueOf()) {
+              if (arrivalDate.valueOf() < dayToCome.valueOf()) {
                 // Verifica se a data real de chegada é anterior à data esperada
                 let atraso = Math.floor(
-                  (diaEsperado.valueOf() -
+                  (dayToCome.valueOf() -
                     new Date(embarque.arrivalAt).valueOf()) /
                     (1000 * 60 * 60 * 24)
                 );
                 arrivalMessage += ` ${atraso} dias adiantado.`;
               }
-              if (arrivalDate.valueOf() > diaEsperado.valueOf()) {
+              if (arrivalDate.valueOf() > dayToCome.valueOf()) {
                 // Verifica se a data real de chegada é posterior à data esperada
-                let atraso = -Math.floor(
+                let atraso = Math.floor(
                   (new Date(embarque.arrivalAt).valueOf() -
-                    diaEsperado.valueOf()) /
+                    dayToCome.valueOf()) /
                     (1000 * 60 * 60 * 24)
                 );
 
-                arrivalMessage += ` ${atraso} dias de atraso.`;
+                arrivalMessage += ` ${atraso} dias atrasado.`;
               }
             }
 
@@ -325,23 +319,25 @@ export function Embarques() {
                 </Td>
                 <Td>{format(dataDeEmbarque, "dd/MM/yyyy")}</Td>
                 <Td>{format(dayToCome, "dd/MM/yyyy")}</Td>
-                {embarque.arrivalAt ? (
-                  <Td>
+                <Td>
+                  {embarque.arrivalAt ? (
                     <p
                       className={
-                        arrivalMessage.includes("atraso")
-                          ? " text-yellow-600"
+                        arrivalMessage.includes("atrasado")
+                          ? "text-red-500"
                           : ""
                       }
                     >
                       {arrivalMessage}
                     </p>
-                  </Td>
-                ) : daysToCome > 0 ? (
-                  <Td className=" text-green-500 font-bold">{daysToCome}</Td>
-                ) : (
-                  <Td className=" text-red-500 font-bold">{daysToCome}</Td>
-                )}
+                  ) : daysToCome > 0 ? (
+                    <p className="text-green-500 font-bold">{daysToCome}</p>
+                  ) : (
+                    <p className=" text-red-500 font-bold">
+                      {Math.abs(daysToCome) + " dias atrasado!"}
+                    </p>
+                  )}
+                </Td>
                 <Td>{embarque.confirmed ? "Em Estoque" : "A Caminho"}</Td>
               </Tr>
             );
@@ -349,10 +345,10 @@ export function Embarques() {
         </Tbody>
       </CustomTable>
 
-      <Flex justify={"space-between"} wrap="wrap" align={'center'}>
+      <Flex justify={"space-between"} wrap="wrap" align={"center"}>
         <ExcelUploadButton onUpload={handleUploadFile} withTitle />
 
-        <Flex align={'center'} gap={10}>
+        <Flex align={"center"} gap={10}>
           <span>
             {productsInfo.productsQuantity} Embarques(s) | Total de{" "}
             {productsInfo.boxQuantity} caixas.
