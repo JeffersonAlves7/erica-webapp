@@ -6,7 +6,6 @@ import { Operator } from "@/types/operator.enum";
 import { ProductsWithStock } from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
-
 interface Product {
   id: number;
   code: string;
