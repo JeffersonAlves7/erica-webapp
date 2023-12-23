@@ -467,6 +467,7 @@ export class ExcelService {
    *     ean: '31298329898',
    *     code: 'BIKE005',
    *     description: 'Descricao de teste bike',
+   *     chineseDescription: '',
    *     quantity: '100',
    *     importer: 'ATTUS',
    *     lote: 'LT-005',
@@ -480,6 +481,7 @@ export class ExcelService {
       ean?: string;
       code: string;
       description: string;
+      chineseDescription: string;
       quantity: number;
       importer: Importer;
       lote: string;
@@ -499,11 +501,12 @@ export class ExcelService {
       const ean = row.at(0);
       const code = row.at(1);
       const description = row.at(2);
-      const quantity = row.at(3);
-      const importer = row.at(4);
-      const lote = row.at(5);
-      const dataDeEmbarque = new Date(row.at(6));
-      const status = row.at(7);
+      const chineseDescription = row.at(3);
+      const quantity = row.at(4);
+      const importer = row.at(5);
+      const lote = row.at(6);
+      const dataDeEmbarque = new Date(row.at(7));
+      const status = row.at(8);
 
       if (!code || typeof code !== 'string')
         throw new HttpException(
@@ -575,6 +578,7 @@ export class ExcelService {
         importer: realImporter,
         lote,
         dataDeEmbarque: correctDate,
+        chineseDescription,
         status,
       });
     });
