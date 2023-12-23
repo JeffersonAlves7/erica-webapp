@@ -15,6 +15,7 @@ interface Product {
   createdAt: Date;
   importer: Importer;
   updatedAt: Date;
+  chineseDescription: string;
 }
 
 interface Container {
