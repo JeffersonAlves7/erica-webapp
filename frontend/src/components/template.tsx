@@ -36,9 +36,6 @@ export function Template(props: PropsWithChildren) {
   const location = useLocation();
   const navigator = useNavigate();
 
-  console.log({
-    pathname: location.pathname
-  });
   useEffect(() => {
     if (
       location.pathname !== "/" &&

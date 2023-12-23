@@ -23,7 +23,10 @@ export class AuthService {
   async signIn(email: string, pass: string) {
     const user = await this.usersService.findOne(email);
     if (!user) throw new AuthUserNotFoundError();
-    if(!user.isActive) throw new UnauthorizedException("Usuário não está ativo, fale com um técnico.")
+    if (!user.isActive)
+      throw new UnauthorizedException(
+        'Usuário não está ativo, fale com um técnico.',
+      );
 
     const isPasswordEqual = await compare(pass, user.password);
     if (isPasswordEqual) throw new UnauthorizedException();
@@ -65,15 +68,10 @@ export class AuthService {
 
   async register(name: string, email: string, password: string) {
     try {
-      const user = await this.usersService.create({ name, email, password });
-      const payload: Payload = { sub: user.id, email: user.email };
-
-      return {
-        access_token: await this.generateAccessToken(payload),
-        refresh_token: await this.generateRefreshToken(payload),
-      };
+      await this.usersService.create({ name, email, password });
+      return true;
     } catch (e) {
-      throw new AuthEmailAlreadyExistsError();
+      throw e;
     }
   }
 

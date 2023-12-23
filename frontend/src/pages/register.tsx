@@ -1,9 +1,11 @@
+import { EricaLink } from "@/components/ericaLink";
 import { authService } from "@/services/authService";
 import {
   Alert,
   AlertTitle,
   Box,
   Button,
+  Flex,
   FormControl,
   FormLabel,
   Heading,
@@ -48,12 +50,15 @@ export function Register() {
 
     try {
       await authService.register(nameValue, emailValue, passValue);
+
       toast({
         title: "Usuário registrado com sucesso!",
         status: "success",
         duration: 3000,
         isClosable: true
       });
+
+      navigator("/");
     } catch (error: any) {
       toast({
         title: "Erro ao logar",
@@ -62,16 +67,16 @@ export function Register() {
         duration: 3000,
         isClosable: true
       });
+
       return;
     }
 
-    navigator("/estoques");
     return;
   }
 
   if (isLogged) {
     navigator("/estoques");
-    return <></>
+    return <></>;
   }
 
   return (
@@ -125,7 +130,9 @@ export function Register() {
             />
           </FormControl>
 
-          <Stack w={300} align={"flex-end"}>
+          <Flex w={300} align={"center"} justify={"space-between"}>
+            <EricaLink to="/login">Faça seu login</EricaLink>
+
             <Button
               backgroundColor={"#68D293"}
               _hover={{ backgroundColor: "#7BF9AD" }}
@@ -135,7 +142,8 @@ export function Register() {
             >
               Confirmar
             </Button>
-          </Stack>
+          </Flex>
+
           {error ?? (
             <Alert status="error" w={300}>
               <AlertTitle>{error}</AlertTitle>
