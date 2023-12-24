@@ -278,4 +278,51 @@ export class ReportsService {
       0,
     );
   }
+
+  async monthlyEntryReport() {
+    const currentDate = new Date();
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12); // Subtrai 11 para obter os últimos 12 meses
+
+    const monthlyReports = [];
+
+    for (
+      let date = twelveMonthsAgo;
+      date <= currentDate;
+      date.setMonth(date.getMonth() + 1)
+    ) {
+      const startDate = new Date(date.getFullYear(), date.getMonth(), 1);
+      const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+
+      const monthlyEntryTransactions =
+        await this.prismaService.transaction.findMany({
+          where: {
+            type: TransactionType.ENTRY,
+            createdAt: {
+              gte: startDate,
+              lte: endDate,
+            },
+          },
+          select: {
+            entryAmount: true,
+            createdAt: true,
+          },
+        });
+
+      // Calcule a soma dos entryAmount para o mês atual
+      const monthlyEntrySum = monthlyEntryTransactions.reduce(
+        (total, transaction) => total + (transaction.entryAmount || 0),
+        0,
+      );
+
+      // Adicione o relatório mensal ao array de relatórios
+      monthlyReports.push({
+        month: date.getMonth() + 1, // month is 0-indexed in JavaScript
+        year: date.getFullYear(),
+        entryAmount: monthlyEntrySum,
+      });
+    }
+
+    return monthlyReports;
+  }
 }

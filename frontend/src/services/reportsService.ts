@@ -8,6 +8,12 @@ export interface InterfaceSalesOfPeriod {
   difference: number;
 }
 
+export interface InterfaceMonthEntryReport {
+  month: number;
+  year: number;
+  entryAmount: number;
+}
+
 class ReportsService {
   async getExitReports({
     page,
@@ -52,6 +58,11 @@ class ReportsService {
   async salesOfPeriod(params: { month: number; year: number }) {
     const response = await api.post("/reports/sales-of-period", params);
     return response.data as InterfaceSalesOfPeriod[];
+  }
+
+  async monthEntryReport() {
+    const response = await api.get("/reports/month-entry-report");
+    return response.data as InterfaceMonthEntryReport[];
   }
 }
 

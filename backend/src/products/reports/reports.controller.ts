@@ -73,7 +73,7 @@ export class ReportsController {
     return this.reportsService.stockMinimumReports({ page, limit, percentage });
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Post('sales-of-period')
   salesOfPeriod(@Body() body: Record<string, number>) {
@@ -81,5 +81,12 @@ export class ReportsController {
       month: body.month,
       year: body.year,
     });
+  }
+
+  // @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('month-entry-report')
+  monthEntryReport() {
+    return this.reportsService.monthlyEntryReport();
   }
 }

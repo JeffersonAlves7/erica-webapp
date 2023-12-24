@@ -1,6 +1,9 @@
-import { ExcelDownloadButton } from "@/components/buttons/excelButtons";
-import { InputWithSearch } from "@/components/inputs/inputWithSearch";
-import { Flex, FormControl, FormLabel, Heading, Stack } from "@chakra-ui/react";
+import { handleError401 } from "@/services/api";
+import {
+  InterfaceMonthEntryReport,
+  reportsService
+} from "@/services/reportsService";
+import { Heading, Stack } from "@chakra-ui/react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,8 +13,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-import { format, startOfMonth, subMonths } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
@@ -28,38 +30,59 @@ export const options = {
   plugins: {
     legend: {
       display: false
-      // position: 'bottom' as const,
     }
-    // title: {
-    // display: false,
-    // text: 'Chart.js Bar Chart',
-    // },
   }
 };
 
-const today = new Date();
-const labels = Array.from({ length: 12 }, (_, index) => {
-  const date = subMonths(today, index);
-  return format(startOfMonth(date), "MMMM yyyy", {
-    locale: ptBR
-  });
-});
+function formatMonthYearLabel(month: number, year: number): string {
+  const months = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro"
+  ];
 
-// for (let i = 0; i < 31; i++, labels.push(i.toString()));
-
-const Obj1 = {
-  label: "",
-  data: labels.map(() => Math.ceil(Math.random() * (85 - 40)) + 40),
-  borderColor: "rgb(150, 140, 140)",
-  backgroundColor: "rgb(150, 140, 140, 0.5)"
-};
-
-const data = {
-  labels,
-  datasets: [Obj1]
-};
+  return `${months[month - 1]} ${year}`;
+}
 
 export function RelatorioVolumeDeCaixas() {
+  const [objects, setObjects] = useState<InterfaceMonthEntryReport[]>([]);
+
+  useEffect(() => {
+    const runFetch = async () => {
+      try {
+        const response = await reportsService.monthEntryReport();
+        setObjects(response);
+      } catch (e) {
+        handleError401(e);
+      }
+    };
+
+    runFetch();
+  }, []);
+
+  const labels = objects.map((o) => formatMonthYearLabel(o.month, o.year));
+
+  const Obj1 = {
+    label: "",
+    data: labels.map((_, index) => objects[index].entryAmount),
+    borderColor: "rgb(150, 140, 140)",
+    backgroundColor: "rgb(150, 140, 140, 0.5)"
+  };
+
+  const data = {
+    labels,
+    datasets: [Obj1]
+  };
+
   return (
     <Stack w={"full"} maxW={"container.xl"}>
       <Heading size={"lg"}>Volume de Caixas | 12 Meses anteriores</Heading>
