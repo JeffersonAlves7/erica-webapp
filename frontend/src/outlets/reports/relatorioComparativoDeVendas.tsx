@@ -62,26 +62,40 @@ const months = [
 ];
 
 function parseData(data: { m: number; y: number }) {
-  return `${months[data.m]} ${data.y}`;
+  return `${months[data.m - 1]} ${data.y}`;
+}
+
+function generateRandomColor() {
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+function generateDatasetObject(data: { m: number; y: number }) {
+  const newDataObject = {
+    label: parseData(data),
+    data: labels.map(() => Math.ceil(Math.random() * (85 - 40)) + 40),
+    borderColor: generateRandomColor(),
+    backgroundColor: generateRandomColor()
+  };
+
+  return newDataObject;
 }
 
 export function RelatorioComparativoDeVendas() {
   const [datas, setDatas] = useState<{ m: number; y: number }[]>([]);
+  const [dataObjects, setDataObjects] = useState<
+    ReturnType<typeof generateDatasetObject>[]
+  >([]);
   const monthRef = useRef<HTMLSelectElement>(null);
   const yearRef = useRef<HTMLInputElement>(null);
 
-  const objects = datas.map((data) => {
-    return {
-      label: parseData(data),
-      data: labels.map(() => Math.ceil(Math.random() * (85 - 40)) + 40),
-      borderColor: "rgb(255, 99, 132)",
-      backgroundColor: "rgba(255, 99, 132, 0.5)"
-    };
-  });
-
   const data = {
     labels,
-    datasets: objects
+    datasets: dataObjects
   };
 
   function handleAddDate() {
@@ -91,17 +105,22 @@ export function RelatorioComparativoDeVendas() {
     if (
       !monthValue ||
       !yearValue ||
-      datas.some((v) => v.m == monthValue && v.y == yearValue)
-    )
+      datas.some((v) => v.m === monthValue && v.y === yearValue)
+    ) {
       return;
+    }
 
-    setDatas((d) => [
-      ...d,
-      {
-        m: monthValue,
-        y: yearValue
-      }
-    ]);
+    const newData = {
+      m: monthValue,
+      y: yearValue
+    };
+
+    // Adiciona o novo mês aos dados
+    setDatas((d) => [...d, newData]);
+
+    // Gera o novo conjunto de dados e atualiza o estado
+    const newDataObject = generateDatasetObject(newData);
+    setDataObjects((prevDataObjects) => [...prevDataObjects, newDataObject]);
   }
 
   return (
@@ -131,7 +150,14 @@ export function RelatorioComparativoDeVendas() {
           Selecionar
         </Button>
 
-        <List display={"flex"} alignItems={"center"} ml={2} pb={2} gap={10}>
+        <List
+          display={"flex"}
+          alignItems={"center"}
+          ml={2}
+          pb={2}
+          gap={10}
+          overflow={"auto"}
+        >
           {datas.map((data, index) => {
             const dataString = parseData(data);
             return (
@@ -142,9 +168,12 @@ export function RelatorioComparativoDeVendas() {
                 <Flex align={"center"} gap={2}>
                   {dataString}{" "}
                   <CloseButton
-                    onClick={() =>
-                      setDatas((datas) => datas.filter((d) => d !== data))
-                    }
+                    onClick={() => {
+                      setDatas((datas) => datas.filter((d) => d !== data));
+                      setDataObjects((objects) =>
+                        objects.filter((object) => object.label != dataString)
+                      );
+                    }}
                     p={2}
                     _hover={{ opacity: 0.7 }}
                   />
