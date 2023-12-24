@@ -185,4 +185,97 @@ export class ReportsService {
       total: totalResult ? Number(totalResult.total) : 0,
     };
   }
+
+  async salesOfPeriod({ month, year }: { month: number; year: number }) {
+    const startDate = new Date(year, month - 1, 1); // month is 0-indexed in JavaScript
+    const endDate = new Date(year, month, 0);
+
+    const exitTransactions = await this.prismaService.transaction.findMany({
+      where: {
+        type: TransactionType.EXIT,
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        id: true,
+        exitAmount: true,
+        createdAt: true,
+      },
+    });
+
+    const devolutionTransactions =
+      await this.prismaService.transaction.findMany({
+        where: {
+          type: TransactionType.DEVOLUTION,
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        select: {
+          id: true,
+          entryAmount: true,
+          createdAt: true,
+        },
+      });
+
+    const exitTransactionsByDay = this.groupTransactionsByDay(exitTransactions);
+    const devolutionTransactionsByDay = this.groupTransactionsByDay(
+      devolutionTransactions,
+    );
+
+    const result = [];
+
+    for (let i = startDate.getDate(); i <= endDate.getDate(); i++) {
+      const currentDate = new Date(year, month - 1, i);
+      const exitAmount = this.sumAmount(
+        // @ts-ignore
+        exitTransactionsByDay[currentDate] || [],
+      );
+      const devolutionAmount = this.sumAmount(
+        // @ts-ignore
+        devolutionTransactionsByDay[currentDate] || [],
+      );
+
+      result.push({
+        date: currentDate,
+        exitAmount,
+        devolutionAmount,
+        difference: exitAmount - devolutionAmount,
+      });
+    }
+
+    return result;
+  }
+
+  private groupTransactionsByDay(transactions: any[]) {
+    return transactions.reduce((acc, transaction) => {
+      const date = new Date(transaction.createdAt);
+      const dayKey = new Date(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate(),
+      );
+
+      // @ts-ignore
+      if (!acc[dayKey]) {
+        // @ts-ignore
+        acc[dayKey] = [];
+      }
+
+      // @ts-ignore
+      acc[dayKey].push(transaction);
+      return acc;
+    }, {});
+  }
+
+  private sumAmount(transactions: any[]) {
+    return transactions.reduce(
+      (total, transaction) =>
+        total + (transaction.exitAmount || transaction.entryAmount || 0),
+      0,
+    );
+  }
 }

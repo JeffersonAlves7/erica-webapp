@@ -1,3 +1,8 @@
+import { handleError401 } from "@/services/api";
+import {
+  InterfaceSalesOfPeriod,
+  reportsService
+} from "@/services/reportsService";
 import {
   Button,
   CloseButton,
@@ -68,16 +73,27 @@ function parseData(data: { m: number; y: number }) {
 function generateRandomColor() {
   const letters = "0123456789ABCDEF";
   let color = "#";
+
   for (let i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
+
   return color;
 }
 
-function generateDatasetObject(data: { m: number; y: number }) {
+function generateDatasetObject(
+  data: { m: number; y: number },
+  objects: InterfaceSalesOfPeriod[]
+) {
+  const objectLength = objects.length;
+
   const newDataObject = {
     label: parseData(data),
-    data: labels.map(() => Math.ceil(Math.random() * (85 - 40)) + 40),
+    data: labels.map((_, index) => {
+      if (index >= objectLength) return 0;
+
+      return objects[index].difference;
+    }),
     borderColor: generateRandomColor(),
     backgroundColor: generateRandomColor()
   };
@@ -115,12 +131,23 @@ export function RelatorioComparativoDeVendas() {
       y: yearValue
     };
 
-    // Adiciona o novo mês aos dados
-    setDatas((d) => [...d, newData]);
+    reportsService
+      .salesOfPeriod({
+        month: newData.m,
+        year: newData.y
+      })
+      .then((objects) => {
+        setDatas((d) => [...d, newData]);
 
-    // Gera o novo conjunto de dados e atualiza o estado
-    const newDataObject = generateDatasetObject(newData);
-    setDataObjects((prevDataObjects) => [...prevDataObjects, newDataObject]);
+        const newDataObject = generateDatasetObject(newData, objects);
+        setDataObjects((prevDataObjects) => [
+          ...prevDataObjects,
+          newDataObject
+        ]);
+      })
+      .catch((e) => {
+        handleError401(e);
+      });
   }
 
   return (

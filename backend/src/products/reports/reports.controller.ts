@@ -1,8 +1,10 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -69,5 +71,15 @@ export class ReportsController {
     if (limit > 100) limit = 100;
 
     return this.reportsService.stockMinimumReports({ page, limit, percentage });
+  }
+
+  // @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('sales-of-period')
+  salesOfPeriod(@Body() body: Record<string, number>) {
+    return this.reportsService.salesOfPeriod({
+      month: body.month,
+      year: body.year,
+    });
   }
 }
