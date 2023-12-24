@@ -259,23 +259,23 @@ export class ProductsService {
     };
   }
 
-  async searchProduct(search: string){
+  async searchProduct(search: string) {
     return this.prismaService.product.findFirst({
       where: {
         OR: [
           {
             ean: {
-              contains: search
-            }
+              contains: search,
+            },
           },
           {
             code: {
-              contains: search
-            }
-          }
-        ]
-      }
-    })
+              contains: search,
+            },
+          },
+        ],
+      },
+    });
   }
 
   private getProductByCodeOrEan(codeOrEan: string): Promise<Product> {
@@ -555,7 +555,7 @@ export class ProductsService {
       observation,
       description,
       ean,
-      chineseDescription
+      chineseDescription,
     } = productEntry;
 
     const importer = getImporterId(productEntry.importer);
@@ -566,7 +566,7 @@ export class ProductsService {
             code,
           },
           {
-            ean: code
+            ean: code,
           },
         ],
       },
@@ -591,8 +591,8 @@ export class ProductsService {
           ean,
           description,
           importer,
-          chineseDescription
-        }
+          chineseDescription,
+        },
       });
     }
 
@@ -1138,6 +1138,86 @@ export class ProductsService {
   }
 
   async getAllEntriesByPage(
+    pageableParams: PageableParams & EntriesFilterParams,
+  ): Promise<Pageable<any>> {
+    const { search, importer, orderBy } = pageableParams;
+    let { page, limit } = pageableParams;
+
+    const pageLimit = 100;
+    if (!limit) limit = 10;
+    if (!page) page = 1;
+    if (limit > pageLimit) throw new PageMaxLimitError(pageLimit);
+
+    const where: any = {};
+
+    if (search) {
+      where.OR = [
+        {
+          code: {
+            contains: search,
+          },
+        },
+        {
+          ean: {
+            contains: search,
+          },
+        },
+        {
+          description: {
+            contains: search,
+          },
+        },
+        {
+          productsOnContainer: {
+            containerId: {
+              contains: search,
+            },
+          },
+        },
+      ];
+    }
+
+    if (importer) {
+      where.importer = getImporterIdOrUndefined(importer);
+    }
+
+    const products = await this.prismaService.product.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where: {
+        ...where,
+      },
+      orderBy: {
+        createdAt: orderBy === 'asc' ? 'asc' : 'desc',
+      },
+      select: {
+        id: true,
+        code: true,
+        importer: true,
+        isActive: true,
+        ean: true,
+        description: true,
+        chineseDescription: true,
+        productsOnContainer: {
+          select: {
+            containerId: true,
+          },
+        },
+      },
+    });
+
+    const total = await this.prismaService.product.count({
+      where,
+    });
+
+    return {
+      page,
+      total: total,
+      data: products,
+    };
+  }
+
+  async getAllEntriesByPageOld(
     pageableParams: PageableParams & EntriesFilterParams,
   ): Promise<Pageable<any>> {
     const { search, importer, orderBy } = pageableParams;

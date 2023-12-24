@@ -3,40 +3,11 @@ import api from "./api";
 import { Importer } from "@/types/importer.enum";
 import { Stock } from "@/types/stock.enum";
 import { Operator } from "@/types/operator.enum";
-import { ProductsWithStock } from "@/types/products.interface";
+import { Product, ProductsWithStock } from "@/types/products.interface";
 import { TransferenceConfirmation } from "@/types/transaction.interface";
 
-interface Product {
-  id: number;
-  code: string;
-  ean: string;
-  description: string;
-  createdAt: Date;
-  importer: Importer;
-  updatedAt: Date;
-  chineseDescription: string;
-}
-
-interface Container {
-  id: string;
-}
-
-interface EntryResponse {
-  id: number;
-  containerId: string;
-  productId: number;
-  container: Container;
-  quantityExpected: number;
-  quantityReceived: number;
-  observation: string;
-  createdAt: Date;
-  product: Product;
-}
-
-interface EntriesFilterParams {
-  importer?: Importer | string;
-  search?: string; // code, ean, description or container
-  orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
+export interface ProductWithEntries extends Product {
+  entries: {id: string}[];
 }
 
 interface ProductsWithStockFilterParams extends PageableParams {
@@ -108,9 +79,13 @@ class ProductService {
     return response.data;
   }
 
-  async getEntries(
-    pageableParams: PageableParams & EntriesFilterParams
-  ): Promise<Pageable<EntryResponse>> {
+  async getProductsWithEntries(
+    pageableParams: PageableParams & {
+      importer?: Importer | string;
+      search?: string; // code, ean, description or container
+      orderBy?: "desc" | "asc"; // createdAt_ASC or createdAt_DESC
+    }
+  ): Promise<Pageable<ProductWithEntries>> {
     const response = await api.get("/products/entries", {
       params: pageableParams
     });
@@ -137,9 +112,9 @@ class ProductService {
     description?: string;
     chineseDescription?: string;
     ean?: string;
-  }): Promise<EntryResponse> {
+  }): Promise<ProductWithEntries> {
     const response = await api.post("/products/entry", productEntry);
-    return response.data as EntryResponse;
+    return response.data as ProductWithEntries;
   }
 
   async createRegister(body: {

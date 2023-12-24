@@ -1,3 +1,5 @@
+import { Importer } from "./importer.enum";
+
 export interface ProductsWithStock {
   id: number;
   sku: string;
@@ -26,4 +28,15 @@ export interface ProductTransaction {
   createdAt: Date;
   observation?: string;
   product?: any;
+}
+
+export interface Product {
+  id: number;
+  code: string;
+  ean: string;
+  description: string;
+  createdAt: Date;
+  importer: Importer;
+  updatedAt: Date;
+  chineseDescription: string;
 }
