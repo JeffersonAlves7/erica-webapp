@@ -68,11 +68,9 @@ export class AuthService {
   async register(name: string, email: string, password: string) {
     try {
       await this.usersService.create({ name, email, password });
-
-      return 'Registro feito com sucesso!';
+      return true;
     } catch (e) {
-      console.log(e);
-      throw new AuthEmailAlreadyExistsError();
+      throw e;
     }
   }
 

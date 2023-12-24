@@ -151,7 +151,7 @@ export function CriarEntrada() {
               background={"none"}
               className=" underline hover:opacity-75 bg-none"
             >
-              Criar Lançamento e Produto
+              Criar Produto
             </Button>
           </Flex>
         </CardHeader>

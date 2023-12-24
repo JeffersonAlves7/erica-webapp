@@ -57,6 +57,8 @@ export function Register() {
         duration: 3000,
         isClosable: true
       });
+
+      navigator("/");
     } catch (error: any) {
       toast({
         title: "Erro ao logar",
@@ -65,15 +67,15 @@ export function Register() {
         duration: 3000,
         isClosable: true
       });
+
       return;
     }
 
-    navigator("/");
     return;
   }
 
   if (isLogged) {
-    navigator("/");
+    navigator("/estoques");
     return <></>;
   }
 
@@ -129,6 +131,8 @@ export function Register() {
           </FormControl>
 
           <Flex w={300} align={"center"} justify={"space-between"}>
+            <EricaLink to="/login">Faça seu login</EricaLink>
+
             <Button
               backgroundColor={"#68D293"}
               _hover={{ backgroundColor: "#7BF9AD" }}
@@ -138,8 +142,6 @@ export function Register() {
             >
               Confirmar
             </Button>
-
-            <EricaLink to="/">Faça seu login</EricaLink>
           </Flex>
 
           {error ?? (

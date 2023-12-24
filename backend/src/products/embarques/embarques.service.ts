@@ -53,6 +53,7 @@ export class EmbarquesService {
           code,
           dataDeEmbarque,
           description,
+          chineseDescription,
           importer,
           lote,
           quantity,
@@ -101,6 +102,7 @@ export class EmbarquesService {
               importer,
               ean,
               description,
+              chineseDescription
             },
             select: {
               id: true,

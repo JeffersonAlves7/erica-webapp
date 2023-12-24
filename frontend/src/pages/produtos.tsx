@@ -21,6 +21,7 @@ interface Product {
   importadora: string;
   codigo: string;
   descricao: string;
+  descricao_em_chines: string
 }
 
 interface ProdutosState {
@@ -123,7 +124,8 @@ export function Produtos() {
             containerNumber: product.container.id,
             importadora: product.product.importer,
             codigo: product.product.code,
-            descricao: product.product.description
+            descricao: product.product.description,
+            descricao_em_chines: product.product.chineseDescription
           };
         });
 
@@ -177,6 +179,7 @@ export function Produtos() {
           onClick={handleImporter}
         />
       </Box>
+
       <Box className="max-h-[55vh]" overflow={"auto"}>
         <Table>
           <Thead>
@@ -185,8 +188,10 @@ export function Produtos() {
               <Th>Importadora</Th>
               <Th>Código</Th>
               <Th>Descrição</Th>
+              <Th>Descrição em Chinês</Th>
             </Tr>
           </Thead>
+
           <Tbody>
             {products.map((product, index) => (
               <Tr key={"product-" + index}>
@@ -198,11 +203,17 @@ export function Produtos() {
                     {product.descricao}
                   </Box>
                 </Td>
+                <Td>
+                  <Box overflow={"auto"} maxH={"70px"}>
+                    {product.descricao_em_chines}
+                  </Box>
+                </Td>
               </Tr>
             ))}
           </Tbody>
         </Table>
       </Box>
+
       <PaginationSelector
         page={page}
         decreasePage={() => {

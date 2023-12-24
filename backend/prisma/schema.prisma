@@ -8,8 +8,8 @@ datasource db {
 }
 
 model User {
-  id       String @id @default(uuid())
-  email    String @unique
+  id       String  @id @default(uuid())
+  email    String  @unique
   password String
   name     String
   isActive Boolean @default(false) @map("is_active")
@@ -18,11 +18,11 @@ model User {
 }
 
 model Product {
-  id          Int     @id @default(autoincrement())
-  code        String
-  ean         String?
-  importer    String
-  description String?
+  id                 Int     @id @default(autoincrement())
+  code               String
+  ean                String?
+  importer           String
+  description        String?
   chineseDescription String?
 
   galpaoQuantity        Int @default(0) @map("galpao_quantity")

@@ -112,6 +112,8 @@ export function Login() {
           </FormControl>
 
           <Flex w={300} align={"center"} justify={"space-between"}>
+            <EricaLink to="/register">Faça seu registro</EricaLink>
+
             <Button
               backgroundColor={"#68D293"}
               _hover={{ backgroundColor: "#7BF9AD" }}
@@ -121,8 +123,6 @@ export function Login() {
             >
               Confirmar
             </Button>
-
-            <EricaLink to="/register">Faça seu registro</EricaLink>
           </Flex>
 
           {error ?? (
