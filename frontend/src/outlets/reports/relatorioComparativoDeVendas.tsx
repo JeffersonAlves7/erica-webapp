@@ -26,7 +26,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Line } from "react-chartjs-2";
 
 ChartJS.register(
@@ -86,12 +86,12 @@ function generateDatasetObject(
   objects: InterfaceSalesOfPeriod[]
 ) {
   const objectLength = objects.length;
+  const dataParsed = parseData(data);
 
   const newDataObject = {
-    label: parseData(data),
+    label: dataParsed,
     data: labels.map((_, index) => {
       if (index >= objectLength) return 0;
-
       return objects[index].difference;
     }),
     borderColor: generateRandomColor(),
@@ -114,6 +114,48 @@ export function RelatorioComparativoDeVendas() {
     datasets: dataObjects
   };
 
+  useEffect(() => {
+    const data = new Date();
+    const currentMonth = data.getMonth() + 1;
+    const currentYear = data.getFullYear();
+
+    const currentData = {
+      m: currentMonth,
+      y: currentYear
+    };
+
+    const previousData = {
+      m: currentMonth === 1 ? 12 : currentMonth - 1,
+      y: currentMonth === 1 ? currentYear - 1 : currentYear
+    };
+
+    const fetchData = async () => {
+      try {
+        const current = await reportsService.salesOfPeriod({
+          month: currentData.m,
+          year: currentData.y
+        });
+
+        const previous = await reportsService.salesOfPeriod({
+          month: previousData.m,
+          year: previousData.y
+        });
+
+        const currentDataObject = generateDatasetObject(currentData, current);
+        const previousDataObject = generateDatasetObject(
+          previousData,
+          previous
+        );
+        setDatas([...datas, currentData, previousData]);
+        setDataObjects([...dataObjects, currentDataObject, previousDataObject]);
+      } catch (e) {
+        handleError401(e);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   function handleAddDate() {
     const monthValue = monthRef.current!.value as unknown as number;
     const yearValue = yearRef.current!.value as unknown as number;
@@ -121,7 +163,7 @@ export function RelatorioComparativoDeVendas() {
     if (
       !monthValue ||
       !yearValue ||
-      datas.some((v) => v.m === monthValue && v.y === yearValue)
+      datas.some((v) => v.m == monthValue && v.y == yearValue)
     ) {
       return;
     }
@@ -184,6 +226,7 @@ export function RelatorioComparativoDeVendas() {
           pb={2}
           gap={10}
           overflow={"auto"}
+          maxW={600}
         >
           {datas.map((data, index) => {
             const dataString = parseData(data);
