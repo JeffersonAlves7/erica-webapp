@@ -29,7 +29,8 @@ export class AuthService {
       );
 
     const isPasswordEqual = await compare(pass, user.password);
-    if (isPasswordEqual) throw new UnauthorizedException();
+    if (isPasswordEqual)
+      throw new UnauthorizedException('Usuario ou senha incorretos');
 
     const payload: Payload = { sub: user.id, email: user.email };
 
