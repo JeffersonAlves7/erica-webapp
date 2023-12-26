@@ -83,10 +83,20 @@ export class ReportsController {
     });
   }
 
-  // @UseGuards(AuthGuard)
+  @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Get('month-entry-report')
   monthEntryReport() {
     return this.reportsService.monthlyEntryReport();
+  }
+
+  // @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('movimentations-stock-report')
+  movimentationsStock(@Body() body: Record<string, number>): Promise<any[]> {
+    return this.reportsService.movimentationsStock({
+      month: body.month,
+      year: body.year,
+    });
   }
 }

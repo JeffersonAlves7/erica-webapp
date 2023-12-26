@@ -7,6 +7,14 @@ interface ExitReportsParams extends PageableParams {
   day: Date;
 }
 
+interface ProductReport {
+  code: string;
+  quantity: number;
+  participation: string;
+  curve: string;
+  stock: number;
+}
+
 @Injectable()
 export class ReportsService {
   constructor(private prismaService: PrismaService) {}
@@ -324,5 +332,122 @@ export class ReportsService {
     }
 
     return monthlyReports;
+  }
+
+  async movimentationsStock({ month, year }: { month: number; year: number }) {
+    const startDate = new Date(year, month - 1, 1); // month is 0-indexed in JavaScript
+    const endDate = new Date(year, month, 0);
+
+    // Consultar transações dentro do período especificado
+    const transactions = await this.prismaService.transaction.findMany({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        productId: true,
+        entryAmount: true,
+      },
+    });
+
+    // Consultar os códigos dos produtos
+    const productCodes = await this.prismaService.product.findMany({
+      where: {
+        id: {
+          in: transactions.map((t) => t.productId),
+        },
+      },
+      select: {
+        id: true,
+        code: true,
+        galpaoQuantity: true,
+        galpaoQuantityReserve: true,
+        lojaQuantity: true,
+        lojaQuantityReserve: true,
+      },
+    });
+
+    // Mapear códigos dos produtos por ID
+    const productCodeMap: Record<
+      number,
+      { code: string; stock: number; participation: number; curve?: string }
+    > = {};
+    productCodes.forEach((product) => {
+      const stock =
+        product.galpaoQuantity +
+        product.galpaoQuantityReserve +
+        product.lojaQuantity +
+        product.lojaQuantityReserve;
+
+      productCodeMap[product.id] = {
+        code: product.code,
+        stock,
+        participation: 0, // Inicializar participação
+      };
+    });
+
+    // Calcular a quantidade total de cada produto
+    const productQuantities = transactions.reduce(
+      (acc, transaction) => {
+        const productId = transaction.productId;
+        const entryAmount = transaction.entryAmount || 0;
+
+        if (!acc[productId]) {
+          acc[productId] = 0;
+        }
+
+        acc[productId] += entryAmount;
+
+        return acc;
+      },
+      {} as Record<number, number>,
+    );
+
+    const sortedProducts = Object.keys(productQuantities).sort(
+      (a, b) => productQuantities[b] - productQuantities[a],
+    );
+
+    // Calcular a quantidade total
+    const totalQuantity = Object.values(productQuantities).reduce(
+      (total, quantity) => total + quantity,
+      0,
+    );
+
+    // Calcular participação e acumulado para cada produto
+    let cumulativePercentage = 0;
+    sortedProducts.forEach((productId) => {
+      const quantity = productQuantities[productId];
+      // const { stock } = productCodeMap[parseInt(productId)];
+      const participation = (quantity / totalQuantity) * 100;
+
+      cumulativePercentage += participation;
+      productCodeMap[parseInt(productId)].participation = cumulativePercentage;
+
+      if (cumulativePercentage <= 80) {
+        productCodeMap[parseInt(productId)].curve = 'A';
+      } else if (cumulativePercentage <= 95) {
+        productCodeMap[parseInt(productId)].curve = 'B';
+      } else {
+        productCodeMap[parseInt(productId)].curve = 'C';
+      }
+    });
+
+    // Montar os resultados finais para cada produto
+    const productReports: ProductReport[] = sortedProducts.map((productId) => {
+      const { code, stock, participation, curve } =
+        productCodeMap[parseInt(productId)];
+
+      return {
+        code,
+        quantity: productQuantities[productId],
+        participation: participation.toFixed(2) + '%',
+        curve,
+        stock,
+      };
+    });
+
+    return productReports;
   }
 }

@@ -1,11 +1,12 @@
 import { ExcelDownloadButton } from "@/components/buttons/excelButtons";
-import { InputWithSearch } from "@/components/inputs/inputWithSearch";
 import {
   Box,
+  Button,
   Flex,
   FormControl,
   FormLabel,
-  Heading,
+  Input,
+  Select,
   Stack,
   Table,
   TableContainer,
@@ -15,21 +16,59 @@ import {
   Thead,
   Tr
 } from "@chakra-ui/react";
+import { useRef } from "react";
+
+const months = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro"
+];
 
 export function RelatorioMovimentacoes() {
+  const monthRef = useRef<HTMLSelectElement>(null);
+  const yearRef = useRef<HTMLInputElement>(null);
+
+  function selectPeriod() {}
+
   function handleDownload() {}
 
   return (
     <Stack w={"full"} maxW={"container.lg"}>
       <Flex justify={"space-between"} align={"start"} w={"full"}>
-        <Flex gap={5} align={"start"}>
+        <Flex align={"flex-end"} gap={6}>
           <FormControl w={"max-content"}>
-            <FormLabel>Data</FormLabel>
-            <InputWithSearch onSearch={() => {}} type="date" maxW={200} />
+            <FormLabel>Mês</FormLabel>
+            <Select placeholder="Selecione o mês" ref={monthRef}>
+              {months.map((month, index) => (
+                <option key={index} value={index + 1}>
+                  {month}
+                </option>
+              ))}
+            </Select>
           </FormControl>
-          <Heading size={"lg"}>Relatório de Movimentações</Heading>
-        </Flex>
 
+          <FormControl w={150}>
+            <FormLabel>Ano</FormLabel>
+            <Input
+              type="number"
+              defaultValue={new Date().getFullYear()}
+              ref={yearRef}
+            />
+          </FormControl>
+
+          <Button background="erica.green" onClick={selectPeriod}>
+            Selecionar
+          </Button>
+        </Flex>
         <ExcelDownloadButton onDownload={handleDownload} />
       </Flex>
 
