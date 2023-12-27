@@ -14,6 +14,14 @@ export interface InterfaceMonthEntryReport {
   entryAmount: number;
 }
 
+export interface InterfaceMovimentationsStockReport {
+  code: string;
+  quantity: number;
+  participation: string;
+  curve: string;
+  stock: number;
+}
+
 class ReportsService {
   async getExitReports({
     page,
@@ -63,6 +71,15 @@ class ReportsService {
   async monthEntryReport() {
     const response = await api.get("/reports/month-entry-report");
     return response.data as InterfaceMonthEntryReport[];
+  }
+
+  async movimentationsStockReport(month: number, year: number) {
+    const response = await api.post("/reports/movimentations-stock-report", {
+      month,
+      year
+    });
+
+    return response.data as InterfaceMovimentationsStockReport[];
   }
 }
 

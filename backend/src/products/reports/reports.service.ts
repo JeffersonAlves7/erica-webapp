@@ -335,7 +335,7 @@ export class ReportsService {
   }
 
   async movimentationsStock({ month, year }: { month: number; year: number }) {
-    const startDate = new Date(year, month - 1, 1); // month is 0-indexed in JavaScript
+    const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
 
     // Consultar transações dentro do período especificado
@@ -405,8 +405,9 @@ export class ReportsService {
       {} as Record<number, number>,
     );
 
+    // Ordenar produtos por quantidade em ordem crescente
     const sortedProducts = Object.keys(productQuantities).sort(
-      (a, b) => productQuantities[b] - productQuantities[a],
+      (a, b) => productQuantities[a] - productQuantities[b],
     );
 
     // Calcular a quantidade total
@@ -419,7 +420,6 @@ export class ReportsService {
     let cumulativePercentage = 0;
     sortedProducts.forEach((productId) => {
       const quantity = productQuantities[productId];
-      // const { stock } = productCodeMap[parseInt(productId)];
       const participation = (quantity / totalQuantity) * 100;
 
       cumulativePercentage += participation;
@@ -433,6 +433,11 @@ export class ReportsService {
         productCodeMap[parseInt(productId)].curve = 'C';
       }
     });
+
+    // Verificar se há apenas um produto e atribuir à Curva A
+    if (sortedProducts.length === 1) {
+      productCodeMap[parseInt(sortedProducts[0])].curve = 'A';
+    }
 
     // Montar os resultados finais para cada produto
     const productReports: ProductReport[] = sortedProducts.map((productId) => {
